@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_17",
+  "package": "com.p1nero.invincible.mixin",
+  "client": [
+    "BattleModeGuiMixin",
+    "ControlEngineAccessor"
+  ],
+  "mixins": [
+    "MainFrameAnimationMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "refmap": "invincible.mixin-refmap.json"
+}
