@@ -1,7 +1,8 @@
 package com.p1nero.invincible.mixin;
 
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
-import com.p1nero.invincible.capability.TimeStampedEvent;
+import com.p1nero.invincible.api.events.TimeStampedEvent;
+import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -10,7 +11,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.types.MainFrameAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +22,12 @@ import java.util.List;
 public class MainFrameAnimationMixin extends StaticAnimation {
     @Inject(method = "tick(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)V", at = @At("HEAD"))
     public void onTick(LivingEntityPatch<?> entityPatch, CallbackInfo ci) {
-        if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
-            serverPlayer.getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
+        if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+            serverPlayerPatch.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
                 AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(this);
                 if (player != null) {
                     if (player.isEnd()) {
-                        invinciblePlayer.clearEvents();
+                        invinciblePlayer.clearTimeEvents();
                         return;
                     }
                     float prevElapsed = player.getPrevElapsedTime();

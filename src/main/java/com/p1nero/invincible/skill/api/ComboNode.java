@@ -1,6 +1,9 @@
 package com.p1nero.invincible.skill.api;
 
-import com.p1nero.invincible.capability.TimeStampedEvent;
+import com.p1nero.invincible.api.events.BlockedEvent;
+import com.p1nero.invincible.api.events.Event;
+import com.p1nero.invincible.api.events.StunEvent;
+import com.p1nero.invincible.api.events.TimeStampedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationProvider;
@@ -13,26 +16,107 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@SuppressWarnings("rawtypes")
 public class ComboNode {
     @NotNull
     protected ComboNode root;
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
     @Nullable
     protected AnimationProvider<?> animation;
+    protected float playSpeed, convertTime;
+    protected boolean notCharge;
     @Nullable
     protected Condition condition;
     protected final List<TimeStampedEvent> events = new ArrayList<>();
+    protected final List<Event> dodgeSuccessEvents = new ArrayList<>();
+    protected final List<Event> hitEvents = new ArrayList<>();
+    protected final List<Event> hurtEvents = new ArrayList<>();
+    protected final List<StunEvent> stunEvents = new ArrayList<>();
+    protected final List<BlockedEvent> blockedEvents = new ArrayList<>();
+
     protected ComboNode() {
         root = this;
     }
 
-    public ComboNode addEvent(TimeStampedEvent event){
+    public ComboNode setNotCharge(boolean notCharge) {
+        this.notCharge = notCharge;
+        return this;
+    }
+
+    public boolean isNotCharge() {
+        return notCharge;
+    }
+
+    public ComboNode setPlaySpeed(float playSpeed) {
+        this.playSpeed = playSpeed;
+        return this;
+    }
+
+    public float getPlaySpeed() {
+        return playSpeed;
+    }
+
+    public ComboNode setConvertTime(float convertTime) {
+        this.convertTime = convertTime;
+        return this;
+    }
+
+    public float getConvertTime() {
+        return convertTime;
+    }
+
+    public ComboNode addTimeEvent(TimeStampedEvent event) {
         events.add(event);
         return this;
     }
 
-    public List<TimeStampedEvent> getEvents() {
+    public ComboNode addDodgeSuccessEvent(Event event) {
+        dodgeSuccessEvents.add(event);
+        return this;
+    }
+
+    public ComboNode addHurtEvent(Event event) {
+        hurtEvents.add(event);
+        return this;
+    }
+
+    public ComboNode addHitEvent(Event event) {
+        hitEvents.add(event);
+        return this;
+    }
+
+    public ComboNode addStunEvent(StunEvent event) {
+        stunEvents.add(event);
+        return this;
+    }
+
+    public ComboNode addBlockedEvent(BlockedEvent event) {
+        blockedEvents.add(event);
+        return this;
+    }
+
+    public List<TimeStampedEvent> getTimeEvents() {
         return events;
+    }
+
+    public List<BlockedEvent> getBlockedEvents() {
+        return blockedEvents;
+    }
+
+    public List<Event> getHitEvents() {
+        return hitEvents;
+    }
+
+    public List<Event> getHurtEvents() {
+        return hurtEvents;
+    }
+
+    public List<StunEvent> getStunEvents() {
+        return stunEvents;
+    }
+
+    public List<Event> getDodgeSuccessEvents() {
+        return dodgeSuccessEvents;
     }
 
     public boolean isRoot() {
@@ -93,7 +177,7 @@ public class ComboNode {
         return this;
     }
 
-    public boolean hasCondition(){
+    public boolean hasCondition() {
         return condition != null;
     }
 

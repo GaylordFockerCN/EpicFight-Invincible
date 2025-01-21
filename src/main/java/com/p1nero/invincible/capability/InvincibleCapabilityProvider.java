@@ -4,6 +4,7 @@ import com.p1nero.invincible.InvincibleMod;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.capabilities.*;
@@ -31,6 +32,10 @@ public class InvincibleCapabilityProvider implements ICapabilityProvider, INBTSe
         }
 
         return this.invinciblePlayer;
+    }
+
+    public static InvinciblePlayer get(Player player){
+        return player.getCapability(INVINCIBLE_PLAYER).orElse(new InvinciblePlayer());
     }
 
     @Override

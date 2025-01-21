@@ -1,8 +1,9 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
-import com.p1nero.invincible.capability.TimeStampedEvent;
+import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.JumpCondition;
+import com.p1nero.invincible.conditions.StackCondition;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
@@ -31,18 +32,22 @@ public class InvincibleSkills {
         //我使用史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.createRoot();
         ComboNode a = ComboNode.createNode(() -> Animations.SWORD_AUTO1)
-                .addEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
+                .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                         serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
                 })))
-                .addEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false));
+                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false));
         ComboNode aa = ComboNode.createNode(() -> Animations.SWORD_AUTO2);
         ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3);
         ComboNode aab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
         ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).setCondition(new JumpCondition());
         ComboNode aaab = ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).setCondition(new JumpCondition());
+        ComboNode b = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1);
+        ComboNode bb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
+        ComboNode bbb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
+        ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).setCondition(new StackCondition(1, 2)).setNotCharge(true);
         a.key1(aa);
         a.key2(ab);
         aa.key1(aaa);
@@ -50,6 +55,10 @@ public class InvincibleSkills {
         aaa.key1(aaaa);
         aaa.key2(aaab);
         root.key1(a);
+        b.key2(bb);
+        bb.key2(bbb);
+        root.key2(b);
+        root.key1_2(a_b);
         COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(false));
 
         //You can also create the tree like this:
@@ -61,9 +70,6 @@ public class InvincibleSkills {
                                 .key2(() -> Animations.LONGSWORD_AUTO3))
                         .key2(() -> Animations.SWORD_AUTO2))
                 .key2(ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1));
-
-        //TODO 数据包注册
-
 
     }
 

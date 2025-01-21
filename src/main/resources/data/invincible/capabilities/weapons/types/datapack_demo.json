@@ -1,0 +1,40 @@
+{
+	"category": "sword",
+	"hit_particle": "epicfight:entity.hit.blunt",
+	"hit_sound": "epicfight:entity.hit.blunt",
+	"swing_sound": "epicfight:entity.weapon.whoosh_hard",
+	"styles":
+	{
+		"default": "two_hand"
+	},
+	"collider":
+    {
+        "number": 3,
+        "center": [0.0, 0.0, -0.75],
+        "size": [0.4, 0.4, 0.8]
+    },
+    "combos":
+    {
+    	"two_hand":
+    	[
+			"epicfight:biped/combat/sword_dash"
+    	],
+    	"mount":
+    	[
+    		"epicfight:biped/combat/sword_mount_attack"
+    	]
+    },
+    "innate_skills":
+    {
+    	"two_hand": "invincible:datapack_demo"
+    },
+    "livingmotion_modifier": {
+    	"two_hand":
+    	{
+    		"block": "epicfight:biped/skill/guard_sword",
+			"idle": "epicfight:biped/living/hold_longsword",
+    		"walk": "epicfight:biped/living/walk_longsword",
+    		"run": "epicfight:biped/living/run_longsword"
+    	}
+    }
+}

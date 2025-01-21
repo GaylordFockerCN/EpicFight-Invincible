@@ -1,4 +1,4 @@
-package com.p1nero.invincible.capability;
+package com.p1nero.invincible.api.events;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.level.Level;

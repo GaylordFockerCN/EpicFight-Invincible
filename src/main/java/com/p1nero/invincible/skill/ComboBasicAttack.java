@@ -2,9 +2,8 @@ package com.p1nero.invincible.skill;
 
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
-import com.p1nero.invincible.capability.TimeStampedEvent;
+import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
-import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
@@ -17,11 +16,10 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.StaticAnimationProvider;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.client.CPExecuteSkill;
-import yesman.epicfight.skill.Skill;
-import yesman.epicfight.skill.SkillCategories;
-import yesman.epicfight.skill.SkillCategory;
-import yesman.epicfight.skill.SkillContainer;
+import yesman.epicfight.network.server.SPSkillExecutionFeedback;
+import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
@@ -120,8 +118,8 @@ public class ComboBasicAttack extends Skill {
             //这里涉及到InputEvent的一个奇怪bug，鼠标输入会读两次
             return;
         }
-        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get())) {
-            System.out.println(finalType);
+        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get()) ) {
+            System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + finalType);
         }
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode current = invinciblePlayer.getCurrentNode();
@@ -133,21 +131,45 @@ public class ComboBasicAttack extends Skill {
             ComboNode next = current.getNext(finalType);
             //动画是空的就直接跳过，不是就播放
             if (next != null && (next.getCondition() == null || next.getCondition().predicate(executor))) {
-                invinciblePlayer.clearEvents();
-                for(TimeStampedEvent event : next.getEvents()){
+                invinciblePlayer.clearTimeEvents();
+                for(TimeStampedEvent event : next.getTimeEvents()){
                     event.resetExecuted();
-                    invinciblePlayer.addEvent(event);
+                    invinciblePlayer.addTimeEvent(event);
                 }
-                executor.playAnimationSynchronized(next.getAnimation(), 0.0F);
+                invinciblePlayer.setPlaySpeed(next.getPlaySpeed());
+                invinciblePlayer.setNotCharge(next.isNotCharge());
+                executor.playAnimationSynchronized(next.getAnimation(), next.getConvertTime());
             }
             invinciblePlayer.setCurrentNode(next);
         });
-        super.executeOnServer(executor, args);
+
+        SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
+        EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
     }
 
     @Override
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
+
+        }));
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
+
+        }));
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
+
+        }));
+        //自己写个充能用
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
+            if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
+                if (!container.isFull()) {
+                    float value = container.getResource() + event.getAttackDamage();
+                    if (value > 0.0F) {
+                        this.setConsumptionSynchronize(event.getPlayerPatch(), value);
+                    }
+                }
+            }
+        }));
         //取消原版的普攻和跳攻
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
@@ -181,6 +203,10 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_HURT, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
     }
@@ -190,6 +216,7 @@ public class ComboBasicAttack extends Skill {
      */
     @Override
     public void updateContainer(SkillContainer container) {
+        super.updateContainer(container);
         if (!container.getExecuter().isLogicalClient() && container.getExecuter().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(((ServerPlayer) container.getExecuter().getOriginal()), root);
         }
@@ -197,6 +224,7 @@ public class ComboBasicAttack extends Skill {
 
     public static void resetCombo(ServerPlayer serverPlayer, ComboNode root) {
         serverPlayer.getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> invinciblePlayer.setCurrentNode(root));
+        InvincibleCapabilityProvider.get(serverPlayer).clear();
     }
 
     @Override

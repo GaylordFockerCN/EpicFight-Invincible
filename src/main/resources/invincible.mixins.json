@@ -8,7 +8,9 @@
     "ControlEngineAccessor"
   ],
   "mixins": [
-    "MainFrameAnimationMixin"
+    "AttackAnimationMixin",
+    "MainFrameAnimationMixin",
+    "SkillManagerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

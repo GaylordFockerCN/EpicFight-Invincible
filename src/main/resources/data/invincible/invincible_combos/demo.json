@@ -1,0 +1,140 @@
+{
+  //注释无需删除，本文件名字随意命名，只要下面mod_id和name不重复即可
+  //注册的id，可以随便填，到时候在武器里要填的就是mod_id:name
+  "mod_id": "invincible",
+  "name": "datapack_demo",
+  //下面这俩是技能参数，和skill_parameters里的内容一致。目前仅支持这俩
+  "consumption": 5,
+  "max_stacks": 2,
+  //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/${name}
+  "drawSkillIcon": true,
+  //连段数据
+  "combos": [
+    {
+      //按键编号，备选有KEY_1, KEY_2, KEY_3, KEY_4, KEY_1_2, KEY_1_3, KEY_1_4, KEY_2_3, KEY_2_4, KEY_3_4; KEY_1_2代表KEY_1和KEY_2同时按下
+      //A
+      "key": "KEY_1",
+      "animation": "epicfight:biped/combat/sword_auto1",
+      "play_speed": 0.5,
+      "convert_time": 0.15,
+      "command_list": [
+        {
+          "time": 0.12,
+          "command": "summon minecraft:zombie",
+          "execute_at_target": false
+        },
+        {
+          "time": 0.22,
+          "command": "summon minecraft:skeleton",
+          "execute_at_target": false
+        }
+      ],
+      "combos": [
+        {
+          //AA
+          "key": "KEY_1",
+          "animation": "epicfight:biped/combat/sword_auto2",
+          "combos": [
+            {
+              //AAA
+              "key": "KEY_1",
+              "animation": "epicfight:biped/combat/sword_auto3",
+              "combos": [
+                {
+                  "key": "KEY_1",
+                  "animation": "epicfight:biped/skill/sweeping_edge",
+                  //触发条件，可以有多个，类似坚不可摧。支持使用各个模组的自定义条件
+                  "conditions": [
+                    {
+                      "predicate": "epicfight:within_distance",
+                      "min": 0.0,
+                      "max": 1.0
+                    },
+                    {
+                      "predicate": "invincible:jumping"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              //AAB
+              "key": "KEY_2",
+              "animation": "epicfight:biped/combat/longsword_auto3"
+            }
+          ]
+        },
+        //AB
+        {
+          "key": "KEY_2",
+          "animation": "epicfight:biped/combat/longsword_auto2"
+        }
+      ]
+    },
+    {
+      //B
+      "key": "KEY_2",
+      "animation": "epicfight:biped/combat/longsword_auto1",
+      "combos": [
+        {
+          //BB
+          "key": "KEY_2",
+          "animation": "epicfight:biped/combat/longsword_auto2",
+          "combos": [
+            {
+              //BBB
+              "key": "KEY_2",
+              "animation": "epicfight:biped/combat/step_backward"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      //C
+      "key": "KEY_3",
+      "animation": "epicfight:biped/combat/longsword_dash",
+      "conditions": [
+        {
+          "predicate": "invincible:sprinting"
+          //冲刺状态下才能使用
+        }
+      ],
+      "combos": [
+        {
+          //CC
+          "key": "KEY_3",
+          "animation": "epicfight:biped/combat/tachi_auto1",
+          "combos": [
+            {
+              //CCB
+              "key": "KEY_2",
+              "animation": "epicfight:biped/combat/tachi_auto2"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      //AB
+      "key": "KEY_1_2",
+      "animation": "epicfight:biped/combat/longsword_dash",
+      "not_charge": true,//表示本动画不进行充能
+      "conditions": [
+        {
+          //能量层数判断，满一层才能释放
+          "predicate": "invincible:stack_count",
+          "min": 1.0,
+          "max": 2.0
+        }
+      ],
+      "command_list": [
+        {
+          "time": 0.2,
+          "command": "invincible consumeStack 1",
+          "execute_at_target": false
+        }
+      ]
+    }
+  ]
+}
