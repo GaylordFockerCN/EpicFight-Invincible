@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 public class InvincibleMod {
     public static final String MOD_ID = "invincible";
     public static final Logger LOGGER = LogUtils.getLogger();
+
     public InvincibleMod() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
         InvincibleItems.ITEMS.register(modEventBus);

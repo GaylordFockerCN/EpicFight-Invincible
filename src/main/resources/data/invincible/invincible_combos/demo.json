@@ -15,8 +15,8 @@
       //A
       "key": "KEY_1",
       "animation": "epicfight:biped/combat/sword_auto1",
-      "play_speed": 0.5,
-      "convert_time": 0.15,
+      "play_speed": 1.2, //慎用
+      "convert_time": 0.15, //慎用
       "command_list": [
         {
           "time": 0.12,

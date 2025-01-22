@@ -137,11 +137,15 @@ public class InvinciblePlayer {
         blockEvents.clear();
     }
 
-    public void saveNBTData(CompoundTag tag) {
+    public CompoundTag saveNBTData(CompoundTag tag) {
+        tag.putBoolean("notCharge", notCharge);
+        tag.putFloat("playSpeed", playSpeed);
+        return tag;
     }
 
     public void loadNBTData(CompoundTag tag) {
-
+        notCharge = tag.getBoolean("notCharge");
+        playSpeed = tag.getFloat("playSpeed");
     }
 
     public void copyFrom(InvinciblePlayer old) {
