@@ -1,6 +1,5 @@
 package com.p1nero.invincible.client.events;
 
-import com.google.common.collect.Maps;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
@@ -23,8 +22,6 @@ import java.util.ArrayDeque;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 /**
  * 仅针对四个键的控制，写的一言难尽，能跑就行
@@ -82,7 +79,7 @@ public class InputHandler {
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (localPlayerPatch != null && Minecraft.getInstance().screen == null) {
+        if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
                 check(event.getButton(), event.getAction(), InvincibleKeyMappings.KEY1, InvincibleKeyMappings.KEY2, InvincibleKeyMappings.KEY3, InvincibleKeyMappings.KEY4);
             }
@@ -92,7 +89,7 @@ public class InputHandler {
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (localPlayerPatch != null && Minecraft.getInstance().screen == null) {
+        if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (event.getAction() == 1 && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
                 check(event.getKey(), event.getAction(), InvincibleKeyMappings.KEY1, InvincibleKeyMappings.KEY2, InvincibleKeyMappings.KEY3, InvincibleKeyMappings.KEY4);
             }
