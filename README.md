@@ -28,6 +28,12 @@
 ### _/invincible setConsumption value_ 设置充能值
 ### _/invincible consumeConsumption value_ 消耗充能值
 
+## 目前提供的配置项
+即config/invincible-common.toml
+### _reset_tick_ 重置连段的时间，默认16tick
+### _reserve_tick_ 预存输入时间，仅客户端有效，默认8tick
+### _input_delay_tick_ 输入延迟时间，仅客户端有效，默认4tick
+
 ## 数据包目前支持的参数解释
 如果你会使用indestructible（坚不可摧），那应该能很快上手
 ### "key"：

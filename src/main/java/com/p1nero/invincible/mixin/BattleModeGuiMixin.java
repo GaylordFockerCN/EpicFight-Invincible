@@ -18,17 +18,17 @@ import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerP
 import yesman.epicfight.config.EpicFightOptions;
 import yesman.epicfight.skill.SkillContainer;
 
-@Mixin(value = BattleModeGui.class, remap = false)
+@Mixin(value = BattleModeGui.class)
 public class BattleModeGuiMixin {
 
-    @Shadow public Font font;
+    @Shadow(remap = false) public Font font;
 
-    @Shadow @Final private EpicFightOptions config;
+    @Shadow(remap = false) @Final private EpicFightOptions config;
 
     /**
      * 取消绘制技能图标
      */
-    @Inject(method = "drawWeaponInnateIcon", at = @At(value = "HEAD"), cancellable = true)
+    @Inject(method = "drawWeaponInnateIcon", at = @At(value = "HEAD"), cancellable = true, remap = false)
     private void invincible$modifyTexture(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
         if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack && !comboBasicAttack.shouldDraw(container)){
             ci.cancel();
@@ -38,7 +38,7 @@ public class BattleModeGuiMixin {
     /**
      * 画冷却
      */
-    @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;pushPose()V"))
+    @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
     private void invincible$drawCooldown(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
         int cooldown = InvincibleCapabilityProvider.get(playerPatch.getOriginal()).getCooldown();
         if(cooldown > 0){
