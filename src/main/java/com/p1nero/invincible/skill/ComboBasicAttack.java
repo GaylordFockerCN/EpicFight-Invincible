@@ -5,7 +5,6 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
-import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
@@ -18,8 +17,8 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.StaticAnimationProvider;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
-import yesman.epicfight.network.client.CPExecuteSkill;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
 import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -128,7 +127,12 @@ public class ComboBasicAttack extends Skill {
             }
             ComboNode next = current.getNext(finalType);
             //动画是空的就直接跳过，不是就播放
-            if (next != null && (next.getCondition() == null || next.getCondition().predicate(executor))) {
+            if (next != null) {
+                for(Condition condition : next.getConditions()){
+                    if(!condition.predicate(executor)){
+                        return;
+                    }
+                }
                 invinciblePlayer.clearTimeEvents();
                 for(TimeStampedEvent event : next.getTimeEvents()){
                     event.resetExecuted();

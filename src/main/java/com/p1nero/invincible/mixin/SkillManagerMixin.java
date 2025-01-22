@@ -133,7 +133,7 @@ public abstract class SkillManagerMixin {
 //                CompoundTag tag = ((CompoundTag) ExtraCodecs.JSON.encodeStart(NbtOps.INSTANCE, condition).result().get());
                     CompoundTag tag = TagParser.parseTag(condition.toString());
                     Condition<? extends LivingEntityPatch<?>> predicate = MobPatchReloadListener.deserializeBehaviorPredicate(tag.getString("predicate"), tag);
-                    node.setCondition(predicate);
+                    node.addCondition(predicate);
                 }
             }
 

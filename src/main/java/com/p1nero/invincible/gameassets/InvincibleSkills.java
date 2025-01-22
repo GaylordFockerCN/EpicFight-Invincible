@@ -42,12 +42,12 @@ public class InvincibleSkills {
         ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3);
         ComboNode aab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
-        ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).setCondition(new JumpCondition());
-        ComboNode aaab = ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).setCondition(new JumpCondition());
+        ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).addCondition(new JumpCondition());
+        ComboNode aaab = ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition());
         ComboNode b = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1);
         ComboNode bb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode bbb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
-        ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).setCondition(new StackCondition(1, 2)).setNotCharge(true);
+        ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).addCondition(new StackCondition(1, 2)).setNotCharge(true);
         a.key1(aa);
         a.key2(ab);
         aa.key1(aaa);
@@ -66,7 +66,7 @@ public class InvincibleSkills {
         ComboNode root2 = ComboNode.createRoot()
                 .key1(ComboNode.createNode(() -> Animations.SWORD_AUTO1)
                         .key1(ComboNode.createNode(() -> Animations.SWORD_AUTO2)
-                                .key1(() -> Animations.SWORD_AUTO3).setCondition(new JumpCondition())
+                                .key1(() -> Animations.SWORD_AUTO3).addCondition(new JumpCondition())
                                 .key2(() -> Animations.LONGSWORD_AUTO3))
                         .key2(() -> Animations.SWORD_AUTO2))
                 .key2(ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1));

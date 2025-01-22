@@ -25,8 +25,7 @@ public class ComboNode {
     //自定义阶段
     protected int newPhase;
     protected int cooldown;
-    @Nullable
-    protected Condition condition;
+    protected List<Condition> conditions = new ArrayList<>();
     protected final List<TimeStampedEvent> events = new ArrayList<>();
     protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
     protected final List<BiEvent> hitEvents = new ArrayList<>();
@@ -174,16 +173,17 @@ public class ComboNode {
     }
 
     public boolean hasCondition() {
-        return condition != null;
+        return !conditions.isEmpty();
     }
 
-    public <T extends LivingEntityPatch<?>> ComboNode setCondition(@Nullable Condition<T> condition) {
-        this.condition = condition;
+    public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition) {
+        this.conditions.add(condition);
         return this;
     }
 
-    public @Nullable <T extends LivingEntityPatch<?>> Condition<T> getCondition() {
-        return condition;
+    @NotNull
+    public List<Condition> getConditions() {
+        return conditions;
     }
 
     public ComboNode key1(ComboNode child) {

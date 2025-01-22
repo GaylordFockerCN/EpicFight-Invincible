@@ -166,7 +166,7 @@
         },
         {
           "time": 0.2,
-          "command": "invincible setConsumption 1",
+          "command": "invincible setConsumption 0",
           "execute_at_target": false
         }
       ],
