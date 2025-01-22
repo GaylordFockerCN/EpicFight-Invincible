@@ -4,7 +4,7 @@
 感谢SettingDust，Cyber2049，和dfdyz的指导和帮助
 
 ## 简介
-这是一个方便代码开发者和数据包开发者注册史诗战斗连击数据的支持库，可以很方便地构造新的武器模板，同时像坚不可摧一样支持许多特定功能。
+这是一个方便代码开发者和数据包开发者注册史诗战斗连击数据的支持库，可以很方便地构造新的武器模板。本模组提供了四个按键，你可以对他们进行自由连招组合，每个连段最多支持两个键一起按下。通俗地讲就是，你可以做出ABAB，AABB这样的连招。同时也像坚不可摧一样支持许多特定功能。
 
 ## 代码示例
 原理很简单，就是把武器连段数据作为一个技能存下来，并且替换掉原来的WeaponInnate技能，然后自己写输入处理，然后再发起技能执行请求。输入部分实现了延迟发包和预存输入，支持双键。[输入请求原理](https://github.com/GaylordFockerCN/EpicFight-Invincible/blob/master/src/main/java/com/p1nero/invincible/client/events/InputHandler.java)
