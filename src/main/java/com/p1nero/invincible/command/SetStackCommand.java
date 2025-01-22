@@ -17,7 +17,7 @@ public class SetStackCommand {
                                 .executes((context) -> {
                                     if(context.getSource().getPlayer() != null){
                                         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
-                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).setStack(IntegerArgumentType.getInteger(context, "value"));
+                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill().setStackSynchronize(serverPlayerPatch, IntegerArgumentType.getInteger(context, "value"));
                                     }
                                     return 0;
                                 })
@@ -29,7 +29,30 @@ public class SetStackCommand {
                                     if(context.getSource().getPlayer() != null){
                                         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
                                         SkillContainer weaponInnate = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
-                                        weaponInnate.setStack(Math.max(0, weaponInnate.getStack() - IntegerArgumentType.getInteger(context, "value")));
+                                        weaponInnate.getSkill().setStackSynchronize(serverPlayerPatch, Math.max(0, weaponInnate.getStack() - IntegerArgumentType.getInteger(context, "value")));
+                                    }
+                                    return 0;
+                                })
+                        )
+                )
+                .then(Commands.literal("setConsumption").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
+                        .then(Commands.argument("value", IntegerArgumentType.integer())
+                                .executes((context) -> {
+                                    if(context.getSource().getPlayer() != null){
+                                        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
+                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill().setConsumptionSynchronize(serverPlayerPatch, IntegerArgumentType.getInteger(context, "value"));
+                                    }
+                                    return 0;
+                                })
+                        )
+                )
+                .then(Commands.literal("consumeConsumption").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
+                        .then(Commands.argument("value", IntegerArgumentType.integer())
+                                .executes((context) -> {
+                                    if(context.getSource().getPlayer() != null){
+                                        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
+                                        SkillContainer weaponInnate = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
+                                        weaponInnate.getSkill().setConsumptionSynchronize(serverPlayerPatch, Math.max(0, weaponInnate.getStack() - IntegerArgumentType.getInteger(context, "value")));
                                     }
                                     return 0;
                                 })

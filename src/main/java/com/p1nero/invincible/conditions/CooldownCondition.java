@@ -1,5 +1,6 @@
 package com.p1nero.invincible.conditions;
 
+import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import yesman.epicfight.data.conditions.Condition;
@@ -8,27 +9,23 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.List;
 
-public class StackCondition implements Condition<ServerPlayerPatch> {
+public class CooldownCondition implements Condition<ServerPlayerPatch> {
 
-    private int min, max;
+    private boolean inCooldown;
 
-    public StackCondition(int min, int max){
-        this.min = min;
-        this.max = max;
+    public CooldownCondition(boolean inCooldown){
+        this.inCooldown = inCooldown;
     }
 
-    public StackCondition(){
-        this.min = 1;
-        this.max = 1;
+    public CooldownCondition(){
     }
 
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
-        if (!compoundTag.contains("min") && !compoundTag.contains("max")) {
-            throw new IllegalArgumentException("custom player stack condition error: min or max not specified!");
+        if (!compoundTag.contains("in_cooldown")) {
+            throw new IllegalArgumentException("custom cooldown condition error: in_cooldown not specified!");
         }  else {
-            this.min = compoundTag.getInt("min");
-            this.max = compoundTag.getInt("max");
+            this.inCooldown = compoundTag.getBoolean("in_cooldown");
             return this;
         }
     }
@@ -36,15 +33,13 @@ public class StackCondition implements Condition<ServerPlayerPatch> {
     @Override
     public CompoundTag serializePredicate() {
         CompoundTag tag = new CompoundTag();
-        tag.putInt("min", this.min);
-        tag.putInt("max", this.max);
+        tag.putBoolean("in_cooldown", inCooldown);
         return tag;
     }
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        int stack = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getStack();
-        return stack >= min && stack <= max;
+        return this.inCooldown == InvincibleCapabilityProvider.get(serverPlayerPatch.getOriginal()).getCooldown() > 0;
     }
 
     @Override

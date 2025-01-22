@@ -1,6 +1,7 @@
 package com.p1nero.invincible.skill;
 
 import com.p1nero.invincible.Config;
+import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
@@ -11,7 +12,6 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -71,19 +71,9 @@ public class ComboBasicAttack extends Skill {
     }
 
     /**
-     * 根据输入告诉服务端放不同的技能
+     * 处理客户端的输入信息，原谅我无脑if偷懒
+     * 处理输入位于{@link com.p1nero.invincible.client.events.InputHandler#getExecutionPacket(SkillContainer)}
      */
-    @Override
-    @OnlyIn(Dist.CLIENT)
-    public Object getExecutionPacket(LocalPlayerPatch executor, FriendlyByteBuf args) {
-        CPExecuteSkill packet = new CPExecuteSkill(executor.getSkill(this).getSlotId());
-        packet.getBuffer().writeBoolean(InvincibleKeyMappings.KEY1.isDown());
-        packet.getBuffer().writeBoolean(InvincibleKeyMappings.KEY2.isDown());
-        packet.getBuffer().writeBoolean(InvincibleKeyMappings.KEY3.isDown());
-        packet.getBuffer().writeBoolean(InvincibleKeyMappings.KEY4.isDown());
-        return packet;
-    }
-
     @Override
     public void executeOnServer(ServerPlayerPatch executor, FriendlyByteBuf args) {
         boolean key1 = args.readBoolean();
@@ -123,7 +113,6 @@ public class ComboBasicAttack extends Skill {
         }
         ComboType finalType = type;
         if (finalType == null) {
-            //这里涉及到InputEvent的一个奇怪bug，鼠标输入会读两次
             return;
         }
         if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get()) ) {
@@ -145,8 +134,19 @@ public class ComboBasicAttack extends Skill {
                     event.resetExecuted();
                     invinciblePlayer.addTimeEvent(event);
                 }
+                for(BiEvent event : next.getHurtEvents()){
+                    invinciblePlayer.addHurtEvent(event);
+                }
+                for(BiEvent event : next.getHitEvents()){
+                    invinciblePlayer.addHitSuccessEvent(event);
+                }
+                for(BiEvent event : next.getDodgeSuccessEvents()){
+                    invinciblePlayer.addDodgeSuccessEvent(event);
+                }
                 invinciblePlayer.setPlaySpeed(next.getPlaySpeed());
                 invinciblePlayer.setNotCharge(next.isNotCharge());
+                invinciblePlayer.setPhase(next.getNewPhase());
+                invinciblePlayer.setCooldown(next.getCooldown());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
                 executor.playAnimationSynchronized(next.getAnimation(), next.getConvertTime());
             }
@@ -157,6 +157,7 @@ public class ComboBasicAttack extends Skill {
     }
 
     @Override
+    @OnlyIn(Dist.CLIENT)
     public void executeOnClient(LocalPlayerPatch executor, FriendlyByteBuf args) {
         CompoundTag tag = args.readNbt();
         if(tag != null){
@@ -168,13 +169,14 @@ public class ComboBasicAttack extends Skill {
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-
+            for(BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()){
+                hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            }
         }));
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
-
-        }));
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
-
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
+            for(BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents()){
+                hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            }
         }));
         //自己写个充能用
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
@@ -185,6 +187,9 @@ public class ComboBasicAttack extends Skill {
                         this.setConsumptionSynchronize(event.getPlayerPatch(), value);
                     }
                 }
+            }
+            for(BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents()){
+                hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
         }));
         //取消原版的普攻和跳攻
@@ -221,8 +226,7 @@ public class ComboBasicAttack extends Skill {
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_HURT, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
@@ -237,6 +241,7 @@ public class ComboBasicAttack extends Skill {
         if (!container.getExecuter().isLogicalClient() && container.getExecuter().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
         }
+        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).tick();
     }
 
     public static void resetCombo(ServerPlayerPatch serverPlayerPatch, ComboNode root) {

@@ -6,6 +6,7 @@ import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
@@ -34,8 +35,8 @@ public class InputHandler {
     private static int reserveCounter, delayCounter;
     private static SkillSlot currentSlot;
     private static SkillSlot reservedSkillSlot;
-    private static final Map<KeyMapping, Boolean> KEY_STATE = new HashMap<>();
-    private static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
+    public static final Map<KeyMapping, Boolean> KEY_STATE = new HashMap<>();
+    public static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
 
     static {
         KEY_STATE.put(InvincibleKeyMappings.KEY1, false);
@@ -45,7 +46,8 @@ public class InputHandler {
     }
 
     /**
-     * 用史诗战斗的那套可能会被顶掉
+     * 用史诗战斗的那套可能会被顶掉所以自己写了预存
+     * 同时给了按键输入一点小延迟，方便读取双键
      */
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
@@ -67,10 +69,11 @@ public class InputHandler {
                     clearDelayKey();
                 }
             }
-        };
+        }
+        ;
         if (INPUT_QUEUE.size() > 2) {
             KeyMapping keyMapping = INPUT_QUEUE.poll();
-            if(!INPUT_QUEUE.contains(keyMapping)){
+            if (!INPUT_QUEUE.contains(keyMapping)) {
                 KEY_STATE.put(keyMapping, false);
             }
         }
@@ -79,12 +82,9 @@ public class InputHandler {
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (localPlayerPatch != null) {
+        if (localPlayerPatch != null && Minecraft.getInstance().screen == null) {
             if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-                check(event.getButton(), InvincibleKeyMappings.KEY1, event.getAction());
-                check(event.getButton(), InvincibleKeyMappings.KEY2, event.getAction());
-                check(event.getButton(), InvincibleKeyMappings.KEY3, event.getAction());
-                check(event.getButton(), InvincibleKeyMappings.KEY4, event.getAction());
+                check(event.getButton(), event.getAction(), InvincibleKeyMappings.KEY1, InvincibleKeyMappings.KEY2, InvincibleKeyMappings.KEY3, InvincibleKeyMappings.KEY4);
             }
         }
     }
@@ -92,22 +92,21 @@ public class InputHandler {
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (localPlayerPatch != null) {
+        if (localPlayerPatch != null && Minecraft.getInstance().screen == null) {
             if (event.getAction() == 1 && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-                check(event.getKey(), InvincibleKeyMappings.KEY1, event.getAction());
-                check(event.getKey(), InvincibleKeyMappings.KEY2, event.getAction());
-                check(event.getKey(), InvincibleKeyMappings.KEY3, event.getAction());
-                check(event.getKey(), InvincibleKeyMappings.KEY4, event.getAction());
+                check(event.getKey(), event.getAction(), InvincibleKeyMappings.KEY1, InvincibleKeyMappings.KEY2, InvincibleKeyMappings.KEY3, InvincibleKeyMappings.KEY4);
             }
         }
 
     }
 
-    public static void check(int key, KeyMapping keyMapping, int action) {
-        if (action == 1 && key == keyMapping.getKey().getValue()) {
-            INPUT_QUEUE.add(keyMapping);
-            KEY_STATE.put(keyMapping, true);
-            setDelay(SkillSlots.WEAPON_INNATE);
+    public static void check(int key, int action, KeyMapping... keyMappings) {
+        for (KeyMapping keyMapping : keyMappings) {
+            if (action == 1 && key == keyMapping.getKey().getValue()) {
+                INPUT_QUEUE.add(keyMapping);
+                KEY_STATE.put(keyMapping, true);
+                setDelay(SkillSlots.WEAPON_INNATE);
+            }
         }
     }
 

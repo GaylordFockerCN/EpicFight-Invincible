@@ -1,23 +1,38 @@
 package com.p1nero.invincible.capability;
 
-import com.p1nero.invincible.Config;
+import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.nbt.CompoundTag;
 
 import java.util.ArrayList;
 import java.util.List;
-
 public class InvinciblePlayer {
     private ComboNode currentNode = null;
     private final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
-    private final List<TimeStampedEvent> dodgeSuccessEvents = new ArrayList<>();
-    private final List<TimeStampedEvent> hitSuccessEvents = new ArrayList<>();
-    private final List<TimeStampedEvent> hurtEvents = new ArrayList<>();
-    private final List<TimeStampedEvent> blockEvents = new ArrayList<>();
-    private int dodgeSuccessTimer, hitSuccessTimer, parrySuccessTimer;
+    private final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
+    private final List<BiEvent> hitSuccessEvents = new ArrayList<>();
+    private final List<BiEvent> hurtEvents = new ArrayList<>();
     private float playSpeed;
     private boolean notCharge;
+    private int phase;
+    private int cooldown;
+
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public int getCooldown() {
+        return cooldown;
+    }
+
+    public void setPhase(int phase) {
+        this.phase = phase;
+    }
+
+    public int getPhase() {
+        return phase;
+    }
 
     public void setNotCharge(boolean notCharge) {
         this.notCharge = notCharge;
@@ -35,72 +50,36 @@ public class InvinciblePlayer {
         return playSpeed;
     }
 
-    public void onDodgeSuccess() {
-        dodgeSuccessTimer = Config.EFFECT_TICK.get();
-    }
-
-    public void onHitSuccess() {
-        hitSuccessTimer = Config.EFFECT_TICK.get();
-    }
-
-    public void onParrySuccess() {
-        parrySuccessTimer = Config.EFFECT_TICK.get();
-    }
-
-    public boolean dodgeSuccess() {
-        return dodgeSuccessTimer > 0;
-    }
-
-    public boolean hitSuccess() {
-        return hitSuccessTimer > 0;
-    }
-
-    public boolean parrySuccess() {
-        return parrySuccessTimer > 0;
-    }
-
-    public List<TimeStampedEvent> getEventList() {
+    public List<TimeStampedEvent> getTimeEventList() {
         return timeStampedEvents;
     }
 
-    public List<TimeStampedEvent> getDodgeSuccessEvents() {
+    public List<BiEvent> getDodgeSuccessEvents() {
         return dodgeSuccessEvents;
     }
 
-    public List<TimeStampedEvent> getBlockEvents() {
-        return blockEvents;
-    }
-
-    public List<TimeStampedEvent> getHurtEvents() {
+    public List<BiEvent> getHurtEvents() {
         return hurtEvents;
     }
 
-    public int getHitSuccessTimer() {
-        return hitSuccessTimer;
-    }
-
-    public int getParrySuccessTimer() {
-        return parrySuccessTimer;
+    public List<BiEvent> getHitSuccessEvents() {
+        return hitSuccessEvents;
     }
 
     public boolean addTimeEvent(TimeStampedEvent event) {
         return timeStampedEvents.add(event);
     }
 
-    public boolean addHurtEvent(TimeStampedEvent event) {
+    public boolean addHurtEvent(BiEvent event) {
         return hurtEvents.add(event);
     }
 
-    public boolean addDodgeSuccessEvent(TimeStampedEvent event) {
+    public boolean addDodgeSuccessEvent(BiEvent event) {
         return dodgeSuccessEvents.add(event);
     }
 
-    public boolean addHitSuccessEvent(TimeStampedEvent event) {
+    public boolean addHitSuccessEvent(BiEvent event) {
         return hitSuccessEvents.add(event);
-    }
-
-    public boolean addBlockEvent(TimeStampedEvent event) {
-        return blockEvents.add(event);
     }
 
     public void clearTimeEvents() {
@@ -116,14 +95,8 @@ public class InvinciblePlayer {
     }
 
     public void tick() {
-        if (dodgeSuccessTimer > 0) {
-            dodgeSuccessTimer--;
-        }
-        if (hitSuccessTimer > 0) {
-            hitSuccessTimer--;
-        }
-        if (parrySuccessTimer > 0) {
-            parrySuccessTimer--;
+        if(cooldown > 0){
+            cooldown--;
         }
     }
 
@@ -134,18 +107,19 @@ public class InvinciblePlayer {
         dodgeSuccessEvents.clear();
         hitSuccessEvents.clear();
         hurtEvents.clear();
-        blockEvents.clear();
     }
 
     public CompoundTag saveNBTData(CompoundTag tag) {
         tag.putBoolean("notCharge", notCharge);
         tag.putFloat("playSpeed", playSpeed);
+        tag.putInt("cooldown", cooldown);
         return tag;
     }
 
     public void loadNBTData(CompoundTag tag) {
         notCharge = tag.getBoolean("notCharge");
         playSpeed = tag.getFloat("playSpeed");
+        cooldown = tag.getInt("cooldown");
     }
 
     public void copyFrom(InvinciblePlayer old) {

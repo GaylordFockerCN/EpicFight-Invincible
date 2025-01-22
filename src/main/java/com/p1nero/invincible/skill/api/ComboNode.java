@@ -1,9 +1,6 @@
 package com.p1nero.invincible.skill.api;
 
-import com.p1nero.invincible.api.events.BlockedEvent;
-import com.p1nero.invincible.api.events.Event;
-import com.p1nero.invincible.api.events.StunEvent;
-import com.p1nero.invincible.api.events.TimeStampedEvent;
+import com.p1nero.invincible.api.events.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationProvider;
@@ -25,17 +22,34 @@ public class ComboNode {
     protected AnimationProvider<?> animation;
     protected float playSpeed, convertTime;
     protected boolean notCharge;
+    //自定义阶段
+    protected int newPhase;
+    protected int cooldown;
     @Nullable
     protected Condition condition;
     protected final List<TimeStampedEvent> events = new ArrayList<>();
-    protected final List<Event> dodgeSuccessEvents = new ArrayList<>();
-    protected final List<Event> hitEvents = new ArrayList<>();
-    protected final List<Event> hurtEvents = new ArrayList<>();
-    protected final List<StunEvent> stunEvents = new ArrayList<>();
-    protected final List<BlockedEvent> blockedEvents = new ArrayList<>();
+    protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
+    protected final List<BiEvent> hitEvents = new ArrayList<>();
+    protected final List<BiEvent> hurtEvents = new ArrayList<>();
 
     protected ComboNode() {
         root = this;
+    }
+
+    public void setCooldown(int cooldown) {
+        this.cooldown = cooldown;
+    }
+
+    public int getCooldown() {
+        return cooldown;
+    }
+
+    public void setNewPhase(int newPhase) {
+        this.newPhase = newPhase;
+    }
+
+    public int getNewPhase() {
+        return newPhase;
     }
 
     public ComboNode setNotCharge(boolean notCharge) {
@@ -70,28 +84,18 @@ public class ComboNode {
         return this;
     }
 
-    public ComboNode addDodgeSuccessEvent(Event event) {
+    public ComboNode addDodgeSuccessEvent(BiEvent event) {
         dodgeSuccessEvents.add(event);
         return this;
     }
 
-    public ComboNode addHurtEvent(Event event) {
+    public ComboNode addHurtEvent(BiEvent event) {
         hurtEvents.add(event);
         return this;
     }
 
-    public ComboNode addHitEvent(Event event) {
+    public ComboNode addHitEvent(BiEvent event) {
         hitEvents.add(event);
-        return this;
-    }
-
-    public ComboNode addStunEvent(StunEvent event) {
-        stunEvents.add(event);
-        return this;
-    }
-
-    public ComboNode addBlockedEvent(BlockedEvent event) {
-        blockedEvents.add(event);
         return this;
     }
 
@@ -99,23 +103,15 @@ public class ComboNode {
         return events;
     }
 
-    public List<BlockedEvent> getBlockedEvents() {
-        return blockedEvents;
-    }
-
-    public List<Event> getHitEvents() {
+    public List<BiEvent> getHitEvents() {
         return hitEvents;
     }
 
-    public List<Event> getHurtEvents() {
+    public List<BiEvent> getHurtEvents() {
         return hurtEvents;
     }
 
-    public List<StunEvent> getStunEvents() {
-        return stunEvents;
-    }
-
-    public List<Event> getDodgeSuccessEvents() {
+    public List<BiEvent> getDodgeSuccessEvents() {
         return dodgeSuccessEvents;
     }
 

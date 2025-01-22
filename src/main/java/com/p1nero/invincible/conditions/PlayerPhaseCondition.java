@@ -1,5 +1,6 @@
 package com.p1nero.invincible.conditions;
 
+import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import yesman.epicfight.data.conditions.Condition;
@@ -8,16 +9,16 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.List;
 
-public class StackCondition implements Condition<ServerPlayerPatch> {
+public class PlayerPhaseCondition implements Condition<ServerPlayerPatch> {
 
     private int min, max;
 
-    public StackCondition(int min, int max){
+    public PlayerPhaseCondition(int min, int max){
         this.min = min;
         this.max = max;
     }
 
-    public StackCondition(){
+    public PlayerPhaseCondition(){
         this.min = 1;
         this.max = 1;
     }
@@ -25,7 +26,7 @@ public class StackCondition implements Condition<ServerPlayerPatch> {
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
         if (!compoundTag.contains("min") && !compoundTag.contains("max")) {
-            throw new IllegalArgumentException("custom player stack condition error: min or max not specified!");
+            throw new IllegalArgumentException("custom custom player phase condition error: min or max not specified!");
         }  else {
             this.min = compoundTag.getInt("min");
             this.max = compoundTag.getInt("max");
@@ -43,8 +44,8 @@ public class StackCondition implements Condition<ServerPlayerPatch> {
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        int stack = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getStack();
-        return stack >= min && stack <= max;
+        int phase = InvincibleCapabilityProvider.get(serverPlayerPatch.getOriginal()).getPhase();
+        return phase >= min && phase <= max;
     }
 
     @Override

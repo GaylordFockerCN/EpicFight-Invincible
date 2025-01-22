@@ -3,7 +3,6 @@ package com.p1nero.invincible.mixin;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
-import net.minecraft.server.level.ServerPlayer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -34,7 +33,7 @@ public class MainFrameAnimationMixin extends StaticAnimation {
                     float elapsed = player.getElapsedTime();
 
                     List<Integer> toRemove = new ArrayList<>();
-                    List<TimeStampedEvent> eventList = invinciblePlayer.getEventList();
+                    List<TimeStampedEvent> eventList = invinciblePlayer.getTimeEventList();
                     for (int i = 0; i < eventList.size(); i++) {
                         TimeStampedEvent event = eventList.get(i);
                         if (!entityPatch.getOriginal().isAlive()) {

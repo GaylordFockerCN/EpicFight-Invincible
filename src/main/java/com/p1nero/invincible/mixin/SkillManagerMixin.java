@@ -4,6 +4,7 @@ import com.google.gson.*;
 import com.google.gson.stream.JsonReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
@@ -47,13 +48,16 @@ public abstract class SkillManagerMixin {
             registry.unfreeze();
             InvincibleMod.LOGGER.warn("unfreezing Skill Registry.");
             try {
-                for (Resource resource : FileToIdConverter.json("invincible_combos").listMatchingResources(resourceManager).values()) {
+                for (Resource resource : FileToIdConverter.json("capabilities/weapons/invincible_combos").listMatchingResources(resourceManager).values()) {
                     JsonReader jsonReader = new JsonReader(resource.openAsReader());
-                    jsonReader.setLenient(true);
-                    JsonObject weapon = JsonParser.parseReader(resource.openAsReader()).getAsJsonObject();
+                    jsonReader.setLenient(true);//允许注释
+                    JsonObject weapon = JsonParser.parseReader(jsonReader).getAsJsonObject();
                     String modId = weapon.get("mod_id").getAsString();
                     String name = weapon.get("name").getAsString();
-
+                    //防止读到模板
+                    if (modId.isEmpty()) {
+                        continue;
+                    }
                     boolean drawSkillIcon = false;
                     if (weapon.has("drawSkillIcon")) {
                         drawSkillIcon = weapon.get("drawSkillIcon").getAsBoolean();
@@ -71,10 +75,10 @@ public abstract class SkillManagerMixin {
 
                     ComboBasicAttack skill = new ComboBasicAttack(builder);
                     CompoundTag params = new CompoundTag();
-                    if(weapon.has("consumption")){
+                    if (weapon.has("consumption")) {
                         params.putFloat("consumption", weapon.get("consumption").getAsFloat());
                     }
-                    if(weapon.has("max_stacks")){
+                    if (weapon.has("max_stacks")) {
                         params.putInt("max_stacks", weapon.get("max_stacks").getAsInt());
                     }
                     skill.setParams(params);
@@ -101,20 +105,28 @@ public abstract class SkillManagerMixin {
             String animation = combo.get("animation").getAsString();
             ComboNode node = ComboNode.createNode(() -> AnimationManager.getInstance().byKeyOrThrow(animation));
 
-            if(combo.has("play_speed")){
-                node.setPlaySpeed(combo.get("play_speed").getAsFloat());
+            if (combo.has("speed_multiplier")) {
+                node.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
             }
 
-            if(combo.has("convert_time")){
-                node.setPlaySpeed(combo.get("convert_time").getAsFloat());
+            if (combo.has("convert_time")) {
+                node.setConvertTime(combo.get("convert_time").getAsFloat());
             }
 
-            if(combo.has("not_charge")){
+            if (combo.has("not_charge")) {
                 node.setNotCharge(combo.get("not_charge").getAsBoolean());
             }
 
+            if (combo.has("set_phase")) {
+                node.setNewPhase(combo.get("set_phase").getAsInt());
+            }
+
+            if (combo.has("cooldown")) {
+                node.setCooldown(combo.get("cooldown").getAsInt());
+            }
+
             //获取判断条件
-            if(combo.has("conditions")){
+            if (combo.has("conditions")) {
                 JsonArray conditionList = combo.getAsJsonArray("conditions");
                 for (JsonElement conditionElement : conditionList) {
                     JsonObject condition = conditionElement.getAsJsonObject();
@@ -126,14 +138,41 @@ public abstract class SkillManagerMixin {
             }
 
             //获取命令列表
-            if(combo.has("command_list")){
-                JsonArray commandList = combo.getAsJsonArray("command_list");
+            if (combo.has("time_command_list")) {
+                JsonArray commandList = combo.getAsJsonArray("time_command_list");
                 for (JsonElement commandElement : commandList) {
                     JsonObject command = commandElement.getAsJsonObject();
                     float time = command.get("time").getAsFloat();
                     String commandText = command.get("command").getAsString();
                     boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
                     node.addTimeEvent(TimeStampedEvent.createTimeCommandEvent(time, commandText, executeAtTarget));
+                }
+            }
+            if (combo.has("hit_command_list")) {
+                JsonArray commandList = combo.getAsJsonArray("hit_command_list");
+                for (JsonElement commandElement : commandList) {
+                    JsonObject command = commandElement.getAsJsonObject();
+                    String commandText = command.get("command").getAsString();
+                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                    node.addHitEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                }
+            }
+            if (combo.has("hurt_command_list")) {
+                JsonArray commandList = combo.getAsJsonArray("hurt_command_list");
+                for (JsonElement commandElement : commandList) {
+                    JsonObject command = commandElement.getAsJsonObject();
+                    String commandText = command.get("command").getAsString();
+                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                    node.addHurtEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                }
+            }
+            if (combo.has("dodge_success_command_list")) {
+                JsonArray commandList = combo.getAsJsonArray("dodge_success_command_list");
+                for (JsonElement commandElement : commandList) {
+                    JsonObject command = commandElement.getAsJsonObject();
+                    String commandText = command.get("command").getAsString();
+                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                    node.addDodgeSuccessEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
                 }
             }
 

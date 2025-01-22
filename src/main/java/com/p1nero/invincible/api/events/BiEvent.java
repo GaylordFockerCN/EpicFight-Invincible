@@ -15,7 +15,7 @@ public class BiEvent {
         this.event = event;
     }
 
-    public static BiEvent CreateBiCommandEvent(String command, boolean isTarget) {
+    public static BiEvent createBiCommandEvent(String command, boolean isTarget) {
         BiConsumer<LivingEntityPatch<?>, Entity> event = (entityPatch, target) -> {
             Level server = entityPatch.getOriginal().level();
             CommandSourceStack css = entityPatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();

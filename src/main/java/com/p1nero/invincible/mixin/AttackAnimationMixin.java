@@ -12,14 +12,14 @@ import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
-@Mixin(AttackAnimation.class)
+@Mixin(value = AttackAnimation.class, remap = false)
 public class AttackAnimationMixin {
-    @Inject(method = "getPlaySpeed", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "getPlaySpeed", at = @At("RETURN"), cancellable = true)
     private void onGetPlaySpeed(LivingEntityPatch<?> entityPatch, DynamicAnimation animation, CallbackInfoReturnable<Float> cir) {
         if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             playerPatch.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent((invinciblePlayer -> {
                 if (invinciblePlayer.getPlaySpeed() != 0) {
-                    cir.setReturnValue(invinciblePlayer.getPlaySpeed());
+                    cir.setReturnValue(cir.getReturnValue() * invinciblePlayer.getPlaySpeed());
                 }
             }));
         }

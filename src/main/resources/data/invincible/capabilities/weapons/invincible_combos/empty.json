@@ -1,0 +1,21 @@
+{
+  //本文件可作为模板使用
+  //注册的id，可以随便填，到时候在武器里要填的就是mod_id:name,
+  "mod_id": "",
+  "name": "",
+  //下面这俩是技能参数，和skill_parameters里的内容一致。目前仅支持这俩。本模组自带的skill_parameters中的那个文件是给代码注册用的，数据包无需关心，只需填下面两个即可。
+  "consumption": 1,
+  "max_stacks": 1,
+  //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/${name}
+  "drawSkillIcon": false,
+  //连段数据
+  "combos": [
+    {
+      "key": "KEY1",
+      "animation": "",
+      "combos": [
+
+      ]
+    }
+  ]
+}

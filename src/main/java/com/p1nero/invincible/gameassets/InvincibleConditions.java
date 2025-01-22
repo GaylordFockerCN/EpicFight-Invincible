@@ -1,9 +1,7 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
-import com.p1nero.invincible.conditions.JumpCondition;
-import com.p1nero.invincible.conditions.SprintingCondition;
-import com.p1nero.invincible.conditions.StackCondition;
+import com.p1nero.invincible.conditions.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.RegistryObject;
@@ -16,5 +14,8 @@ public class InvincibleConditions {
     public static final RegistryObject<Supplier<Condition<?>>> JUMP_CONDITION = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "jumping")).getPath(), () -> JumpCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> DASH_CONDITION = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "sprinting")).getPath(), () -> SprintingCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> STACK_CONDITION = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "stack_count")).getPath(), () -> StackCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> PHASE = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "phase")).getPath(), () -> PlayerPhaseCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> COOLDOWN = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "cooldown")).getPath(), () -> CooldownCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> TARGET_BLOCKING = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "target_blocking")).getPath(), () -> TargetBlockingCondition::new);
 
 }

@@ -8,6 +8,7 @@
     "ControlEngineAccessor"
   ],
   "mixins": [
+    "AdvancedCustomHumanoidMobPatchAccessor",
     "AttackAnimationMixin",
     "MainFrameAnimationMixin",
     "SkillManagerMixin"
