@@ -112,3 +112,10 @@
 ### invincible:cooldown
 检测技能的冷却状态，一般与 ["cooldown"](#cooldown) 合用
 1. "inCooldown"：布尔值，请求玩家是否处于冷却。一般用false
+
+## 特殊参数 "condition_animations"
+参考[示例 第101行](https://github.com/GaylordFockerCN/EpicFight-Invincible/tree/master/src/main/resources/data/invincible/capabilities/weapons/invincible_combos/demo.json#L101)
+
+此参数用于控制一个按键在不同的条件组下播放不同的动画。当condition_animations参数存在时，同级参数仅 "key" 和 "combos"有效，其余会被忽略。
+
+"condition_animations" 中的每一个元素，都可以使用上面所有参数。值得注意的是，在condition_animations中的"key" 和 "combos" 会被忽略。

@@ -1,6 +1,7 @@
 {
   /*
     请仔细阅读本文档
+    或参阅 https://github.com/GaylordFockerCN/EpicFight-Invincible/blob/master/README.md
     注释无需删除，你自己写的连击模板也可以保留本文件名字随意命名，只要下面mod_id和name不重复即可
     本文件为注册联机类型，本质上是通过数据包注册了一个名为 invincible:datapack_demo的技能。然后请将这个技能填在自定义武器模板数据包的innate_skills当中。
     自定义武器模板数据包中，值得注意的是，模板中的combos虽然没用但是不能没有，而且Style一定要对应上！
@@ -95,7 +96,37 @@
     {
       //B
       "key": "KEY_2",
-      "animation": "epicfight:biped/combat/longsword_auto1",
+      //多重触发条件，一个键在不同的条件下可触发不同动画
+      //对于每一个元素，你也可以使用speed_multiplier和各个事件之类的参数
+      "condition_animations": [
+        {
+          //优先级，根据优先级高的先检测，数字越大优先级越高。检测成功即结束。仅能在condition_animations里填，若填-1则会被忽略。
+          "priority": 2,
+          "speed_multiplier": 0.7,
+          "conditions": [
+            {
+              //冲刺状态下才能使用
+              "predicate": "invincible:sprinting"
+            }
+          ],
+          "animation": "epicfight:biped/combat/longsword_auto1"
+        },
+        {
+          "priority": 1,
+          "conditions": [
+            {
+              //跳跃则播step_backward
+              "predicate": "invincible:jumping"
+            }
+          ],
+          "animation": "epicfight:biped/skill/step_backward"
+        },
+        {
+          "priority": 0,
+          //默认则播step_forward
+          "animation": "epicfight:biped/skill/step_forward"
+        }
+      ],
       "combos": [
         {
           //BB

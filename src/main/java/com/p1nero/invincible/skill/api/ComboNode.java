@@ -20,12 +20,14 @@ public class ComboNode {
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
     @Nullable
     protected AnimationProvider<?> animation;
+    private int priority;
     protected float playSpeed, convertTime;
     protected boolean notCharge;
     //自定义阶段
     protected int newPhase;
     protected int cooldown;
     protected List<Condition> conditions = new ArrayList<>();
+    protected List<ComboNode> conditionAnimations = new ArrayList<>();
     protected final List<TimeStampedEvent> events = new ArrayList<>();
     protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
     protected final List<BiEvent> hitEvents = new ArrayList<>();
@@ -33,6 +35,15 @@ public class ComboNode {
 
     protected ComboNode() {
         root = this;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public ComboNode setPriority(int priority) {
+        this.priority = priority;
+        return this;
     }
 
     public void setCooldown(int cooldown) {
@@ -131,6 +142,10 @@ public class ComboNode {
         return animation == null ? null : animation.get();
     }
 
+    public void setAnimationProvider(@Nullable AnimationProvider<?> animation) {
+        this.animation = animation;
+    }
+
     @Nullable
     public AnimationProvider<?> getAnimationProvider() {
         return animation;
@@ -145,20 +160,20 @@ public class ComboNode {
         return !children.isEmpty();
     }
 
-    public static ComboNode createRoot() {
+    public static ComboNode create() {
         ComboNode root = new ComboNode();
         root.root = root;
         return root;
     }
 
-    public static ComboNode createNode(AnimationProvider<?> animation) {
+    public static ComboNode createNode(@Nullable AnimationProvider<?> animation) {
         ComboNode node = new ComboNode();
         node.root = node;//先设自己，add的时候再换
         node.animation = animation;
         return node;
     }
 
-    public ComboNode addLeaf(ComboType type, AnimationProvider<?> animation) {
+    public ComboNode addLeaf(ComboType type, @Nullable AnimationProvider<?> animation) {
         ComboNode child = new ComboNode();
         child.animation = animation;
         child.root = root;
@@ -172,8 +187,8 @@ public class ComboNode {
         return this;
     }
 
-    public boolean hasCondition() {
-        return !conditions.isEmpty();
+    public boolean hasConditionAnimations() {
+        return conditions.isEmpty();
     }
 
     public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition) {
@@ -184,6 +199,13 @@ public class ComboNode {
     @NotNull
     public List<Condition> getConditions() {
         return conditions;
+    }
+    public void addConditionAnimation(ComboNode conditionAnimation){
+        this.conditionAnimations.add(conditionAnimation);
+    }
+
+    public List<ComboNode> getConditionAnimations() {
+        return conditionAnimations;
     }
 
     public ComboNode key1(ComboNode child) {

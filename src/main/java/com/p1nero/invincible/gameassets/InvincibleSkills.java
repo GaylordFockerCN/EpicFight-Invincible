@@ -3,6 +3,7 @@ package com.p1nero.invincible.gameassets;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.JumpCondition;
+import com.p1nero.invincible.conditions.SprintingCondition;
 import com.p1nero.invincible.conditions.StackCondition;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
@@ -30,7 +31,7 @@ public class InvincibleSkills {
         //建立连击树
         //I use epic fight Condition system. So you can use custom condition or mine or epic fight's
         //我使用史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
-        ComboNode root = ComboNode.createRoot();
+        ComboNode root = ComboNode.create();
         ComboNode a = ComboNode.createNode(() -> Animations.SWORD_AUTO1)
                 .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
@@ -44,7 +45,10 @@ public class InvincibleSkills {
         ComboNode aab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
         ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).addCondition(new JumpCondition());
         ComboNode aaab = ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition());
-        ComboNode b = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1);
+        ComboNode b = ComboNode.create();
+        //不同条件播不同动画
+        b.addConditionAnimation(ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1).addCondition(new SprintingCondition()).setPriority(2));
+        b.addConditionAnimation(ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition()).setPriority(1));
         ComboNode bb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode bbb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
         ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).addCondition(new StackCondition(1, 2)).setNotCharge(true);
@@ -63,7 +67,7 @@ public class InvincibleSkills {
 
         //You can also create the tree like this:
         //你也可以这样构建：
-        ComboNode root2 = ComboNode.createRoot()
+        ComboNode root2 = ComboNode.create()
                 .key1(ComboNode.createNode(() -> Animations.SWORD_AUTO1)
                         .key1(ComboNode.createNode(() -> Animations.SWORD_AUTO2)
                                 .key1(() -> Animations.SWORD_AUTO3).addCondition(new JumpCondition())

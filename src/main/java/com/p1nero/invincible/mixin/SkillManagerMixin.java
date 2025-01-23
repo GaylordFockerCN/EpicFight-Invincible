@@ -65,7 +65,7 @@ public abstract class SkillManagerMixin {
 
                     JsonArray combos = weapon.getAsJsonArray("combos");
 
-                    ComboNode root = ComboNode.createRoot();
+                    ComboNode root = ComboNode.create();
                     invincible$deserializeCombos(root, combos);
 
                     ComboBasicAttack.Builder builder = ((ComboBasicAttack.Builder) ComboBasicAttack.createComboBasicAttack()
@@ -101,88 +101,108 @@ public abstract class SkillManagerMixin {
 
         for (JsonElement comboElement : combos) {
             JsonObject combo = comboElement.getAsJsonObject();
-            String key = combo.get("key").getAsString();
-            String animation = combo.get("animation").getAsString();
-            ComboNode node = ComboNode.createNode(() -> AnimationManager.getInstance().byKeyOrThrow(animation));
+            ComboNode child = ComboNode.create();
 
-            if (combo.has("speed_multiplier")) {
-                node.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
-            }
+            //有condition_animations说明为特殊类型，要借递归进行特殊处理
+            if(combo.has("condition_animations")){
+                JsonArray conditionAnimationsListList = combo.getAsJsonArray("condition_animations");
+                //把自己传进去，解析以保存各种可能的动画参数
+                invincible$deserializeCombos(child, conditionAnimationsListList);
+            } else {
+                String animation = combo.get("animation").getAsString();
+                child.setAnimationProvider(() -> AnimationManager.getInstance().byKeyOrThrow(animation));
 
-            if (combo.has("convert_time")) {
-                node.setConvertTime(combo.get("convert_time").getAsFloat());
-            }
+                if (combo.has("speed_multiplier")) {
+                    child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
+                }
 
-            if (combo.has("not_charge")) {
-                node.setNotCharge(combo.get("not_charge").getAsBoolean());
-            }
+                if (combo.has("convert_time")) {
+                    child.setConvertTime(combo.get("convert_time").getAsFloat());
+                }
 
-            if (combo.has("set_phase")) {
-                node.setNewPhase(combo.get("set_phase").getAsInt());
-            }
+                if (combo.has("not_charge")) {
+                    child.setNotCharge(combo.get("not_charge").getAsBoolean());
+                }
 
-            if (combo.has("cooldown")) {
-                node.setCooldown(combo.get("cooldown").getAsInt());
-            }
+                if (combo.has("set_phase")) {
+                    child.setNewPhase(combo.get("set_phase").getAsInt());
+                }
 
-            //获取判断条件
-            if (combo.has("conditions")) {
-                JsonArray conditionList = combo.getAsJsonArray("conditions");
-                for (JsonElement conditionElement : conditionList) {
-                    JsonObject condition = conditionElement.getAsJsonObject();
-//                CompoundTag tag = ((CompoundTag) ExtraCodecs.JSON.encodeStart(NbtOps.INSTANCE, condition).result().get());
-                    CompoundTag tag = TagParser.parseTag(condition.toString());
-                    Condition<? extends LivingEntityPatch<?>> predicate = MobPatchReloadListener.deserializeBehaviorPredicate(tag.getString("predicate"), tag);
-                    node.addCondition(predicate);
+                if (combo.has("cooldown")) {
+                    child.setCooldown(combo.get("cooldown").getAsInt());
+                }
+
+                //获取判断条件
+                if (combo.has("conditions")) {
+                    JsonArray conditionList = combo.getAsJsonArray("conditions");
+                    for (JsonElement conditionElement : conditionList) {
+                        JsonObject condition = conditionElement.getAsJsonObject();
+                        CompoundTag tag = TagParser.parseTag(condition.toString());
+                        if(tag.getString("predicate").isEmpty()){
+                            continue;
+                        }
+                        Condition<? extends LivingEntityPatch<?>> predicate = MobPatchReloadListener.deserializeBehaviorPredicate(tag.getString("predicate"), tag);
+                        child.addCondition(predicate);
+                    }
+                }
+
+                //获取命令列表
+                if (combo.has("time_command_list")) {
+                    JsonArray commandList = combo.getAsJsonArray("time_command_list");
+                    for (JsonElement commandElement : commandList) {
+                        JsonObject command = commandElement.getAsJsonObject();
+                        float time = command.get("time").getAsFloat();
+                        String commandText = command.get("command").getAsString();
+                        boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                        child.addTimeEvent(TimeStampedEvent.createTimeCommandEvent(time, commandText, executeAtTarget));
+                    }
+                }
+                if (combo.has("hit_command_list")) {
+                    JsonArray commandList = combo.getAsJsonArray("hit_command_list");
+                    for (JsonElement commandElement : commandList) {
+                        JsonObject command = commandElement.getAsJsonObject();
+                        String commandText = command.get("command").getAsString();
+                        boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                        child.addHitEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                    }
+                }
+                if (combo.has("hurt_command_list")) {
+                    JsonArray commandList = combo.getAsJsonArray("hurt_command_list");
+                    for (JsonElement commandElement : commandList) {
+                        JsonObject command = commandElement.getAsJsonObject();
+                        String commandText = command.get("command").getAsString();
+                        boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                        child.addHurtEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                    }
+                }
+                if (combo.has("dodge_success_command_list")) {
+                    JsonArray commandList = combo.getAsJsonArray("dodge_success_command_list");
+                    for (JsonElement commandElement : commandList) {
+                        JsonObject command = commandElement.getAsJsonObject();
+                        String commandText = command.get("command").getAsString();
+                        boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
+                        child.addDodgeSuccessEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                    }
+                }
+
+                //有优先级代表是属于ConditionAnimations列表的
+                if(combo.has("priority")){
+                    child.setPriority(combo.get("priority").getAsInt());
+                    parent.addConditionAnimation(child);
                 }
             }
 
-            //获取命令列表
-            if (combo.has("time_command_list")) {
-                JsonArray commandList = combo.getAsJsonArray("time_command_list");
-                for (JsonElement commandElement : commandList) {
-                    JsonObject command = commandElement.getAsJsonObject();
-                    float time = command.get("time").getAsFloat();
-                    String commandText = command.get("command").getAsString();
-                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                    node.addTimeEvent(TimeStampedEvent.createTimeCommandEvent(time, commandText, executeAtTarget));
-                }
-            }
-            if (combo.has("hit_command_list")) {
-                JsonArray commandList = combo.getAsJsonArray("hit_command_list");
-                for (JsonElement commandElement : commandList) {
-                    JsonObject command = commandElement.getAsJsonObject();
-                    String commandText = command.get("command").getAsString();
-                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                    node.addHitEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
-                }
-            }
-            if (combo.has("hurt_command_list")) {
-                JsonArray commandList = combo.getAsJsonArray("hurt_command_list");
-                for (JsonElement commandElement : commandList) {
-                    JsonObject command = commandElement.getAsJsonObject();
-                    String commandText = command.get("command").getAsString();
-                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                    node.addHurtEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
-                }
-            }
-            if (combo.has("dodge_success_command_list")) {
-                JsonArray commandList = combo.getAsJsonArray("dodge_success_command_list");
-                for (JsonElement commandElement : commandList) {
-                    JsonObject command = commandElement.getAsJsonObject();
-                    String commandText = command.get("command").getAsString();
-                    boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                    node.addDodgeSuccessEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
-                }
-            }
-
-            //递归构造
+            //递归构造下一个按键
             if (combo.has("combos")) {
-                invincible$deserializeCombos(node, combo.getAsJsonArray("combos"));
+                invincible$deserializeCombos(child, combo.getAsJsonArray("combos"));
             }
 
-            ComboType keyType = ComboNode.ComboTypes.valueOf(key);
-            parent.addChild(keyType, node);
+            //绑定按键
+            if(combo.has("key")){
+                String key = combo.get("key").getAsString();
+                ComboType keyType = ComboNode.ComboTypes.valueOf(key);
+                parent.addChild(keyType, child);
+            }
         }
     }
 

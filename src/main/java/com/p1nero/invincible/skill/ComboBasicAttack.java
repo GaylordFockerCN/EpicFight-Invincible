@@ -16,6 +16,7 @@ import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.StaticAnimationProvider;
+import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
@@ -26,6 +27,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
+import java.util.Comparator;
 import java.util.UUID;
 
 public class ComboBasicAttack extends Skill {
@@ -128,36 +130,77 @@ public class ComboBasicAttack extends Skill {
             ComboNode next = current.getNext(finalType);
             //动画是空的就直接跳过，不是就播放
             if (next != null) {
-                for(Condition condition : next.getConditions()){
-                    if(!condition.predicate(executor)){
+                StaticAnimation animation = null;
+                float convertTime = 0.0F;
+                if(next.getAnimationProvider() == null || !next.getConditionAnimations().isEmpty()){
+                    if(next.getConditionAnimations().isEmpty()){
                         return;
                     }
+                    next.getConditionAnimations().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
+                    //多个条件指向不同动画，根据优先级来检测
+                    for(ComboNode conditionAnimation : next.getConditionAnimations()){
+                        boolean canExecute = true;
+                        System.out.println("try1: " + conditionAnimation.getPriority());
+                        for(Condition condition : conditionAnimation.getConditions()){
+                            if(!condition.predicate(executor)){
+                                canExecute = false;
+                                break;
+                            }
+                        }
+                        System.out.println("try2: " + canExecute);
+                        if(canExecute){
+                            animation = conditionAnimation.getAnimation();
+                            System.out.println(animation);
+                            convertTime = conditionAnimation.getConvertTime();
+                            initPlayer(invinciblePlayer, conditionAnimation);
+                            break;
+                        }
+                    }
+                } else {
+                    //多个条件指向同一动画
+                    for(Condition condition : next.getConditions()){
+                        if(!condition.predicate(executor)){
+                            return;
+                        }
+                    }
+                    animation = next.getAnimation();
+                    convertTime = next.getConvertTime();
+                    initPlayer(invinciblePlayer, next);
                 }
-                invinciblePlayer.clearTimeEvents();
-                for(TimeStampedEvent event : next.getTimeEvents()){
-                    event.resetExecuted();
-                    invinciblePlayer.addTimeEvent(event);
-                }
-                for(BiEvent event : next.getHurtEvents()){
-                    invinciblePlayer.addHurtEvent(event);
-                }
-                for(BiEvent event : next.getHitEvents()){
-                    invinciblePlayer.addHitSuccessEvent(event);
-                }
-                for(BiEvent event : next.getDodgeSuccessEvents()){
-                    invinciblePlayer.addDodgeSuccessEvent(event);
-                }
-                invinciblePlayer.setPlaySpeed(next.getPlaySpeed());
-                invinciblePlayer.setNotCharge(next.isNotCharge());
-                invinciblePlayer.setPhase(next.getNewPhase());
-                invinciblePlayer.setCooldown(next.getCooldown());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
-                executor.playAnimationSynchronized(next.getAnimation(), next.getConvertTime());
+                if(animation == null){
+                    return;
+                }
+                executor.playAnimationSynchronized(animation, convertTime);
             }
             invinciblePlayer.setCurrentNode(next);
         });
 
         EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
+    }
+
+    /**
+     * 根据预存来初始化玩家信息
+     */
+    private void initPlayer(InvinciblePlayer invinciblePlayer, ComboNode next){
+        invinciblePlayer.clearTimeEvents();
+        for(TimeStampedEvent event : next.getTimeEvents()){
+            event.resetExecuted();
+            invinciblePlayer.addTimeEvent(event);
+        }
+        for(BiEvent event : next.getHurtEvents()){
+            invinciblePlayer.addHurtEvent(event);
+        }
+        for(BiEvent event : next.getHitEvents()){
+            invinciblePlayer.addHitSuccessEvent(event);
+        }
+        for(BiEvent event : next.getDodgeSuccessEvents()){
+            invinciblePlayer.addDodgeSuccessEvent(event);
+        }
+        invinciblePlayer.setPlaySpeed(next.getPlaySpeed());
+        invinciblePlayer.setNotCharge(next.isNotCharge());
+        invinciblePlayer.setPhase(next.getNewPhase());
+        invinciblePlayer.setCooldown(next.getCooldown());
     }
 
     @Override
