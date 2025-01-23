@@ -74,7 +74,7 @@
 1. "command": 执行的命令，为字符串
 2. "execute_at_target": 是否在目标身上执行，为布尔值
 
-### "dodge_success_command_list"：
+### "hit_command_list"：
 玩家成功攻击事件列表，玩家在动画播放期间成功造成伤害时执行。
 
 参数同上。
