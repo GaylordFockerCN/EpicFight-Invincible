@@ -7,6 +7,8 @@
 这是一个方便代码开发者和数据包开发者注册史诗战斗连击数据的支持库，可以很方便地构造新的武器模板。本模组提供了四个按键，你可以对他们进行自由连招组合，每个连段最多支持两个键一起按下。通俗地讲就是，你可以做出ABAB，AABB这样的连招。同时也像坚不可摧一样支持许多特定功能。
 
 ## 代码示例
+测试物品：invincible:debug 可用give命令获取。使用此物品时控制台会打印本次按键输入信息。
+
 原理很简单，就是把武器连段数据作为一个技能存下来，并且替换掉原来的WeaponInnate技能，然后自己写输入处理，然后再发起技能执行请求。输入部分实现了延迟发包和预存输入，支持双键。[输入请求原理](https://github.com/GaylordFockerCN/EpicFight-Invincible/blob/master/src/main/java/com/p1nero/invincible/client/events/InputHandler.java)
 
 
@@ -15,6 +17,8 @@
 [武器模板注册](https://github.com/GaylordFockerCN/EpicFight-Invincible/blob/master/src/main/java/com/p1nero/invincible/gameassets/InvincibleWeaponCapabilityPresets.java)
 
 ## 数据包示例
+测试物品：invincible:datapack_debug 可用give命令获取。使用此物品时控制台会打印本次按键输入信息。
+
 首先需要注册连段数据，本质上是注册一个新的技能：[示例](https://github.com/GaylordFockerCN/EpicFight-Invincible/tree/master/src/main/resources/data/invincible/capabilities/weapons/invincible_combos/demo.json)
 
 接下来，和常规的武器模板一样，注册武器模板：[示例](https://github.com/GaylordFockerCN/EpicFight-Invincible/tree/master/src/main/resources/data/invincible/capabilities/weapons/types/datapack_demo.json)
