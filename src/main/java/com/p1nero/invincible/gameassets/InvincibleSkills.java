@@ -2,6 +2,7 @@ package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
+import com.p1nero.invincible.conditions.CustomCondition;
 import com.p1nero.invincible.conditions.JumpCondition;
 import com.p1nero.invincible.conditions.SprintingCondition;
 import com.p1nero.invincible.conditions.StackCondition;
@@ -14,6 +15,7 @@ import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.skill.Skill;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 /**
  * 注册技能，然后在{@link InvincibleWeaponCapabilityPresets}中使用
@@ -43,7 +45,13 @@ public class InvincibleSkills {
         ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3);
         ComboNode aab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
-        ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).addCondition(new JumpCondition());
+        //自定义条件
+        ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).addCondition(new JumpCondition()).addCondition(new CustomCondition() {
+            @Override
+            public boolean predicate(LivingEntityPatch<?> entityPatch) {
+                return true;
+            }
+        });
         ComboNode aaab = ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition());
         ComboNode b = ComboNode.create();
         //不同条件播不同动画

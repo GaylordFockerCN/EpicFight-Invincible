@@ -200,8 +200,9 @@ public class ComboNode {
     public List<Condition> getConditions() {
         return conditions;
     }
-    public void addConditionAnimation(ComboNode conditionAnimation){
+    public ComboNode addConditionAnimation(ComboNode conditionAnimation){
         this.conditionAnimations.add(conditionAnimation);
+        return this;
     }
 
     public List<ComboNode> getConditionAnimations() {
