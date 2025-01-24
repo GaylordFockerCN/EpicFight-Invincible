@@ -48,40 +48,45 @@ public class ComboNode {
         return hurtDamageMultiplier;
     }
 
-    public void setHurtDamageMultiplier(float hurtDamageMultiplier) {
+    public ComboNode setHurtDamageMultiplier(float hurtDamageMultiplier) {
         this.hurtDamageMultiplier = hurtDamageMultiplier;
+        return this;
     }
 
     public ValueModifier getDamageMultiplier() {
         return damageMultiplier;
     }
 
-    public void setDamageMultiplier(ValueModifier damageMultiplier) {
+    public ComboNode setDamageMultiplier(ValueModifier damageMultiplier) {
         this.damageMultiplier = damageMultiplier;
+        return this;
     }
 
     public float getImpactMultiplier() {
         return impactMultiplier;
     }
 
-    public void setImpactMultiplier(float impactMultiplier) {
+    public ComboNode setImpactMultiplier(float impactMultiplier) {
         this.impactMultiplier = impactMultiplier;
+        return this;
     }
 
     public StunType getStunTypeModifier() {
         return stunTypeModifier;
     }
 
-    public void setStunTypeModifier(StunType stunTypeModifier) {
+    public ComboNode setStunTypeModifier(StunType stunTypeModifier) {
         this.stunTypeModifier = stunTypeModifier;
+        return this;
     }
 
     public boolean isCanBeInterrupt() {
         return canBeInterrupt;
     }
 
-    public void setCanBeInterrupt(boolean canBeInterrupt) {
+    public ComboNode setCanBeInterrupt(boolean canBeInterrupt) {
         this.canBeInterrupt = canBeInterrupt;
+        return this;
     }
 
     public int getPriority() {
@@ -93,16 +98,18 @@ public class ComboNode {
         return this;
     }
 
-    public void setCooldown(int cooldown) {
+    public ComboNode setCooldown(int cooldown) {
         this.cooldown = cooldown;
+        return this;
     }
 
     public int getCooldown() {
         return cooldown;
     }
 
-    public void setNewPhase(int newPhase) {
+    public ComboNode setNewPhase(int newPhase) {
         this.newPhase = newPhase;
+        return this;
     }
 
     public int getNewPhase() {
