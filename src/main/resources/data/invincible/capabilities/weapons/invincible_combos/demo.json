@@ -7,6 +7,7 @@
     自定义武器模板数据包中，值得注意的是，模板中的combos虽然没用但是不能没有，而且Style一定要对应上！
     注册的id，可以随便填，到时候在武器里要填的就是mod_id:name
   */
+  //mod_id最好与数据包同名
   "mod_id": "invincible",
   "name": "datapack_demo",
   //下面这俩是技能参数，和skill_parameters里的内容一致。目前仅支持这俩。本模组自带的skill_parameters中的那个文件是给代码注册用的，数据包无需关心，只需填下面两个即可。
@@ -27,15 +28,28 @@
       "speed_multiplier": 1.2,
       //过渡时间
       "convert_time": 0.15,
+      //本次动画造成的伤害倍率（在本动画原有伤害上修改）
+      "damage_multiplier": {
+        //共有"adder", "multiplier"和"setter"可选。字面意思
+        "multiplier": 2.0
+      },
+      //受伤倍率
+      "hurt_damage_multiplier": 0.5,
+      //冲击倍率（在本动画原有基础值上修改）
+      "impact_multiplier": 9.0,
+      //本次攻击的硬直类型修改，共有NONE，SHORT，LONG，HOLD，KNOCKDOWN，NEUTRALIZE和FALL可选。
+      "stun_type": "KNOCKDOWN",
+      //是否霸体
+      "can_be_interrupt": false,
       "time_command_list": [
         {
           "time": 0.12,
-          "command": "summon minecraft:zombie",
+          "command": "summon minecraft:cow",
           "execute_at_target": false
         },
         {
           "time": 0.22,
-          "command": "summon minecraft:skeleton",
+          "command": "summon minecraft:bee",
           "execute_at_target": false
         }
       ],
@@ -109,7 +123,22 @@
               "predicate": "invincible:sprinting"
             }
           ],
-          "animation": "epicfight:biped/combat/longsword_auto1"
+          "animation": "epicfight:biped/combat/longsword_auto1",
+          //ConditionAnimation也可以接combos，当被选中时将以此combos为准，若没有combos则以外层condition_animations同级的combos为准。
+          "combos": [
+            {
+              //BB
+              "key": "KEY_2",
+              "animation": "epicfight:biped/combat/sword_auto2",
+              "combos": [
+                {
+                  //BBB
+                  "key": "KEY_2",
+                  "animation": "epicfight:biped/combat/step_backward"
+                }
+              ]
+            }
+          ]
         },
         {
           "priority": 1,

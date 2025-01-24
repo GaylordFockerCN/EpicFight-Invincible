@@ -12,6 +12,7 @@ public class InvincibleCommands {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
-        SetStackCommand.register(dispatcher);
+        SetPlayerStateCommand.register(dispatcher);
+        EffectCommand.register(dispatcher);
     }
 }

@@ -17,6 +17,7 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.StaticAnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
@@ -25,11 +26,14 @@ import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+import yesman.epicfight.world.damagesource.EpicFightDamageSource;
+import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
 import java.util.Comparator;
 import java.util.UUID;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ComboBasicAttack extends Skill {
 
     private static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
@@ -116,7 +120,7 @@ public class ComboBasicAttack extends Skill {
         if (finalType == null) {
             return;
         }
-        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get()) ) {
+        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get())) {
             System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + finalType);
         }
         SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
@@ -132,34 +136,35 @@ public class ComboBasicAttack extends Skill {
             if (next != null) {
                 StaticAnimation animation = null;
                 float convertTime = 0.0F;
-                if(next.getAnimationProvider() == null || !next.getConditionAnimations().isEmpty()){
-                    if(next.getConditionAnimations().isEmpty()){
+                if (next.getAnimationProvider() == null || !next.getConditionAnimations().isEmpty()) {
+                    if (next.getConditionAnimations().isEmpty()) {
                         return;
                     }
                     next.getConditionAnimations().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
                     //多个条件指向不同动画，根据优先级来检测
-                    for(ComboNode conditionAnimation : next.getConditionAnimations()){
+                    for (ComboNode conditionAnimation : next.getConditionAnimations()) {
                         boolean canExecute = true;
-                        System.out.println("try1: " + conditionAnimation.getPriority());
-                        for(Condition condition : conditionAnimation.getConditions()){
-                            if(!condition.predicate(executor)){
+                        for (Condition condition : conditionAnimation.getConditions()) {
+                            if (!condition.predicate(executor)) {
                                 canExecute = false;
                                 break;
                             }
                         }
-                        System.out.println("try2: " + canExecute);
-                        if(canExecute){
+                        if (canExecute) {
                             animation = conditionAnimation.getAnimation();
-                            System.out.println(animation);
                             convertTime = conditionAnimation.getConvertTime();
                             initPlayer(invinciblePlayer, conditionAnimation);
+                            //实现ConditionAnimations里接combos
+                            if (conditionAnimation.hasNext()) {
+                                next = conditionAnimation;
+                            }
                             break;
                         }
                     }
                 } else {
                     //多个条件指向同一动画
-                    for(Condition condition : next.getConditions()){
-                        if(!condition.predicate(executor)){
+                    for (Condition condition : next.getConditions()) {
+                        if (!condition.predicate(executor)) {
                             return;
                         }
                     }
@@ -168,7 +173,7 @@ public class ComboBasicAttack extends Skill {
                     initPlayer(invinciblePlayer, next);
                 }
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
-                if(animation == null){
+                if (animation == null) {
                     return;
                 }
                 executor.playAnimationSynchronized(animation, convertTime);
@@ -182,32 +187,36 @@ public class ComboBasicAttack extends Skill {
     /**
      * 根据预存来初始化玩家信息
      */
-    private void initPlayer(InvinciblePlayer invinciblePlayer, ComboNode next){
+    private void initPlayer(InvinciblePlayer invinciblePlayer, ComboNode next) {
         invinciblePlayer.clearTimeEvents();
-        for(TimeStampedEvent event : next.getTimeEvents()){
+        for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
             invinciblePlayer.addTimeEvent(event);
         }
-        for(BiEvent event : next.getHurtEvents()){
+        for (BiEvent event : next.getHurtEvents()) {
             invinciblePlayer.addHurtEvent(event);
         }
-        for(BiEvent event : next.getHitEvents()){
+        for (BiEvent event : next.getHitEvents()) {
             invinciblePlayer.addHitSuccessEvent(event);
         }
-        for(BiEvent event : next.getDodgeSuccessEvents()){
+        for (BiEvent event : next.getDodgeSuccessEvents()) {
             invinciblePlayer.addDodgeSuccessEvent(event);
         }
-        invinciblePlayer.setPlaySpeed(next.getPlaySpeed());
+        invinciblePlayer.setCanBeInterrupt(next.isCanBeInterrupt());
+        invinciblePlayer.setPlaySpeedMultiplier(next.getPlaySpeed());
         invinciblePlayer.setNotCharge(next.isNotCharge());
         invinciblePlayer.setPhase(next.getNewPhase());
         invinciblePlayer.setCooldown(next.getCooldown());
+        invinciblePlayer.setDamageMultiplier(next.getDamageMultiplier());
+        invinciblePlayer.setImpactMultiplier(next.getImpactMultiplier());
+        invinciblePlayer.setStunTypeModifier(next.getStunTypeModifier());
     }
 
     @Override
     @OnlyIn(Dist.CLIENT)
     public void executeOnClient(LocalPlayerPatch executor, FriendlyByteBuf args) {
         CompoundTag tag = args.readNbt();
-        if(tag != null){
+        if (tag != null) {
             InvincibleCapabilityProvider.get(executor.getOriginal()).loadNBTData(tag);
         }
     }
@@ -216,13 +225,36 @@ public class ComboBasicAttack extends Skill {
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-            for(BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()){
+            for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
         }));
+        //减伤和霸体的判断
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
+            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+            if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
+                epicFightDamageSource.setStunType(StunType.NONE);
+            }
+            if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
+                event.setAmount(event.getAmount() * invinciblePlayer.getHurtDamageMultiplier());
+            }
+        }));
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
-            for(BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents()){
+            for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            }
+        }));
+        //调整攻击倍率，冲击，硬直类型等
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
+            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+            if (invinciblePlayer.getStunTypeModifier() != null) {
+                event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
+            }
+            if (invinciblePlayer.getImpactMultiplier() != 0) {
+                event.getDamageSource().setImpact(invinciblePlayer.getImpactMultiplier());
+            }
+            if (invinciblePlayer.getDamageMultiplier() != null) {
+                event.getDamageSource().setDamageModifier(invinciblePlayer.getDamageMultiplier());
             }
         }));
         //自己写个充能用
@@ -235,7 +267,7 @@ public class ComboBasicAttack extends Skill {
                     }
                 }
             }
-            for(BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents()){
+            for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
         }));
@@ -273,7 +305,9 @@ public class ComboBasicAttack extends Skill {
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);

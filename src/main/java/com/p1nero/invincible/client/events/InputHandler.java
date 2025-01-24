@@ -161,11 +161,11 @@ public class InputHandler {
     }
 
     /**
-     * 发起执行请求，并预存键位
+     * 发起执行请求，并预存键位，战斗模式下才可以使用
      */
     public static void tryRequestSkillExecute(SkillSlot slot) {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
-        if (executor != null) {
+        if (executor != null && executor.isBattleMode()) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
                 setReserve(slot);
             } else {

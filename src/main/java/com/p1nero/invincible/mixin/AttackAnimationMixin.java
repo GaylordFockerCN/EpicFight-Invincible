@@ -18,8 +18,8 @@ public class AttackAnimationMixin {
     private void onGetPlaySpeed(LivingEntityPatch<?> entityPatch, DynamicAnimation animation, CallbackInfoReturnable<Float> cir) {
         if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             playerPatch.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent((invinciblePlayer -> {
-                if (invinciblePlayer.getPlaySpeed() != 0) {
-                    cir.setReturnValue(cir.getReturnValue() * invinciblePlayer.getPlaySpeed());
+                if (invinciblePlayer.getPlaySpeedMultiplier() != 0) {
+                    cir.setReturnValue(cir.getReturnValue() * invinciblePlayer.getPlaySpeedMultiplier());
                 }
             }));
         }

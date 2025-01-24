@@ -25,9 +25,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.data.reloader.SkillManager;
+import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.damagesource.StunType;
 
 import java.io.IOException;
 import java.util.Map;
@@ -114,6 +116,37 @@ public abstract class SkillManagerMixin {
 
                 if (combo.has("speed_multiplier")) {
                     child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
+                }
+
+                if (combo.has("damage_multiplier")) {
+                    JsonObject valueModifier = combo.getAsJsonObject("damage_multiplier");
+                    float adder = 0, multiplier = 1.0F, setter = Float.NaN;
+                    if(valueModifier.has("adder")){
+                        adder = valueModifier.get("adder").getAsFloat();
+                    }
+                    if(valueModifier.has("multiplier")){
+                        multiplier = valueModifier.get("multiplier").getAsFloat();
+                    }
+                    if(valueModifier.has("setter")){
+                        setter = valueModifier.get("setter").getAsFloat();
+                    }
+                    child.setDamageMultiplier(new ValueModifier(adder, multiplier, setter));
+                }
+
+                if (combo.has("hurt_damage_multiplier")) {
+                    child.setHurtDamageMultiplier(combo.get("hurt_damage_multiplier").getAsFloat());
+                }
+
+                if (combo.has("impact_multiplier")) {
+                    child.setImpactMultiplier(combo.get("impact_multiplier").getAsFloat());
+                }
+
+                if (combo.has("can_be_interrupt")) {
+                    child.setCanBeInterrupt(combo.get("can_be_interrupt").getAsBoolean());
+                }
+
+                if (combo.has("stun_type")) {
+                    child.setStunTypeModifier(StunType.valueOf(combo.get("stun_type").getAsString()));
                 }
 
                 if (combo.has("convert_time")) {

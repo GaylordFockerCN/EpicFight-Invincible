@@ -4,6 +4,8 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.nbt.CompoundTag;
+import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,21 +15,75 @@ public class InvinciblePlayer {
     private final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
     private final List<BiEvent> hitSuccessEvents = new ArrayList<>();
     private final List<BiEvent> hurtEvents = new ArrayList<>();
-    private float playSpeed;
-    private boolean notCharge;
+    private float playSpeedMultiplier;
+    private ValueModifier damageMultiplier;
+    private float impactMultiplier;
+    private float hurtDamageMultiplier;
+    private StunType stunTypeModifier = StunType.NONE;
+    private boolean notCharge, canBeInterrupt = true;
     private int phase;
     private int cooldown;
 
+    public float getHurtDamageMultiplier() {
+        return hurtDamageMultiplier;
+    }
+
+    public void setHurtDamageMultiplier(float hurtDamageMultiplier) {
+        this.hurtDamageMultiplier = hurtDamageMultiplier;
+    }
+
+    public ValueModifier getDamageMultiplier() {
+        return damageMultiplier;
+    }
+
+    public void setDamageMultiplier(ValueModifier damageMultiplier) {
+        this.damageMultiplier = damageMultiplier;
+    }
+
+    public float getImpactMultiplier() {
+        return impactMultiplier;
+    }
+
+    public void setImpactMultiplier(float impactMultiplier) {
+        this.impactMultiplier = impactMultiplier;
+    }
+
+    public StunType getStunTypeModifier() {
+        return stunTypeModifier;
+    }
+
+    public void setStunTypeModifier(StunType stunTypeModifier) {
+        this.stunTypeModifier = stunTypeModifier;
+    }
+
+    public boolean isCanBeInterrupt() {
+        return canBeInterrupt;
+    }
+
+    public void setCanBeInterrupt(boolean canBeInterrupt) {
+        this.canBeInterrupt = canBeInterrupt;
+    }
+
+    /**
+     * 0 表示默认，防止被顶掉
+     */
     public void setCooldown(int cooldown) {
-        this.cooldown = cooldown;
+        if(cooldown != 0){
+            this.cooldown = cooldown;
+        }
     }
 
     public int getCooldown() {
         return cooldown;
     }
 
+    /**
+     * 0 表示默认，防止被顶掉
+     */
     public void setPhase(int phase) {
-        this.phase = phase;
+        if(cooldown != 0){
+            this.phase = phase;
+        }
     }
 
     public int getPhase() {
@@ -42,12 +98,12 @@ public class InvinciblePlayer {
         return notCharge;
     }
 
-    public void setPlaySpeed(float playSpeed) {
-        this.playSpeed = playSpeed;
+    public void setPlaySpeedMultiplier(float playSpeedMultiplier) {
+        this.playSpeedMultiplier = playSpeedMultiplier;
     }
 
-    public float getPlaySpeed() {
-        return playSpeed;
+    public float getPlaySpeedMultiplier() {
+        return playSpeedMultiplier;
     }
 
     public List<TimeStampedEvent> getTimeEventList() {
@@ -101,7 +157,12 @@ public class InvinciblePlayer {
     }
 
     public void clear(){
-        playSpeed = 0;
+        playSpeedMultiplier = 0;
+        damageMultiplier = null;
+        impactMultiplier = 0;
+        hurtDamageMultiplier = 0;
+        stunTypeModifier = null;
+        canBeInterrupt = true;
         notCharge = false;
         timeStampedEvents.clear();
         dodgeSuccessEvents.clear();
@@ -111,17 +172,20 @@ public class InvinciblePlayer {
 
     public CompoundTag saveNBTData(CompoundTag tag) {
         tag.putBoolean("notCharge", notCharge);
-        tag.putFloat("playSpeed", playSpeed);
+        tag.putFloat("playSpeed", playSpeedMultiplier);
         tag.putInt("cooldown", cooldown);
         return tag;
     }
 
     public void loadNBTData(CompoundTag tag) {
         notCharge = tag.getBoolean("notCharge");
-        playSpeed = tag.getFloat("playSpeed");
+        playSpeedMultiplier = tag.getFloat("playSpeed");
         cooldown = tag.getInt("cooldown");
     }
 
+    /**
+     * 重生的时候仅需要复制连段数据
+     */
     public void copyFrom(InvinciblePlayer old) {
         currentNode = old.currentNode;
     }

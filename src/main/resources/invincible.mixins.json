@@ -5,6 +5,7 @@
   "package": "com.p1nero.invincible.mixin",
   "client": [
     "BattleModeGuiMixin",
+    "ClientPacketListenerMixin",
     "ControlEngineAccessor"
   ],
   "mixins": [

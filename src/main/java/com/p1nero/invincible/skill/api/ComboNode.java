@@ -5,8 +5,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +24,12 @@ public class ComboNode {
     protected AnimationProvider<?> animation;
     private int priority;
     protected float playSpeed, convertTime;
+    private ValueModifier damageMultiplier = null;
+    private float impactMultiplier = 1.0F;
+
+    private float hurtDamageMultiplier;
+    private StunType stunTypeModifier = null;
+    private boolean canBeInterrupt = true;
     protected boolean notCharge;
     //自定义阶段
     protected int newPhase;
@@ -35,6 +43,45 @@ public class ComboNode {
 
     protected ComboNode() {
         root = this;
+    }
+    public float getHurtDamageMultiplier() {
+        return hurtDamageMultiplier;
+    }
+
+    public void setHurtDamageMultiplier(float hurtDamageMultiplier) {
+        this.hurtDamageMultiplier = hurtDamageMultiplier;
+    }
+
+    public ValueModifier getDamageMultiplier() {
+        return damageMultiplier;
+    }
+
+    public void setDamageMultiplier(ValueModifier damageMultiplier) {
+        this.damageMultiplier = damageMultiplier;
+    }
+
+    public float getImpactMultiplier() {
+        return impactMultiplier;
+    }
+
+    public void setImpactMultiplier(float impactMultiplier) {
+        this.impactMultiplier = impactMultiplier;
+    }
+
+    public StunType getStunTypeModifier() {
+        return stunTypeModifier;
+    }
+
+    public void setStunTypeModifier(StunType stunTypeModifier) {
+        this.stunTypeModifier = stunTypeModifier;
+    }
+
+    public boolean isCanBeInterrupt() {
+        return canBeInterrupt;
+    }
+
+    public void setCanBeInterrupt(boolean canBeInterrupt) {
+        this.canBeInterrupt = canBeInterrupt;
     }
 
     public int getPriority() {
