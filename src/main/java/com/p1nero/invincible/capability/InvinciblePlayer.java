@@ -81,7 +81,7 @@ public class InvinciblePlayer {
      * 0 表示默认，防止被顶掉
      */
     public void setPhase(int phase) {
-        if(cooldown != 0){
+        if(phase != 0){
             this.phase = phase;
         }
     }
