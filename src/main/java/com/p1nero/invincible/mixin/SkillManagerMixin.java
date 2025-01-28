@@ -15,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistry;
 import net.minecraftforge.registries.IForgeRegistry;
 import org.spongepowered.asm.mixin.Mixin;
@@ -57,7 +58,7 @@ public abstract class SkillManagerMixin {
                     String modId = weapon.get("mod_id").getAsString();
                     String name = weapon.get("name").getAsString();
                     //防止读到模板
-                    if (modId.isEmpty()) {
+                    if (modId.isEmpty() || (FMLEnvironment.dist.isDedicatedServer() && name.equals("datapack_demo"))) {
                         continue;
                     }
                     boolean drawSkillIcon = false;

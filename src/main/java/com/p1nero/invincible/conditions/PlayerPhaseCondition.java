@@ -26,7 +26,7 @@ public class PlayerPhaseCondition implements Condition<ServerPlayerPatch> {
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
         if (!compoundTag.contains("min") && !compoundTag.contains("max")) {
-            throw new IllegalArgumentException("custom custom player phase condition error: min or max not specified!");
+            throw new IllegalArgumentException("custom player phase condition error: min or max not specified!");
         }  else {
             this.min = compoundTag.getInt("min");
             this.max = compoundTag.getInt("max");

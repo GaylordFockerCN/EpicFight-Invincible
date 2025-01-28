@@ -5,6 +5,7 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
@@ -17,7 +18,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.StaticAnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
-import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
@@ -228,6 +228,7 @@ public class ComboBasicAttack extends Skill {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
         }));
         //减伤和霸体的判断
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
@@ -238,7 +239,11 @@ public class ComboBasicAttack extends Skill {
             if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
                 event.setAmount(event.getAmount() * invinciblePlayer.getHurtDamageMultiplier());
             }
-        }));
+            //招架成功的判断，配合优先级-1使用
+            if(event.isParried()){
+                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
+            }
+        }), -1);
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
@@ -274,7 +279,7 @@ public class ComboBasicAttack extends Skill {
         //取消原版的普攻和跳攻
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
-            if (skillCategory.equals(SkillCategories.BASIC_ATTACK) || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
+            if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
                 event.setCanceled(true);
             }
         }));
@@ -323,6 +328,13 @@ public class ComboBasicAttack extends Skill {
             resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
         }
         InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).tick();
+        SkillDataManager manager = container.getDataManager();
+        if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get())){
+            manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get()) - 1, 0));
+        }
+        if(manager.hasData(InvincibleSkillDataKeys.PARRY_TIMER.get())){
+            manager.setData(InvincibleSkillDataKeys.PARRY_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.PARRY_TIMER.get()) - 1, 0));
+        }
     }
 
     public static void resetCombo(ServerPlayerPatch serverPlayerPatch, ComboNode root) {

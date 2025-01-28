@@ -1,6 +1,6 @@
 {
   /*
-    请仔细阅读本文档
+    请仔细阅读本文档，目前数据包注册的模板仅能在单人游戏使用！但代码注册的可以正常在多人游戏中使用
     或参阅 https://github.com/GaylordFockerCN/EpicFight-Invincible/blob/master/README.md
     注释无需删除，你自己写的连击模板也可以保留本文件名字随意命名，只要下面mod_id和name不重复即可
     本文件为注册联机类型，本质上是通过数据包注册了一个名为 invincible:datapack_demo的技能。然后请将这个技能填在自定义武器模板数据包的innate_skills当中。

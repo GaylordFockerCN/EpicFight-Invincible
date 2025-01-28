@@ -17,5 +17,8 @@ public class InvincibleConditions {
     public static final RegistryObject<Supplier<Condition<?>>> PHASE = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "phase")).getPath(), () -> PlayerPhaseCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> COOLDOWN = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "cooldown")).getPath(), () -> CooldownCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> TARGET_BLOCKING = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "target_blocking")).getPath(), () -> TargetBlockingCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> HAS_VEHICLE = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "has_vehicle")).getPath(), () -> VehicleCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> DODGE_SUCCESS = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "dodge_success")).getPath(), () -> DodgeSuccessCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> PARRY_SUCCESS = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "parry_success")).getPath(), () -> ParrySuccessCondition::new);
 
 }
