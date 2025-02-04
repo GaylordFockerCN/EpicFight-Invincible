@@ -178,7 +178,9 @@ public class InputHandler {
         ControllEngine controllEngine = ClientEngine.getInstance().controllEngine;
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         if (!container.canExecute(executor, event)) {
-            container.getSkill().validationFeedback(executor);
+            if(container.getSkill() != null){
+                container.getSkill().validationFeedback(executor);
+            }
             return event;
         }
         executor.disableModelYRot(true);

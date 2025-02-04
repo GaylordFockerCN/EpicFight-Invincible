@@ -24,7 +24,7 @@
       //A
       "key": "KEY_1",
       "animation": "epicfight:biped/combat/sword_auto1",
-      //本次动画的速度倍率，仅对攻击动画有效！
+      //本次动画的速度倍率，可能对某些动画无效！
       "speed_multiplier": 1.2,
       //过渡时间
       "convert_time": 0.15,

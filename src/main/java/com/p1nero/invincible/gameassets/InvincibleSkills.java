@@ -9,6 +9,7 @@ import com.p1nero.invincible.conditions.StackCondition;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -17,6 +18,9 @@ import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 注册技能，然后在{@link InvincibleWeaponCapabilityPresets}中使用
  * 预设的Condition可以参考 {@link yesman.epicfight.data.conditions.EpicFightConditions} 和 {@link InvincibleConditions}
@@ -24,7 +28,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class InvincibleSkills {
     public static Skill COMBO_DEMO;
-
+    public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();
     @SubscribeEvent
     public static void BuildSkills(SkillBuildEvent event) {
         SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
@@ -35,6 +39,7 @@ public class InvincibleSkills {
         //我使用史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.create();
         ComboNode a = ComboNode.createNode(() -> Animations.SWORD_AUTO1)
+                .setPlaySpeed(0.5F)//测试变速 speed modify test
                 .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                         serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);

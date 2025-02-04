@@ -36,7 +36,7 @@ import java.util.UUID;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ComboBasicAttack extends Skill {
 
-    private static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
+    protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
 
     @OnlyIn(Dist.CLIENT)
     protected boolean isWalking;
@@ -126,12 +126,15 @@ public class ComboBasicAttack extends Skill {
         SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode current = invinciblePlayer.getCurrentNode();
-            //到叶子就归位
-            if (!current.hasNext()) {
-                invinciblePlayer.setCurrentNode(root);
-                return;
-            }
             ComboNode next = current.getNext(finalType);
+            //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
+            if(next == null || next.getAnimation() == null){
+                for(ComboType subType : finalType.getSubTypes()){
+                    if((next = current.getNext(subType)) != null){
+                        break;
+                    }
+                }
+            }
             //动画是空的就直接跳过，不是就播放
             if (next != null) {
                 StaticAnimation animation = null;
@@ -177,8 +180,10 @@ public class ComboBasicAttack extends Skill {
                     return;
                 }
                 executor.playAnimationSynchronized(animation, convertTime);
+                invinciblePlayer.setCurrentNode(next);
+            } else {
+                invinciblePlayer.setCurrentNode(root);
             }
-            invinciblePlayer.setCurrentNode(next);
         });
 
         EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
@@ -349,7 +354,6 @@ public class ComboBasicAttack extends Skill {
 
     @Override
     public boolean shouldDraw(SkillContainer container) {
-//        return container.getDataManager().getDataValue(InvincibleSkillDataKeys.SHOULD_DRAW_GUI.get());
         return shouldDrawGui;
     }
 

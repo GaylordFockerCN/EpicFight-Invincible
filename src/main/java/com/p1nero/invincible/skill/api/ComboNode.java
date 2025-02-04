@@ -44,6 +44,7 @@ public class ComboNode {
     protected ComboNode() {
         root = this;
     }
+
     public float getHurtDamageMultiplier() {
         return hurtDamageMultiplier;
     }
@@ -254,7 +255,8 @@ public class ComboNode {
     public List<Condition> getConditions() {
         return conditions;
     }
-    public ComboNode addConditionAnimation(ComboNode conditionAnimation){
+
+    public ComboNode addConditionAnimation(ComboNode conditionAnimation) {
         this.conditionAnimations.add(conditionAnimation);
         return this;
     }
@@ -404,24 +406,24 @@ public class ComboNode {
     }
 
     public enum ComboTypes implements ComboType {
-        KEY_1, KEY_2, KEY_3, KEY_4, KEY_1_2, KEY_1_3, KEY_1_4, KEY_2_3, KEY_2_4, KEY_3_4;
-
-        final boolean canPressTogether;
+        KEY_1, KEY_2, KEY_3, KEY_4, KEY_1_2(KEY_1, KEY_2), KEY_1_3(KEY_1, KEY_3), KEY_1_4(KEY_1, KEY_4), KEY_2_3(KEY_2, KEY_3), KEY_2_4(KEY_2, KEY_4), KEY_3_4(KEY_3, KEY_4);
         final int id;
 
-        ComboTypes(boolean canPressTogether) {
-            this.canPressTogether = canPressTogether;
+        final List<ComboType> subTypes;
+
+        ComboTypes(ComboTypes... subTypes) {
+            this.subTypes = List.of(subTypes);
             this.id = ComboType.ENUM_MANAGER.assign(this);
         }
 
         ComboTypes() {
-            this.canPressTogether = true;
+            subTypes = new ArrayList<>();
             this.id = ComboType.ENUM_MANAGER.assign(this);
         }
 
         @Override
-        public boolean canPressTogether() {
-            return canPressTogether;
+        public List<ComboType> getSubTypes() {
+            return subTypes;
         }
 
         @Override

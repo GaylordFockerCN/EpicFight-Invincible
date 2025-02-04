@@ -5,13 +5,11 @@
   "package": "com.p1nero.invincible.mixin",
   "client": [
     "BattleModeGuiMixin",
-    "ClientPacketListenerMixin",
-    "ControlEngineAccessor"
+    "ClientPacketListenerMixin"
   ],
   "mixins": [
     "AdvancedCustomHumanoidMobPatchAccessor",
-    "AttackAnimationMixin",
-    "MainFrameAnimationMixin",
+    "AnimationPlayerMixin",
     "SkillManagerMixin"
   ],
   "injectors": {

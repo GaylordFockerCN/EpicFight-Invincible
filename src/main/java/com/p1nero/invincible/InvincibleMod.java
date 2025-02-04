@@ -5,13 +5,16 @@ import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
+import com.p1nero.invincible.network.PacketHandler;
 import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
+import net.minecraftforge.event.OnDatapackSyncEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.slf4j.Logger;
 
@@ -25,8 +28,13 @@ public class InvincibleMod {
         InvincibleItems.ITEMS.register(modEventBus);
         InvincibleConditions.CONDITIONS.register(modEventBus);
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
+        modEventBus.addListener(this::commonSetup);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    private void commonSetup(final FMLCommonSetupEvent event){
+        PacketHandler.register();
     }
 
 }

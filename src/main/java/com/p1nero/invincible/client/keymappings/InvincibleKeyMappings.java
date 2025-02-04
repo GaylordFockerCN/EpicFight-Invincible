@@ -2,6 +2,7 @@ package com.p1nero.invincible.client.keymappings;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -25,6 +26,23 @@ public class InvincibleKeyMappings {
         event.register(KEY2);
         event.register(KEY3);
         event.register(KEY4);
+    }
+
+    public static Component getName(KeyMapping keyMapping) {
+        return Component.translatable(keyMapping.getKey().getName());
+    }
+
+    public static Component getTranslatableKey1(){
+        return getName(KEY1);
+    }
+    public static Component getTranslatableKey2(){
+        return getName(KEY2);
+    }
+    public static Component getTranslatableKey3(){
+        return getName(KEY3);
+    }
+    public static Component getTranslatableKey4(){
+        return getName(KEY4);
     }
 
 }
