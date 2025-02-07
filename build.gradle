@@ -23,7 +23,7 @@ apply plugin: 'org.spongepowered.mixin'
 
 version = '18.5.0'
 group = 'com.p1nero.invincible' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
-archivesBaseName = 'invincible_moveset-forge1.18.2-' + version + "-" + System.currentTimeSeconds()
+archivesBaseName = 'invincible-' + System.currentTimeSeconds()
 
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
 java.toolchain.languageVersion = JavaLanguageVersion.of(17)
