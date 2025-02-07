@@ -14,6 +14,7 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.registries.ForgeRegistry;
 import org.spongepowered.asm.mixin.Unique;
 import yesman.epicfight.api.animation.AnimationManager;
@@ -37,8 +38,8 @@ public class SkillLoader {
         registry.unfreeze();
         String modId = weapon.get("mod_id").getAsString();
         String name = weapon.get("name").getAsString();
-        //防止读到模板
-        if (modId.isEmpty()) {
+        //防止读到模板以及避免无数据包情况下服务端进不去
+        if (modId.isEmpty() || (FMLEnvironment.dist.isDedicatedServer() && name.equals("datapack_demo"))) {
             return;
         }
         boolean drawSkillIcon = false;

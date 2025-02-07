@@ -123,7 +123,6 @@ public class ComboBasicAttack extends Skill {
         if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get())) {
             System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + finalType);
         }
-        SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode current = invinciblePlayer.getCurrentNode();
             ComboNode next = current.getNext(finalType);
@@ -175,18 +174,19 @@ public class ComboBasicAttack extends Skill {
                     convertTime = next.getConvertTime();
                     initPlayer(invinciblePlayer, next);
                 }
-                feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
                 if (animation == null) {
                     return;
                 }
                 executor.playAnimationSynchronized(animation, convertTime);
                 invinciblePlayer.setCurrentNode(next);
+                SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
+                feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
+                EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
             } else {
                 invinciblePlayer.setCurrentNode(root);
             }
         });
 
-        EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
     }
 
     /**
@@ -233,7 +233,7 @@ public class ComboBasicAttack extends Skill {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
         }));
         //减伤和霸体的判断
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
@@ -246,9 +246,9 @@ public class ComboBasicAttack extends Skill {
             }
             //招架成功的判断，配合优先级-1使用
             if(event.isParried()){
-                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
+                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
             }
-        }), -1);
+        }));
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
