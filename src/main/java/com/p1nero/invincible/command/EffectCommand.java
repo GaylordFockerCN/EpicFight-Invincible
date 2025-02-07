@@ -39,7 +39,7 @@ public class EffectCommand {
                                                                     Entity entity = EntityArgument.getEntity(context, "entity");
                                                                     LevelUtil.circleSlamFracture(
                                                                             entity instanceof LivingEntity livingEntity ? livingEntity : null,
-                                                                            entity.level(),
+                                                                            entity.level,
                                                                             entity.position().add(0, -1, 0),
                                                                             DoubleArgumentType.getDouble(context, "radius"),
                                                                             BoolArgumentType.getBool(context, "noSound"),

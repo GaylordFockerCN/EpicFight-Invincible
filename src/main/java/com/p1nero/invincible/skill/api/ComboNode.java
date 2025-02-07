@@ -1,12 +1,12 @@
 package com.p1nero.invincible.skill.api;
 
+import com.p1nero.invincible.animation.AnimationProvider;
 import com.p1nero.invincible.api.events.*;
+import com.p1nero.invincible.conditions.Condition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.api.animation.AnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.ValueModifier;
-import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
@@ -246,7 +246,7 @@ public class ComboNode {
         return conditions.isEmpty();
     }
 
-    public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition) {
+    public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition condition) {
         this.conditions.add(condition);
         return this;
     }

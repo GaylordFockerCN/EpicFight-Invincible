@@ -27,8 +27,8 @@ public class InvincibleWeaponCapabilityPresets {
             (CapabilityItem.Builder) WeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
                     .styleProvider((entityPatch) -> CapabilityItem.Styles.COMMON)
                     .collider(ColliderPreset.SWORD)
-                    .swingSound(EpicFightSounds.WHOOSH.get())
-                    .hitSound(EpicFightSounds.BLADE_HIT.get())
+                    .swingSound(EpicFightSounds.WHOOSH)
+                    .hitSound(EpicFightSounds.BLADE_HIT)
                     .hitParticle(EpicFightParticles.HIT_BLADE.get())
                     .canBePlacedOffhand(false)
                     .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
@@ -37,7 +37,7 @@ public class InvincibleWeaponCapabilityPresets {
 
     @SubscribeEvent
     public static void register(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(new ResourceLocation(InvincibleMod.MOD_ID, "demo"), DEMO);
+        event.getTypeEntry().put("invincible_demo", DEMO);
     }
 
 }

@@ -11,6 +11,4 @@ import net.minecraftforge.registries.RegistryObject;
 public class InvincibleItems {
     public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, InvincibleMod.MOD_ID);
     public static final RegistryObject<Item> DEBUG = ITEMS.register("debug", () -> new SwordItem(Tiers.WOOD, 3, -2.4F, new Item.Properties()));
-    public static final RegistryObject<Item> DATAPACK_DEBUG = ITEMS.register("datapack_debug", () -> new SwordItem(Tiers.WOOD, 3, -2.4F, new Item.Properties()));
-
 }

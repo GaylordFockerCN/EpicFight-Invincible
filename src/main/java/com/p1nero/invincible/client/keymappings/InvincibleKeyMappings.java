@@ -3,10 +3,12 @@ package com.p1nero.invincible.client.keymappings;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
 import yesman.epicfight.client.input.CombatKeyMapping;
 
@@ -21,15 +23,15 @@ public class InvincibleKeyMappings {
     public static final KeyMapping KEY4 = new CombatKeyMapping("key.invincible.key4", InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_5, "key.invincible.category");
 
     @SubscribeEvent
-    public static void registerKeys(RegisterKeyMappingsEvent event) {
-        event.register(KEY1);
-        event.register(KEY2);
-        event.register(KEY3);
-        event.register(KEY4);
+    public static void registerKeys(FMLClientSetupEvent event) {
+        ClientRegistry.registerKeyBinding(KEY1);
+        ClientRegistry.registerKeyBinding(KEY2);
+        ClientRegistry.registerKeyBinding(KEY3);
+        ClientRegistry.registerKeyBinding(KEY4);
     }
 
     public static Component getName(KeyMapping keyMapping) {
-        return Component.translatable(keyMapping.getKey().getName());
+        return new TranslatableComponent(keyMapping.getKey().getName());
     }
 
     public static Component getTranslatableKey1(){

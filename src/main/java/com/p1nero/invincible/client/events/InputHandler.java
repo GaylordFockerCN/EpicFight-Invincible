@@ -67,7 +67,7 @@ public class InputHandler {
                 }
             }
         }
-        ;
+
         if (INPUT_QUEUE.size() > 2) {
             KeyMapping keyMapping = INPUT_QUEUE.poll();
             if (!INPUT_QUEUE.contains(keyMapping)) {
@@ -77,7 +77,7 @@ public class InputHandler {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton event) {
+    public static void onMouseInput(InputEvent.MouseInputEvent event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
@@ -87,7 +87,7 @@ public class InputHandler {
     }
 
     @SubscribeEvent
-    public static void onKeyInput(InputEvent.Key event) {
+    public static void onKeyInput(InputEvent.KeyInputEvent event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (event.getAction() == 1 && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
@@ -178,12 +178,8 @@ public class InputHandler {
         ControllEngine controllEngine = ClientEngine.getInstance().controllEngine;
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         if (!container.canExecute(executor, event)) {
-            if(container.getSkill() != null){
-                container.getSkill().validationFeedback(executor);
-            }
             return event;
         }
-        executor.disableModelYRot(true);
         controllEngine.addPacketToSend(getExecutionPacket(container));
         return event;
     }

@@ -1,11 +1,12 @@
 package com.p1nero.invincible.skill;
 
 import com.p1nero.invincible.Config;
+import com.p1nero.invincible.animation.StaticAnimationProvider;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
-import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
+import com.p1nero.invincible.conditions.Condition;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
@@ -16,10 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.api.animation.StaticAnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
-import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
 import yesman.epicfight.skill.*;
@@ -37,6 +36,8 @@ import java.util.UUID;
 public class ComboBasicAttack extends Skill {
 
     protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
+    public static SkillDataManager.SkillDataKey<Integer> DODGE_SUCCESS_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
+    public static SkillDataManager.SkillDataKey<Integer> PARRY_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
 
     @OnlyIn(Dist.CLIENT)
     protected boolean isWalking;
@@ -120,7 +121,7 @@ public class ComboBasicAttack extends Skill {
         if (finalType == null) {
             return;
         }
-        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get())) {
+        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get())) {
             System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + finalType);
         }
         SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
@@ -229,11 +230,13 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
+        container.getDataManager().registerData(DODGE_SUCCESS_TIMER);
+        container.getDataManager().registerData(PARRY_TIMER);
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
+            container.getDataManager().setDataSync(DODGE_SUCCESS_TIMER, Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
         }));
         //减伤和霸体的判断
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
@@ -246,7 +249,7 @@ public class ComboBasicAttack extends Skill {
             }
             //招架成功的判断，配合优先级-1使用
             if(event.isParried()){
-                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
+                container.getDataManager().setDataSync(PARRY_TIMER, Config.RESERVE_TICK.get(), event.getPlayerPatch().getOriginal());
             }
         }), -1);
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
@@ -255,7 +258,7 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         //调整攻击倍率，冲击，硬直类型等
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_PRE, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (invinciblePlayer.getStunTypeModifier() != null) {
                 event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
@@ -268,7 +271,7 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         //自己写个充能用
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
+        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_POST, EVENT_UUID, (event -> {
             if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
                 if (!container.isFull()) {
                     float value = container.getResource() + event.getAttackDamage();
@@ -317,8 +320,8 @@ public class ComboBasicAttack extends Skill {
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_PRE, EVENT_UUID);
+        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_POST, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
         container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
     }
@@ -334,11 +337,11 @@ public class ComboBasicAttack extends Skill {
         }
         InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).tick();
         SkillDataManager manager = container.getDataManager();
-        if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get())){
-            manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get()) - 1, 0));
+        if(manager.hasData(DODGE_SUCCESS_TIMER)){
+            manager.setData(DODGE_SUCCESS_TIMER, Math.max(manager.getDataValue(DODGE_SUCCESS_TIMER) - 1, 0));
         }
-        if(manager.hasData(InvincibleSkillDataKeys.PARRY_TIMER.get())){
-            manager.setData(InvincibleSkillDataKeys.PARRY_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.PARRY_TIMER.get()) - 1, 0));
+        if(manager.hasData(PARRY_TIMER)){
+            manager.setData(PARRY_TIMER, Math.max(manager.getDataValue(PARRY_TIMER) - 1, 0));
         }
     }
 

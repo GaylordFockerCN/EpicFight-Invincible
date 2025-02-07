@@ -28,15 +28,15 @@ public abstract class AnimationPlayerMixin {
 
     @Shadow protected float elapsedTime;
 
-    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lyesman/epicfight/api/animation/types/DynamicAnimation;getPlaySpeed(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lyesman/epicfight/api/animation/types/DynamicAnimation;)F"))
-    private float invincible$onGetPlaySpeed(DynamicAnimation instance, LivingEntityPatch<?> entityPatch, DynamicAnimation animation) {
+    @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lyesman/epicfight/api/animation/types/DynamicAnimation;getPlaySpeed(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;)F"))
+    private float invincible$onGetPlaySpeed(DynamicAnimation instance, LivingEntityPatch<?> entityPatch) {
         if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
             if (invinciblePlayer.getPlaySpeedMultiplier() != 0) {
-                return instance.getPlaySpeed(entityPatch, animation) * invinciblePlayer.getPlaySpeedMultiplier();
+                return instance.getPlaySpeed(entityPatch) * invinciblePlayer.getPlaySpeedMultiplier();
             }
         }
-        return instance.getPlaySpeed(entityPatch, animation);
+        return instance.getPlaySpeed(entityPatch);
     }
 
     @Inject(method = "tick", at = @At("HEAD"))

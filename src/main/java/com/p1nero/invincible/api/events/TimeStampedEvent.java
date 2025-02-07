@@ -33,14 +33,14 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
 
     public static TimeStampedEvent createTimeCommandEvent(float time, String command, boolean isTarget) {
         Consumer<LivingEntityPatch<?>> event = (entityPatch) -> {
-            Level server = entityPatch.getOriginal().level();
+            Level server = entityPatch.getOriginal().level;
             CommandSourceStack css = entityPatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
             if (isTarget && entityPatch.getTarget() != null) {
                 css = css.withEntity(entityPatch.getTarget());
             }
 
             if (server.getServer() != null && entityPatch.getOriginal() != null) {
-                server.getServer().getCommands().performPrefixedCommand(css, command);
+                server.getServer().getCommands().performCommand(css, command);
             }
 
         };

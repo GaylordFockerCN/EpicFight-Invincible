@@ -17,13 +17,13 @@ public class BiEvent {
 
     public static BiEvent createBiCommandEvent(String command, boolean isTarget) {
         BiConsumer<LivingEntityPatch<?>, Entity> event = (entityPatch, target) -> {
-            Level server = entityPatch.getOriginal().level();
+            Level server = entityPatch.getOriginal().level;
             CommandSourceStack css = entityPatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
             if (isTarget && target instanceof LivingEntity) {
                 css = css.withEntity(target);
             }
             if (server.getServer() != null && entityPatch.getOriginal() != null) {
-                server.getServer().getCommands().performPrefixedCommand(css, command);
+                server.getServer().getCommands().performCommand(css, command);
             }
         };
         return new BiEvent(event);

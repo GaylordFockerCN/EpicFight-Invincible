@@ -8,9 +8,7 @@
     "ClientPacketListenerMixin"
   ],
   "mixins": [
-    "AdvancedCustomHumanoidMobPatchAccessor",
-    "AnimationPlayerMixin",
-    "SkillManagerMixin"
+    "AnimationPlayerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

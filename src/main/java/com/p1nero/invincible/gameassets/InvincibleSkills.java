@@ -9,30 +9,23 @@ import com.p1nero.invincible.conditions.StackCondition;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import yesman.epicfight.api.data.reloader.SkillManager;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 注册技能，然后在{@link InvincibleWeaponCapabilityPresets}中使用
- * 预设的Condition可以参考 {@link yesman.epicfight.data.conditions.EpicFightConditions} 和 {@link InvincibleConditions}
  */
-@Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID)
 public class InvincibleSkills {
     public static Skill COMBO_DEMO;
-    public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();
-    @SubscribeEvent
-    public static void BuildSkills(SkillBuildEvent event) {
-        SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
 
+    public static void registerSkills() {
         //Create a combo tree
         //建立连击树
         //I use epic fight Condition system. So you can use custom condition or mine or epic fight's
@@ -42,7 +35,7 @@ public class InvincibleSkills {
                 .setPlaySpeed(0.5F)//测试变速 speed modify test
                 .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
-                        serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
+                        serverPlayer.getLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
                 })))
                 .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false));
@@ -76,7 +69,7 @@ public class InvincibleSkills {
         bb.key2(bbb);
         root.key2(b);
         root.key1_2(a_b);
-        COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(false));
+        SkillManager.register(ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(false), InvincibleMod.MOD_ID, "combo_demo");
 
         //You can also create the tree like this:
         //你也可以这样构建：
@@ -88,6 +81,10 @@ public class InvincibleSkills {
                         .key2(() -> Animations.SWORD_AUTO2))
                 .key2(ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1));
 
+    }
+    @SubscribeEvent
+    public static void buildSkills(SkillBuildEvent event) {
+        COMBO_DEMO = event.build(InvincibleMod.MOD_ID, "combo_demo");
     }
 
 }
