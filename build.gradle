@@ -161,13 +161,13 @@ repositories {
 
 dependencies {
     minecraft 'net.minecraftforge:forge:1.18.2-40.2.17'
-    implementation fg.deobf("libs:EpicFight:18.5.24")
+    implementation fg.deobf("libs:EpicFight:18.5.26")
     implementation 'me.fallenbreath:conditional-mixin-forge:0.6.4'
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 mixin {
-    add sourceSets.main, "invincible.mixins.refmap.json"
+    add sourceSets.main, "invincible.mixin-refmap.json"
 }
 
 // Example for how to get properties into the manifest for reading at runtime.
