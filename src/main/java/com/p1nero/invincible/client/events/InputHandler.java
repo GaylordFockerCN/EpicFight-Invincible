@@ -55,13 +55,12 @@ public class InputHandler {
                 clearKeyReserve();
                 if (delayCounter == 0) {
                     delayCounter = -1;
-                    tryRequestSkillExecute(currentSlot);
+                    tryRequestSkillExecute(currentSlot, true);
                 }
             }
             if (reserveCounter > 0) {
                 --reserveCounter;
-                SkillContainer skill = playerPatch.getSkill(reservedSkillSlot);
-                if (skill.getSkill() != null && skill.sendExecuteRequest(playerPatch, ClientEngine.getInstance().controllEngine).isExecutable()) {
+                if (tryRequestSkillExecute(reservedSkillSlot, false)) {
                     clearKeyReserve();
                     clearDelayKey();
                 }
@@ -163,15 +162,20 @@ public class InputHandler {
     /**
      * 发起执行请求，并预存键位，战斗模式下才可以使用
      */
-    public static void tryRequestSkillExecute(SkillSlot slot) {
+    public static boolean tryRequestSkillExecute(SkillSlot slot, boolean shouldReserve) {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.isBattleMode()) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
-                setReserve(slot);
+                if(shouldReserve){
+                    setReserve(slot);
+                }
+                return false;
             } else {
                 clearDelayKey();
+                return true;
             }
         }
+        return false;
     }
 
     public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
