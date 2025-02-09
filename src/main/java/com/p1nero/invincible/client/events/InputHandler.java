@@ -4,6 +4,8 @@ import com.p1nero.invincible.Config;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
 import com.p1nero.invincible.skill.ComboBasicAttack;
+import com.p1nero.invincible.skill.api.ComboNode;
+import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,12 +18,10 @@ import yesman.epicfight.client.events.engine.ControllEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.network.client.CPExecuteSkill;
 import yesman.epicfight.skill.*;
+import yesman.epicfight.skill.dodge.StepSkill;
 import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
 
-import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * 仅针对四个键的控制，写的一言难尽，能跑就行
@@ -32,14 +32,18 @@ public class InputHandler {
     private static int reserveCounter, delayCounter;
     private static SkillSlot currentSlot;
     private static SkillSlot reservedSkillSlot;
+    public static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
     public static final Map<KeyMapping, Boolean> KEY_STATE = new HashMap<>();
     public static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
 
     static {
-        KEY_STATE.put(InvincibleKeyMappings.KEY1, false);
-        KEY_STATE.put(InvincibleKeyMappings.KEY2, false);
-        KEY_STATE.put(InvincibleKeyMappings.KEY3, false);
-        KEY_STATE.put(InvincibleKeyMappings.KEY4, false);
+        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_1, InvincibleKeyMappings.KEY1);
+        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_2, InvincibleKeyMappings.KEY2);
+        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_3, InvincibleKeyMappings.KEY3);
+        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_4, InvincibleKeyMappings.KEY4);
+        for(KeyMapping keyMapping : TYPE_KEY_MAP.values()){
+            KEY_STATE.put(keyMapping, false);
+        }
     }
 
     /**
@@ -55,19 +59,18 @@ public class InputHandler {
                 clearKeyReserve();
                 if (delayCounter == 0) {
                     delayCounter = -1;
-                    tryRequestSkillExecute(currentSlot);
+                    tryRequestSkillExecute(currentSlot, true);
                 }
             }
             if (reserveCounter > 0) {
                 --reserveCounter;
-                SkillContainer skill = playerPatch.getSkill(reservedSkillSlot);
-                if (skill.getSkill() != null && skill.sendExecuteRequest(playerPatch, ClientEngine.getInstance().controllEngine).isExecutable()) {
+                if(tryRequestSkillExecute(reservedSkillSlot, false)){
                     clearKeyReserve();
                     clearDelayKey();
                 }
             }
         }
-        ;
+
         if (INPUT_QUEUE.size() > 2) {
             KeyMapping keyMapping = INPUT_QUEUE.poll();
             if (!INPUT_QUEUE.contains(keyMapping)) {
@@ -163,15 +166,20 @@ public class InputHandler {
     /**
      * 发起执行请求，并预存键位，战斗模式下才可以使用
      */
-    public static void tryRequestSkillExecute(SkillSlot slot) {
+    public static boolean tryRequestSkillExecute(SkillSlot slot, boolean shouldReserve) {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.isBattleMode()) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
-                setReserve(slot);
+                if(shouldReserve){
+                    setReserve(slot);
+                }
+                return false;
             } else {
                 clearDelayKey();
+                return true;
             }
         }
+        return false;
     }
 
     public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
@@ -190,11 +198,28 @@ public class InputHandler {
 
     public static Object getExecutionPacket(SkillContainer container) {
         CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY1));
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY2));
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY3));
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY4));
+        List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
+        typeList.sort(Comparator.comparingInt((comboType) -> -1 * comboType.getSubTypes().size()));//subType多的优先
+        for(ComboType comboType : typeList){
+            if(test(comboType)){
+                packet.getBuffer().writeInt(comboType.universalOrdinal());
+                break;
+            }
+        }
         return packet;
+    }
+
+    public static boolean test(ComboType comboType){
+        if(comboType.getSubTypes().isEmpty()){
+            return KEY_STATE.get(TYPE_KEY_MAP.get(comboType));
+        } else {
+            for(ComboType subType : comboType.getSubTypes()){
+                if(!test(subType)){
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
 }
