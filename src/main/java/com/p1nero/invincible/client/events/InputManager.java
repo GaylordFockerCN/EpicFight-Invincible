@@ -33,7 +33,7 @@ public class InputManager {
     private static SkillSlot currentSlot;
     private static SkillSlot reservedSkillSlot;
     private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
-    public static final Map<KeyMapping, Boolean> KEY_STATE = new HashMap<>();
+    public static final Map<KeyMapping, Boolean> KEY_STATE_CACHE = new HashMap<>();
     public static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
 
     public static void init(){
@@ -41,7 +41,6 @@ public class InputManager {
         register(ComboNode.ComboTypes.KEY_2, InvincibleKeyMappings.KEY2);
         register(ComboNode.ComboTypes.KEY_3, InvincibleKeyMappings.KEY3);
         register(ComboNode.ComboTypes.KEY_4, InvincibleKeyMappings.KEY4);
-        register(ComboNode.ComboTypes.ATTACK, EpicFightKeyMappings.ATTACK);
         register(ComboNode.ComboTypes.DODGE, EpicFightKeyMappings.DODGE);
         register(ComboNode.ComboTypes.WEAPON_INNATE, EpicFightKeyMappings.WEAPON_INNATE_SKILL);
     }
@@ -51,7 +50,7 @@ public class InputManager {
      */
     public static void register(ComboType type, KeyMapping keyMapping){
         TYPE_KEY_MAP.put(type, keyMapping);
-        KEY_STATE.put(keyMapping, false);
+        KEY_STATE_CACHE.put(keyMapping, false);
     }
 
     /**
@@ -64,7 +63,7 @@ public class InputManager {
         if (playerPatch != null) {
             if (delayCounter > 0) {
                 delayCounter--;
-                clearKeyReserve();
+                clearReservedKey();
                 if (delayCounter == 0) {
                     delayCounter = -1;
                     tryRequestSkillExecute(currentSlot, true);
@@ -73,12 +72,12 @@ public class InputManager {
             if (reserveCounter > 0) {
                 --reserveCounter;
                 if (tryRequestSkillExecute(reservedSkillSlot, false)) {
-                    clearKeyReserve();
-                    clearDelayKey();
+                    clearReservedKey();
+                    clearKeyCache();
                 }
                 if (reserveCounter == 0) {
-                    clearKeyReserve();
-                    clearDelayKey();
+                    clearReservedKey();
+                    clearKeyCache();
                 }
             }
         }
@@ -86,7 +85,7 @@ public class InputManager {
         if (INPUT_QUEUE.size() > 2) {
             KeyMapping keyMapping = INPUT_QUEUE.poll();
             if (!INPUT_QUEUE.contains(keyMapping)) {
-                KEY_STATE.put(keyMapping, false);
+                KEY_STATE_CACHE.put(keyMapping, false);
             }
         }
     }
@@ -113,10 +112,10 @@ public class InputManager {
     }
 
     public static void check(int key, int action) {
-        for (KeyMapping keyMapping : KEY_STATE.keySet()) {
+        for (KeyMapping keyMapping : KEY_STATE_CACHE.keySet()) {
             if (action == 1 && key == keyMapping.getKey().getValue()) {
                 INPUT_QUEUE.add(keyMapping);
-                KEY_STATE.put(keyMapping, true);
+                KEY_STATE_CACHE.put(keyMapping, true);
                 setDelay(SkillSlots.WEAPON_INNATE);
             }
         }
@@ -125,11 +124,11 @@ public class InputManager {
     /**
      * 清理存下的按键，成功执行才清除
      */
-    public static void clearDelayKey() {
-        KEY_STATE.forEach(((keyMapping, aBoolean) -> KEY_STATE.put(keyMapping, false)));
+    public static void clearKeyCache() {
+        KEY_STATE_CACHE.forEach(((keyMapping, aBoolean) -> KEY_STATE_CACHE.put(keyMapping, false)));
     }
 
-    public static void clearKeyReserve() {
+    public static void clearReservedKey() {
         reserveCounter = -1;
         reservedSkillSlot = null;
     }
@@ -187,7 +186,7 @@ public class InputManager {
                 }
                 return false;
             } else {
-                clearDelayKey();
+                clearKeyCache();
                 return true;
             }
         }
@@ -219,7 +218,7 @@ public class InputManager {
 
     public static boolean test(ComboType comboType){
         if(comboType.getSubTypes().isEmpty()){
-            return KEY_STATE.get(TYPE_KEY_MAP.get(comboType));
+            return KEY_STATE_CACHE.get(TYPE_KEY_MAP.get(comboType));
         } else {
             for(ComboType subType : comboType.getSubTypes()){
                 if(!test(subType)){

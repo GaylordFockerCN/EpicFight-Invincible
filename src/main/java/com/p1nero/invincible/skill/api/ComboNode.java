@@ -289,12 +289,6 @@ public class ComboNode {
         return this;
     }
 
-    public ComboNode keyAttack(ComboNode child) {
-        child.root = root;
-        children.put(ComboTypes.ATTACK, child);
-        return this;
-    }
-
     public ComboNode keyDodge(ComboNode child) {
         child.root = root;
         children.put(ComboTypes.DODGE, child);
@@ -375,14 +369,6 @@ public class ComboNode {
         return child;
     }
 
-    public ComboNode keyAttack(AnimationProvider<?> animation) {
-        ComboNode child = new ComboNode();
-        child.animation = animation;
-        child.root = root;
-        children.put(ComboTypes.ATTACK, child);
-        return child;
-    }
-
     public ComboNode keyDodge(AnimationProvider<?> animation) {
         ComboNode child = new ComboNode();
         child.animation = animation;
@@ -458,7 +444,6 @@ public class ComboNode {
         KEY_2_3(KEY_2, KEY_3),
         KEY_2_4(KEY_2, KEY_4),
         KEY_3_4(KEY_3, KEY_4),
-        ATTACK,
         DODGE,
         WEAPON_INNATE;
         final int id;
