@@ -4,6 +4,8 @@ import com.p1nero.invincible.Config;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
 import com.p1nero.invincible.skill.ComboBasicAttack;
+import com.p1nero.invincible.skill.api.ComboNode;
+import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.api.distmarker.Dist;
@@ -13,33 +15,43 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.events.engine.ControllEngine;
+import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.network.client.CPExecuteSkill;
 import yesman.epicfight.skill.*;
 import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
 
-import java.util.ArrayDeque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 /**
  * 仅针对四个键的控制，写的一言难尽，能跑就行
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
-public class InputHandler {
+public class InputManager {
 
     private static int reserveCounter, delayCounter;
     private static SkillSlot currentSlot;
     private static SkillSlot reservedSkillSlot;
+    private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
     public static final Map<KeyMapping, Boolean> KEY_STATE = new HashMap<>();
     public static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
 
-    static {
-        KEY_STATE.put(InvincibleKeyMappings.KEY1, false);
-        KEY_STATE.put(InvincibleKeyMappings.KEY2, false);
-        KEY_STATE.put(InvincibleKeyMappings.KEY3, false);
-        KEY_STATE.put(InvincibleKeyMappings.KEY4, false);
+    public static void init(){
+        register(ComboNode.ComboTypes.KEY_1, InvincibleKeyMappings.KEY1);
+        register(ComboNode.ComboTypes.KEY_2, InvincibleKeyMappings.KEY2);
+        register(ComboNode.ComboTypes.KEY_3, InvincibleKeyMappings.KEY3);
+        register(ComboNode.ComboTypes.KEY_4, InvincibleKeyMappings.KEY4);
+        register(ComboNode.ComboTypes.ATTACK, EpicFightKeyMappings.ATTACK);
+        register(ComboNode.ComboTypes.DODGE, EpicFightKeyMappings.DODGE);
+        register(ComboNode.ComboTypes.WEAPON_INNATE, EpicFightKeyMappings.WEAPON_INNATE_SKILL);
+    }
+
+    /**
+     * 自定义按键的注册
+     */
+    public static void register(ComboType type, KeyMapping keyMapping){
+        TYPE_KEY_MAP.put(type, keyMapping);
+        KEY_STATE.put(keyMapping, false);
     }
 
     /**
@@ -64,6 +76,10 @@ public class InputHandler {
                     clearKeyReserve();
                     clearDelayKey();
                 }
+                if (reserveCounter == 0) {
+                    clearKeyReserve();
+                    clearDelayKey();
+                }
             }
         }
 
@@ -80,7 +96,7 @@ public class InputHandler {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-                check(event.getButton(), event.getAction(), InvincibleKeyMappings.KEY1, InvincibleKeyMappings.KEY2, InvincibleKeyMappings.KEY3, InvincibleKeyMappings.KEY4);
+                check(event.getButton(), event.getAction());
             }
         }
     }
@@ -90,14 +106,14 @@ public class InputHandler {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (event.getAction() == 1 && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-                check(event.getKey(), event.getAction(), InvincibleKeyMappings.KEY1, InvincibleKeyMappings.KEY2, InvincibleKeyMappings.KEY3, InvincibleKeyMappings.KEY4);
+                check(event.getKey(), event.getAction());
             }
         }
 
     }
 
-    public static void check(int key, int action, KeyMapping... keyMappings) {
-        for (KeyMapping keyMapping : keyMappings) {
+    public static void check(int key, int action) {
+        for (KeyMapping keyMapping : KEY_STATE.keySet()) {
             if (action == 1 && key == keyMapping.getKey().getValue()) {
                 INPUT_QUEUE.add(keyMapping);
                 KEY_STATE.put(keyMapping, true);
@@ -122,14 +138,14 @@ public class InputHandler {
      * 延迟输入计时器，影响双键按下
      */
     public static void setDelayCounter(int delayCounter) {
-        InputHandler.delayCounter = delayCounter;
+        InputManager.delayCounter = delayCounter;
     }
 
     public static void setDelay(SkillSlot slot) {
         //不能被顶掉
-        if (InputHandler.delayCounter <= 0) {
-            InputHandler.delayCounter = Config.INPUT_DELAY_TICK.get();
-            InputHandler.currentSlot = slot;
+        if (InputManager.delayCounter <= 0) {
+            InputManager.delayCounter = Config.INPUT_DELAY_TICK.get();
+            InputManager.currentSlot = slot;
         }
     }
 
@@ -137,26 +153,26 @@ public class InputHandler {
      * 延迟输入的技能栏
      */
     public static void setCurrentSlot(SkillSlot currentSlot) {
-        InputHandler.currentSlot = currentSlot;
+        InputManager.currentSlot = currentSlot;
     }
 
     /**
      * 预存计时器
      */
     public static void setReserveCounter(int reserveCounter) {
-        InputHandler.reserveCounter = reserveCounter;
+        InputManager.reserveCounter = reserveCounter;
     }
 
     public static void setReserve(SkillSlot reserve) {
-        InputHandler.reserveCounter = Config.RESERVE_TICK.get();
-        InputHandler.reservedSkillSlot = reserve;
+        InputManager.reserveCounter = Config.RESERVE_TICK.get();
+        InputManager.reservedSkillSlot = reserve;
     }
 
     /**
      * 预存的技能栏
      */
     public static void setReservedSkillSlot(SkillSlot reservedSkillSlot) {
-        InputHandler.reservedSkillSlot = reservedSkillSlot;
+        InputManager.reservedSkillSlot = reservedSkillSlot;
     }
 
     /**
@@ -166,7 +182,7 @@ public class InputHandler {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.isBattleMode()) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
-                if(shouldReserve){
+                if (shouldReserve) {
                     setReserve(slot);
                 }
                 return false;
@@ -190,11 +206,28 @@ public class InputHandler {
 
     public static Object getExecutionPacket(SkillContainer container) {
         CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY1));
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY2));
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY3));
-        packet.getBuffer().writeBoolean(KEY_STATE.get(InvincibleKeyMappings.KEY4));
+        List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
+        typeList.sort(Comparator.comparingInt((comboType) -> -1 * comboType.getSubTypes().size()));//subType多的优先
+        for(ComboType comboType : typeList){
+            if(test(comboType)){
+                packet.getBuffer().writeInt(comboType.universalOrdinal());
+                break;
+            }
+        }
         return packet;
+    }
+
+    public static boolean test(ComboType comboType){
+        if(comboType.getSubTypes().isEmpty()){
+            return KEY_STATE.get(TYPE_KEY_MAP.get(comboType));
+        } else {
+            for(ComboType subType : comboType.getSubTypes()){
+                if(!test(subType)){
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 
 }

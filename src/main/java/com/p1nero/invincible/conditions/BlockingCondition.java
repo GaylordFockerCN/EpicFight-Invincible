@@ -27,9 +27,8 @@ public class BlockingCondition implements Condition<ServerPlayerPatch> {
                 return check(EpicFightCapabilities.getEntityPatch(serverPlayerPatch.getTarget(), ServerPlayerPatch.class));
             }
             if(ModList.get().isLoaded("indestructible")){
-                return EpicFightCapabilities.getEntityPatch(serverPlayerPatch.getTarget(), AdvancedCustomHumanoidMobPatch.class).isBlocking();
-            } else {
-                throw new IllegalStateException("try to use TargetGuardBreakCondition without indestructible!");
+                AdvancedCustomHumanoidMobPatch<?> patch = EpicFightCapabilities.getEntityPatch(serverPlayerPatch.getTarget(), AdvancedCustomHumanoidMobPatch.class);
+                return patch != null && patch.isBlocking();
             }
         }
         return check(serverPlayerPatch);

@@ -6,6 +6,7 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.client.events.InputManager;
 import com.p1nero.invincible.conditions.Condition;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.skill.api.ComboNode;
@@ -78,58 +79,23 @@ public class ComboBasicAttack extends Skill {
 
     /**
      * 处理客户端的输入信息，原谅我无脑if偷懒
-     * 处理输入位于{@link com.p1nero.invincible.client.events.InputHandler#getExecutionPacket(SkillContainer)}
+     * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
      */
     @Override
     public void executeOnServer(ServerPlayerPatch executor, FriendlyByteBuf args) {
-        boolean key1 = args.readBoolean();
-        boolean key2 = args.readBoolean();
-        boolean key3 = args.readBoolean();
-        boolean key4 = args.readBoolean();
-        ComboType type = null;
-        if (key1 && !key2 && !key3 && !key4) {
-            type = ComboNode.ComboTypes.KEY_1;
-        }
-        if (!key1 && key2 && !key3 && !key4) {
-            type = ComboNode.ComboTypes.KEY_2;
-        }
-        if (!key1 && !key2 && key3 && !key4) {
-            type = ComboNode.ComboTypes.KEY_3;
-        }
-        if (!key1 && !key2 && !key3 && key4) {
-            type = ComboNode.ComboTypes.KEY_4;
-        }
-        if (key1 && key2 && !key3 && !key4) {
-            type = ComboNode.ComboTypes.KEY_1_2;
-        }
-        if (key1 && !key2 && key3 && !key4) {
-            type = ComboNode.ComboTypes.KEY_1_3;
-        }
-        if (key1 && !key2 && !key3 && key4) {
-            type = ComboNode.ComboTypes.KEY_1_4;
-        }
-        if (!key1 && key2 && key3 && !key4) {
-            type = ComboNode.ComboTypes.KEY_2_3;
-        }
-        if (!key1 && key2 && !key3 && key4) {
-            type = ComboNode.ComboTypes.KEY_2_4;
-        }
-        if (!key1 && !key2 && key3 && key4) {
-            type = ComboNode.ComboTypes.KEY_3_4;
-        }
-        ComboType finalType = type;
-        if (finalType == null) {
+        ComboType type = ComboType.ENUM_MANAGER.get(args.readInt());
+        if (type == null) {
             return;
         }
         if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get())) {
-            System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + finalType);
+            System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + type);
         }
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode current = invinciblePlayer.getCurrentNode();
-            ComboNode next = current.getNext(finalType);
+            ComboNode next = current.getNext(type);
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
             if(next == null || next.getAnimation() == null){
-                for(ComboType subType : finalType.getSubTypes()){
+                for(ComboType subType : type.getSubTypes()){
                     if((next = current.getNext(subType)) != null){
                         break;
                     }

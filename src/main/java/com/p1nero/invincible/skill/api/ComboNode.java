@@ -289,6 +289,24 @@ public class ComboNode {
         return this;
     }
 
+    public ComboNode keyAttack(ComboNode child) {
+        child.root = root;
+        children.put(ComboTypes.ATTACK, child);
+        return this;
+    }
+
+    public ComboNode keyDodge(ComboNode child) {
+        child.root = root;
+        children.put(ComboTypes.DODGE, child);
+        return this;
+    }
+
+    public ComboNode keyWeaponInnate(ComboNode child) {
+        child.root = root;
+        children.put(ComboTypes.WEAPON_INNATE, child);
+        return this;
+    }
+
     public ComboNode key1_2(ComboNode child) {
         child.root = root;
         children.put(ComboTypes.KEY_1_2, child);
@@ -357,6 +375,30 @@ public class ComboNode {
         return child;
     }
 
+    public ComboNode keyAttack(AnimationProvider<?> animation) {
+        ComboNode child = new ComboNode();
+        child.animation = animation;
+        child.root = root;
+        children.put(ComboTypes.ATTACK, child);
+        return child;
+    }
+
+    public ComboNode keyDodge(AnimationProvider<?> animation) {
+        ComboNode child = new ComboNode();
+        child.animation = animation;
+        child.root = root;
+        children.put(ComboTypes.DODGE, child);
+        return child;
+    }
+
+    public ComboNode keyWeaponInnate(AnimationProvider<?> animation) {
+        ComboNode child = new ComboNode();
+        child.animation = animation;
+        child.root = root;
+        children.put(ComboTypes.WEAPON_INNATE, child);
+        return child;
+    }
+
     public ComboNode key1_2(AnimationProvider<?> animation) {
         ComboNode child = new ComboNode();
         child.animation = animation;
@@ -406,7 +448,19 @@ public class ComboNode {
     }
 
     public enum ComboTypes implements ComboType {
-        KEY_1, KEY_2, KEY_3, KEY_4, KEY_1_2(KEY_1, KEY_2), KEY_1_3(KEY_1, KEY_3), KEY_1_4(KEY_1, KEY_4), KEY_2_3(KEY_2, KEY_3), KEY_2_4(KEY_2, KEY_4), KEY_3_4(KEY_3, KEY_4);
+        KEY_1,
+        KEY_2,
+        KEY_3,
+        KEY_4,
+        KEY_1_2(KEY_1, KEY_2),
+        KEY_1_3(KEY_1, KEY_3),
+        KEY_1_4(KEY_1, KEY_4),
+        KEY_2_3(KEY_2, KEY_3),
+        KEY_2_4(KEY_2, KEY_4),
+        KEY_3_4(KEY_3, KEY_4),
+        ATTACK,
+        DODGE,
+        WEAPON_INNATE;
         final int id;
 
         final List<ComboType> subTypes;
