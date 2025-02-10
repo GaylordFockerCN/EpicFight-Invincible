@@ -5,6 +5,7 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.client.events.InputManager;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.skill.api.ComboNode;
@@ -77,7 +78,7 @@ public class ComboBasicAttack extends Skill {
 
     /**
      * 处理客户端的输入信息，原谅我无脑if偷懒
-     * 处理输入位于{@link com.p1nero.invincible.client.events.InputHandler#getExecutionPacket(SkillContainer)}
+     * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
      */
     @Override
     public void executeOnServer(ServerPlayerPatch executor, FriendlyByteBuf args) {

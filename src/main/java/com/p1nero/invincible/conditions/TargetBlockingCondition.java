@@ -4,10 +4,17 @@ import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPat
 import com.p1nero.invincible.mixin.AdvancedCustomHumanoidMobPatchAccessor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.UseAnim;
 import net.minecraftforge.fml.ModList;
 import yesman.epicfight.data.conditions.Condition;
+import yesman.epicfight.skill.SkillContainer;
+import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 import java.util.List;
 
@@ -16,24 +23,13 @@ import java.util.List;
  */
 public class TargetBlockingCondition implements Condition<ServerPlayerPatch> {
 
-    private boolean isParry;
+    public TargetBlockingCondition() {
 
-    public TargetBlockingCondition(){
-
-    }
-
-    public TargetBlockingCondition(boolean isParry){
-        this.isParry = isParry;
     }
 
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
-        if (!compoundTag.contains("is_parry")) {
-            throw new IllegalArgumentException("custom target blocking condition error: is_parry not specified!");
-        }  else {
-            this.isParry = compoundTag.getBoolean("is_parry");
-            return this;
-        }
+        return this;
     }
 
     @Override
@@ -43,14 +39,16 @@ public class TargetBlockingCondition implements Condition<ServerPlayerPatch> {
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        if(!ModList.get().isLoaded("indestructible") || serverPlayerPatch.getTarget() == null){
+        if (serverPlayerPatch.getTarget() instanceof ServerPlayer serverPlayer) {
+            SkillContainer guardSkill = serverPlayerPatch.getSkill(SkillSlots.GUARD);
+            CapabilityItem itemCapability = serverPlayerPatch.getHoldingItemCapability((serverPlayer.getUsedItemHand()));
+            return itemCapability.getUseAnimation(serverPlayerPatch) == UseAnim.BLOCK && (serverPlayer.isUsingItem() && guardSkill.getSkill() != null && guardSkill.getSkill().isExecutableState(serverPlayerPatch));
+        }
+        if (!ModList.get().isLoaded("indestructible") || serverPlayerPatch.getTarget() == null) {
             return false;
         }
         AdvancedCustomHumanoidMobPatch<?> patch = EpicFightCapabilities.getEntityPatch(serverPlayerPatch.getTarget(), AdvancedCustomHumanoidMobPatch.class);
-        if(patch != null){
-            if(isParry){
-                return ((AdvancedCustomHumanoidMobPatchAccessor) patch).isParry();
-            }
+        if (patch != null) {
             return patch.isBlocking();
         }
         return false;

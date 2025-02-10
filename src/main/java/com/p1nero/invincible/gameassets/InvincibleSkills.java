@@ -29,6 +29,7 @@ import java.util.List;
 public class InvincibleSkills {
     public static Skill COMBO_DEMO;
     public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();
+
     @SubscribeEvent
     public static void BuildSkills(SkillBuildEvent event) {
         SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
@@ -76,6 +77,7 @@ public class InvincibleSkills {
         bb.key2(bbb);
         root.key2(b);
         root.key1_2(a_b);
+        root.keyWeaponInnate(() -> Animations.BIPED_STEP_LEFT);//测试特定按键
         COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(false));
 
         //You can also create the tree like this:
