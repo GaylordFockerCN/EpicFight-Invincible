@@ -38,14 +38,14 @@ public class InputManager {
     private static final Map<KeyMapping, Boolean> KEY_STATE = new HashMap<>();
     private static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
 
+    /**
+     * 绑定模组自带的的按键
+     */
     public static void init(){
-        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_1, InvincibleKeyMappings.KEY1);
-        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_2, InvincibleKeyMappings.KEY2);
-        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_3, InvincibleKeyMappings.KEY3);
-        TYPE_KEY_MAP.put(ComboNode.ComboTypes.KEY_4, InvincibleKeyMappings.KEY4);
-        for(KeyMapping keyMapping : TYPE_KEY_MAP.values()){
-            KEY_STATE.put(keyMapping, false);
-        }
+        register(ComboNode.ComboTypes.KEY_1, InvincibleKeyMappings.KEY1);
+        register(ComboNode.ComboTypes.KEY_2, InvincibleKeyMappings.KEY2);
+        register(ComboNode.ComboTypes.KEY_3, InvincibleKeyMappings.KEY3);
+        register(ComboNode.ComboTypes.KEY_4, InvincibleKeyMappings.KEY4);
         register(ComboNode.ComboTypes.DODGE, EpicFightKeyMappings.DODGE);
         register(ComboNode.ComboTypes.WEAPON_INNATE, EpicFightKeyMappings.WEAPON_INNATE_SKILL);
     }
@@ -77,6 +77,10 @@ public class InputManager {
             if (reserveCounter > 0) {
                 --reserveCounter;
                 if(tryRequestSkillExecute(reservedSkillSlot, false)){
+                    clearKeyReserve();
+                    clearDelayKey();
+                }
+                if(reserveCounter == 0){
                     clearKeyReserve();
                     clearDelayKey();
                 }
