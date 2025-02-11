@@ -121,7 +121,6 @@ public class ComboBasicAttack extends Skill {
                         if (canExecute) {
                             animation = conditionAnimation.getAnimation();
                             convertTime = conditionAnimation.getConvertTime();
-                            initPlayer(invinciblePlayer, conditionAnimation);
                             //实现ConditionAnimations里接combos
                             if (conditionAnimation.hasNext()) {
                                 next = conditionAnimation;
@@ -138,12 +137,12 @@ public class ComboBasicAttack extends Skill {
                     }
                     animation = next.getAnimation();
                     convertTime = next.getConvertTime();
-                    initPlayer(invinciblePlayer, next);
                 }
                 if (animation == null) {
                     return;
                 }
                 executor.playAnimationSynchronized(animation, convertTime);
+                initPlayer(invinciblePlayer, next);
                 invinciblePlayer.setCurrentNode(next);
                 SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));

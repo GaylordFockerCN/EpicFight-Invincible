@@ -1,6 +1,7 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -12,6 +13,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 import yesman.epicfight.gameasset.Animations;
+import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.entitypatch.Faction;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -60,7 +62,9 @@ public class InvincibleSkills {
         //不同条件播不同动画
         b.addConditionAnimation(ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1).addCondition(new SprintingCondition()).setPriority(2));
         b.addConditionAnimation(ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition()).setPriority(1));
-        ComboNode bb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
+        ComboNode bb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2).addHitEvent(new BiEvent((entityPatch, entity) -> {
+            entityPatch.playSound(EpicFightSounds.ENTITY_MOVE.get(), 0, 0);
+        }));
         ComboNode bbb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
         ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).addCondition(new StackCondition(1, 2)).setNotCharge(true);
         a.key1(aa);
