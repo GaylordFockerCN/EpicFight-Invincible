@@ -8,6 +8,7 @@ import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.Input;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
@@ -78,6 +79,24 @@ public class InputManager {
                 if (reserveCounter == 0) {
                     clearReservedKey();
                     clearKeyCache();
+                }
+            }
+
+            //判断asdw是否按下，用于Condition判断。
+            if(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
+                Input input = playerPatch.getOriginal().input;
+                SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
+                if(manager.getDataValue(ComboBasicAttack.UP) != input.up){
+                    manager.setDataSync(ComboBasicAttack.UP, input.up, playerPatch.getOriginal());
+                }
+                if(manager.getDataValue(ComboBasicAttack.DOWN) != input.down){
+                    manager.setDataSync(ComboBasicAttack.DOWN, input.down, playerPatch.getOriginal());
+                }
+                if(manager.getDataValue(ComboBasicAttack.LEFT) != input.left){
+                    manager.setDataSync(ComboBasicAttack.LEFT, input.left, playerPatch.getOriginal());
+                }
+                if(manager.getDataValue(ComboBasicAttack.RIGHT) != input.right){
+                    manager.setDataSync(ComboBasicAttack.RIGHT, input.right, playerPatch.getOriginal());
                 }
             }
         }

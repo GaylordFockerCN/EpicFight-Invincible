@@ -39,6 +39,10 @@ public class ComboBasicAttack extends Skill {
     protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
     public static SkillDataManager.SkillDataKey<Integer> DODGE_SUCCESS_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
     public static SkillDataManager.SkillDataKey<Integer> PARRY_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
+    public static SkillDataManager.SkillDataKey<Boolean> UP = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.BOOLEAN);
+    public static SkillDataManager.SkillDataKey<Boolean> DOWN = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.BOOLEAN);
+    public static SkillDataManager.SkillDataKey<Boolean> LEFT = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.BOOLEAN);
+    public static SkillDataManager.SkillDataKey<Boolean> RIGHT = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.BOOLEAN);
 
     @OnlyIn(Dist.CLIENT)
     protected boolean isWalking;
@@ -94,7 +98,7 @@ public class ComboBasicAttack extends Skill {
             ComboNode current = invinciblePlayer.getCurrentNode();
             ComboNode next = current.getNext(type);
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
-            if(next == null || next.getAnimation() == null){
+            if(next == null){
                 for(ComboType subType : type.getSubTypes()){
                     if((next = current.getNext(subType)) != null){
                         break;
@@ -198,6 +202,10 @@ public class ComboBasicAttack extends Skill {
         super.onInitiate(container);
         container.getDataManager().registerData(DODGE_SUCCESS_TIMER);
         container.getDataManager().registerData(PARRY_TIMER);
+        container.getDataManager().registerData(UP);
+        container.getDataManager().registerData(DOWN);
+        container.getDataManager().registerData(LEFT);
+        container.getDataManager().registerData(RIGHT);
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());

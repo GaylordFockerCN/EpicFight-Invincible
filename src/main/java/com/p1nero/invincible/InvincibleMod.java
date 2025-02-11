@@ -27,7 +27,6 @@ public class InvincibleMod {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
-    @OnlyIn(Dist.CLIENT)
     private void clientSetup(final FMLClientSetupEvent event){
         InputManager.init();
     }

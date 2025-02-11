@@ -9,7 +9,8 @@
   ],
   "mixins": [
     "AnimationPlayerMixin",
-    "SkillContainerMixin"
+    "SkillContainerMixin",
+    "StaticAnimationMixin"
   ],
   "injectors": {
     "defaultRequire": 1
