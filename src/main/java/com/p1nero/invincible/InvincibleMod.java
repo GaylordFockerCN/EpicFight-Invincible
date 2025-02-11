@@ -38,7 +38,6 @@ public class InvincibleMod {
     private void commonSetup(final FMLCommonSetupEvent event){
         PacketHandler.register();
     }
-    @OnlyIn(Dist.CLIENT)
     private void clientSetup(final FMLClientSetupEvent event){
         InputManager.init();
     }

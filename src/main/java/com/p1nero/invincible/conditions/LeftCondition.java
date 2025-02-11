@@ -25,7 +25,7 @@ public class LeftCondition implements Condition<ServerPlayerPatch> {
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
         SkillDataManager dataManager = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-        return dataManager.hasData(InvincibleSkillDataKeys.LEFT.get()) && dataManager.getDataValue(InvincibleSkillDataKeys.LEFT.get());//其实客户端判断更准点
+        return dataManager.hasData(InvincibleSkillDataKeys.LEFT.get()) && dataManager.getDataValue(InvincibleSkillDataKeys.LEFT.get());
     }
 
     @Override

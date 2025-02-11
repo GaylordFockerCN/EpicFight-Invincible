@@ -32,73 +32,49 @@ public class InvincibleSkills {
     public static void BuildSkills(SkillBuildEvent event) {
         SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
         ComboNode root = ComboNode.create();
-        ComboNode Vertical_Slash = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        ComboNode Thrust_Slash = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        ComboNode Rising_Slash = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        ComboNode Side_Slash_Right =
-                ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD)
-                        .addCondition(new DownCondition())
-                        .setPriority(3);
-        ComboNode Side_Slash_Left =
-                ComboNode.createNode(() -> Animations.BIPED_STEP_LEFT)
-                        .addCondition(new LeftCondition())
-                        .setPriority(2);
-        ComboNode Side_Slash_Back =
-                ComboNode.createNode(() -> Animations.BIPED_STEP_RIGHT)
-                        .addCondition(new RightCondition())
-                        .setPriority(1);
-        ComboNode Side_Slash_FOR =
-                ComboNode.createNode(() -> Animations.BIPED_STEP_FORWARD);
-
-        ComboNode Side_Slash = ComboNode.create();
-        Side_Slash.addConditionAnimation(Side_Slash_Right)
-                .addConditionAnimation(Side_Slash_Left)
-                .addConditionAnimation(Side_Slash_Back)
-                .addConditionAnimation(Side_Slash_FOR);
-        //
-        ComboNode Spirit_Slash1 = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        ComboNode Spirit_Slash2 = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        ComboNode Spirit_Slash3 = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        ComboNode Spirit_Round_Slash =
-                ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        //
-        //        // 见！切！
-        ComboNode Foresight_Slash = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        //        // 气刃突刺
-        ComboNode Spirit_Thrust = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        //        // 登！龙！
-        //        ComboNode Spirit_Helm_Breaker =
-        // ComboNode.createNode(()->Animations.TAISWORD_SPIRIT_HELM_BREAKER);
-        //        // 小居合
-        ComboNode Ju = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-
-        ComboNode Ju_Slash = ComboNode.createNode(() -> Animations.SWORD_AUTO1);
-        //        // 大！居！合！
-        //        ComboNode Ju_Spirit_Slash =
-        // ComboNode.createNode(()->Animations.TAISWORD_JU_SPIRIT_SLASH);
-
-        root.key1(Vertical_Slash);
-        Vertical_Slash.key1_2(Side_Slash);
-        root.key2(Thrust_Slash);
-        root.key3(Spirit_Slash1);
-        root.key1_2(Side_Slash);
-        root.key1_3(Spirit_Thrust);
-        root.key2_3(Foresight_Slash);
-        root.key3_4(Ju);
-        root.key1_4(Ju_Slash);
-
-        Ju.key1(Ju_Slash);
-
-        Vertical_Slash.key1(Thrust_Slash).key3_4(Ju).key2_3(Foresight_Slash);
-
-        Thrust_Slash.key1(Rising_Slash).key3_4(Ju).key2_3(Foresight_Slash);
-
-        Rising_Slash.key1(Vertical_Slash).key3_4(Ju).key2_3(Foresight_Slash);
-
-        Foresight_Slash.key3_4(Ju);
-        Spirit_Slash1.key3(Spirit_Slash2);
-        Spirit_Slash2.key3(Spirit_Slash3);
-        Spirit_Slash3.key3(Spirit_Round_Slash);
+        //Create a combo tree
+        //建立连击树
+        //I use epic fight Condition system. So you can use custom condition or mine or epic fight's
+        //我使用史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
+        ComboNode a = ComboNode.createNode(() -> Animations.SWORD_AUTO1)
+                .setPlaySpeed(0.5F)//测试变速 speed modify test
+                .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
+                    if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
+                        serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
+                    }
+                })))
+                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false));
+        ComboNode aa = ComboNode.createNode(() -> Animations.SWORD_AUTO2);
+        ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
+        ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3);
+        ComboNode aab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
+        //自定义条件
+        ComboNode aaaa = ComboNode.createNode(() -> Animations.SWEEPING_EDGE).addCondition(new JumpCondition()).addCondition(new CustomCondition() {
+            @Override
+            public boolean predicate(LivingEntityPatch<?> entityPatch) {
+                return true;
+            }
+        });
+        ComboNode aaab = ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition());
+        ComboNode b = ComboNode.create();
+        //不同条件播不同动画
+        b.addConditionAnimation(ComboNode.createNode(() -> Animations.LONGSWORD_AUTO1).addCondition(new SprintingCondition()).setPriority(2));
+        b.addConditionAnimation(ComboNode.createNode(() -> Animations.BIPED_STEP_BACKWARD).addCondition(new JumpCondition()).setPriority(1));
+        ComboNode bb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
+        ComboNode bbb = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO3);
+        ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).addCondition(new StackCondition(1, 2)).setNotCharge(true);
+        a.key1(aa);
+        a.key2(ab);
+        aa.key1(aaa);
+        aa.key2(aab);
+        aaa.key1(aaaa);
+        aaa.key2(aaab);
+        root.key1(a);
+        b.key2(bb);
+        bb.key2(bbb);
+        root.key2(b);
+        root.key1_2(a_b);
+        root.keyWeaponInnate(() -> Animations.BIPED_STEP_LEFT);//测试特定按键
 
         COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(false));
 

@@ -25,7 +25,7 @@ public class DownCondition implements Condition<ServerPlayerPatch> {
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
         SkillDataManager dataManager = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-        return dataManager.hasData(InvincibleSkillDataKeys.DOWN.get()) && dataManager.getDataValue(InvincibleSkillDataKeys.DOWN.get());//其实客户端判断更准点
+        return dataManager.hasData(InvincibleSkillDataKeys.DOWN.get()) && dataManager.getDataValue(InvincibleSkillDataKeys.DOWN.get());
     }
 
     @Override
