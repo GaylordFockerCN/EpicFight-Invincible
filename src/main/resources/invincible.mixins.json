@@ -10,7 +10,8 @@
   "mixins": [
     "AdvancedCustomHumanoidMobPatchAccessor",
     "AnimationPlayerMixin",
-    "SkillManagerMixin"
+    "SkillManagerMixin",
+    "StaticAnimationMixin"
   ],
   "injectors": {
     "defaultRequire": 1

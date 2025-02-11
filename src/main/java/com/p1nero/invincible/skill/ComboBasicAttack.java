@@ -93,7 +93,7 @@ public class ComboBasicAttack extends Skill {
             ComboNode current = invinciblePlayer.getCurrentNode();
             ComboNode next = current.getNext(type);
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
-            if(next == null || next.getAnimation() == null){
+            if(next == null){
                 for(ComboType subType : type.getSubTypes()){
                     if((next = current.getNext(subType)) != null){
                         break;

@@ -20,5 +20,9 @@ public class InvincibleConditions {
     public static final RegistryObject<Supplier<Condition<?>>> HAS_VEHICLE = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "has_vehicle")).getPath(), () -> VehicleCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> DODGE_SUCCESS = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "dodge_success")).getPath(), () -> DodgeSuccessCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> PARRY_SUCCESS = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "parry_success")).getPath(), () -> ParrySuccessCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> UP = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "up")).getPath(), () -> UpCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> DOWN = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "down")).getPath(), () -> DownCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> LEFT = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "left")).getPath(), () -> LeftCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> RIGHT = CONDITIONS.register((new ResourceLocation(InvincibleMod.MOD_ID, "right")).getPath(), () -> RightCondition::new);
 
 }
