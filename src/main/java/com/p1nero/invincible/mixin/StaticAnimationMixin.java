@@ -19,7 +19,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 @Mixin(value = StaticAnimation.class, remap = false)
 public class StaticAnimationMixin {
     @Inject(method = "end", at = @At("HEAD"))
-    private void inject(LivingEntityPatch<?> entityPatch, DynamicAnimation nextAnimation, boolean isEnd, CallbackInfo ci){
+    private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, DynamicAnimation nextAnimation, boolean isEnd, CallbackInfo ci){
         if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
             invinciblePlayer.clear();
