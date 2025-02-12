@@ -2,10 +2,7 @@ package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
-import com.p1nero.invincible.conditions.CustomCondition;
-import com.p1nero.invincible.conditions.JumpCondition;
-import com.p1nero.invincible.conditions.SprintingCondition;
-import com.p1nero.invincible.conditions.StackCondition;
+import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
@@ -32,13 +29,14 @@ public class InvincibleSkills {
         //我使用史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.create();
         ComboNode a = ComboNode.createNode(() -> Animations.SWORD_AUTO1)
-                .setPlaySpeed(0.5F)//测试变速 speed modify test
+                .setPlaySpeed(0.7F)//测试变速 speed modify test
                 .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                         serverPlayer.getLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
                 })))
-                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false));
+                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false))
+                .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画
         ComboNode aa = ComboNode.createNode(() -> Animations.SWORD_AUTO2);
         ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3);
@@ -60,6 +58,12 @@ public class InvincibleSkills {
         ComboNode a_b = ComboNode.createNode(() -> Animations.UCHIGATANA_SHEATHING_DASH).addCondition(new StackCondition(1, 2)).setNotCharge(true);
         a.key1(aa);
         a.key2(ab);
+        ComboNode l = ComboNode.createNode(()->Animations.BIPED_STEP_LEFT).addCondition(new LeftCondition());
+        ComboNode r = ComboNode.createNode(()->Animations.BIPED_STEP_RIGHT).addCondition(new RightCondition());
+        ComboNode f = ComboNode.createNode(()->Animations.BIPED_STEP_FORWARD).addCondition(new UpCondition());
+        ComboNode ba = ComboNode.createNode(()->Animations.BIPED_STEP_BACKWARD).addCondition(new DownCondition());
+        ComboNode dodge = ComboNode.create().addConditionAnimation(l).addConditionAnimation(r).addConditionAnimation(f).addConditionAnimation(ba);
+        aa.key1_2(dodge);
         aa.key1(aaa);
         aa.key2(aab);
         aaa.key1(aaaa);

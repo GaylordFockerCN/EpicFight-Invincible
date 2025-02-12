@@ -18,6 +18,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Mixin(value = AnimationPlayer.class, remap = false)
@@ -46,26 +47,17 @@ public abstract class AnimationPlayerMixin {
     private void invincible$injectTick(LivingEntityPatch<?> entityPatch, CallbackInfo ci) {
         if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             serverPlayerPatch.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
-                if (this.isEnd()) {
-                    invinciblePlayer.clear();
-                    return;
-                }
-                List<Integer> toRemove = new ArrayList<>();
-                List<TimeStampedEvent> eventList = invinciblePlayer.getTimeEventList();
-                for (int i = 0; i < eventList.size(); i++) {
-                    TimeStampedEvent event = eventList.get(i);
+                Iterator<TimeStampedEvent> eventList = invinciblePlayer.getTimeEventList().listIterator();
+                while ((eventList.hasNext())){
+                    TimeStampedEvent event = eventList.next();
                     if (!entityPatch.getOriginal().isAlive()) {
                         break;
                     }
                     event.testAndExecute(entityPatch, this.prevElapsedTime, this.elapsedTime);
                     if (event.isExecuted()) {
-                        toRemove.add(i);
+                        eventList.remove();
                     }
                 }
-                for (int i = toRemove.size() - 1; i >= 0; i--) {
-                    eventList.remove((int) toRemove.get(i));
-                }
-                toRemove.clear();
             });
         }
     }

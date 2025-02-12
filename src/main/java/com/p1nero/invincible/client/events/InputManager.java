@@ -8,6 +8,7 @@ import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.player.Input;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
@@ -84,19 +85,23 @@ public class InputManager {
 
             //判断asdw是否按下，用于Condition判断。
             if(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
-                Input input = playerPatch.getOriginal().input;
+                Options options = Minecraft.getInstance().options;
                 SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-                if(manager.getDataValue(ComboBasicAttack.UP) != input.up){
-                    manager.setDataSync(ComboBasicAttack.UP, input.up, playerPatch.getOriginal());
+                if(manager.getDataValue(ComboBasicAttack.UP) != options.keyUp.isDown()){
+                    manager.setDataSync(ComboBasicAttack.UP, options.keyUp.isDown(), playerPatch.getOriginal());
+                    System.out.println(options.keyUp.isDown());
                 }
-                if(manager.getDataValue(ComboBasicAttack.DOWN) != input.down){
-                    manager.setDataSync(ComboBasicAttack.DOWN, input.down, playerPatch.getOriginal());
+                if(manager.getDataValue(ComboBasicAttack.DOWN) != options.keyDown.isDown()){
+                    manager.setDataSync(ComboBasicAttack.DOWN, options.keyDown.isDown(), playerPatch.getOriginal());
+                    System.out.println(options.keyDown.isDown());
                 }
-                if(manager.getDataValue(ComboBasicAttack.LEFT) != input.left){
-                    manager.setDataSync(ComboBasicAttack.LEFT, input.left, playerPatch.getOriginal());
+                if(manager.getDataValue(ComboBasicAttack.LEFT) != options.keyLeft.isDown()){
+                    manager.setDataSync(ComboBasicAttack.LEFT, options.keyLeft.isDown(), playerPatch.getOriginal());
+                    System.out.println(options.keyLeft.isDown());
                 }
-                if(manager.getDataValue(ComboBasicAttack.RIGHT) != input.right){
-                    manager.setDataSync(ComboBasicAttack.RIGHT, input.right, playerPatch.getOriginal());
+                if(manager.getDataValue(ComboBasicAttack.RIGHT) != options.keyRight.isDown()){
+                    manager.setDataSync(ComboBasicAttack.RIGHT, options.keyRight.isDown(), playerPatch.getOriginal());
+                    System.out.println(options.keyRight.isDown());
                 }
             }
         }
