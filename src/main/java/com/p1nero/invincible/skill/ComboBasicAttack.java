@@ -86,31 +86,31 @@ public class ComboBasicAttack extends Skill {
         if (type == null) {
             return;
         }
-        if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get())) {
+        boolean debugMode = executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
+        if (debugMode) {
             System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + type);
         }
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
-            ComboNode current = invinciblePlayer.getCurrentNode();
-            ComboNode next = current.getNext(type);
+            ComboNode last = invinciblePlayer.getCurrentNode();
+            ComboNode current = last.getNext(type);
+            ComboNode next = current;
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
-            if(next == null){
+            if(current == null){
                 for(ComboType subType : type.getSubTypes()){
-                    if((next = current.getNext(subType)) != null){
+                    if((current = last.getNext(subType)) != null){
                         break;
                     }
                 }
             }
             //动画是空的就直接跳过，不是就播放
-            if (next != null) {
-                StaticAnimation animation = null;
-                float convertTime = 0.0F;
-                if (next.getAnimationProvider() == null || !next.getConditionAnimations().isEmpty()) {
-                    if (next.getConditionAnimations().isEmpty()) {
+            if (current != null) {
+                if (current.getAnimationProvider() == null || !current.getConditionAnimations().isEmpty()) {
+                    if (current.getConditionAnimations().isEmpty()) {
                         return;
                     }
-                    next.getConditionAnimations().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
+                    current.getConditionAnimations().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
                     //多个条件指向不同动画，根据优先级来检测
-                    for (ComboNode conditionAnimation : next.getConditionAnimations()) {
+                    for (ComboNode conditionAnimation : current.getConditionAnimations()) {
                         boolean canExecute = true;
                         for (Condition condition : conditionAnimation.getConditions()) {
                             if (!condition.predicate(executor)) {
@@ -119,8 +119,7 @@ public class ComboBasicAttack extends Skill {
                             }
                         }
                         if (canExecute) {
-                            animation = conditionAnimation.getAnimation();
-                            convertTime = conditionAnimation.getConvertTime();
+                            current = conditionAnimation;
                             //实现ConditionAnimations里接combos
                             if (conditionAnimation.hasNext()) {
                                 next = conditionAnimation;
@@ -130,27 +129,32 @@ public class ComboBasicAttack extends Skill {
                     }
                 } else {
                     //多个条件指向同一动画
-                    for (Condition condition : next.getConditions()) {
+                    for (Condition condition : current.getConditions()) {
                         if (!condition.predicate(executor)) {
                             return;
                         }
                     }
-                    animation = next.getAnimation();
-                    convertTime = next.getConvertTime();
                 }
+                StaticAnimation animation = current.getAnimation();
                 if (animation == null) {
                     return;
                 }
+                float convertTime = current.getConvertTime();
+                if (debugMode) {
+                    System.out.println("animation: " + animation);
+                }
                 executor.playAnimationSynchronized(animation, convertTime);
-                initPlayer(invinciblePlayer, next);
-                invinciblePlayer.setCurrentNode(next);
+                initPlayer(invinciblePlayer, current);
+                //把玩家参数同步给客户端
                 SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
                 EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
+                invinciblePlayer.setCurrentNode(next);
             } else {
                 invinciblePlayer.setCurrentNode(root);
             }
         });
+
 
     }
 
@@ -194,6 +198,7 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
+        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).resetPhase();
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
