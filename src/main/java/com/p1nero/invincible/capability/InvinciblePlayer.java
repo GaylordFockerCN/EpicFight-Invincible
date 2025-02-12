@@ -86,6 +86,13 @@ public class InvinciblePlayer {
         }
     }
 
+    /**
+     * 重置Phase为0
+     */
+    public void resetPhase(){
+        this.phase = 0;
+    }
+
     public int getPhase() {
         return phase;
     }

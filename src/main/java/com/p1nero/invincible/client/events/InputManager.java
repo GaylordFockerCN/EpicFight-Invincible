@@ -89,19 +89,15 @@ public class InputManager {
                 SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
                 if(manager.getDataValue(ComboBasicAttack.UP) != options.keyUp.isDown()){
                     manager.setDataSync(ComboBasicAttack.UP, options.keyUp.isDown(), playerPatch.getOriginal());
-                    System.out.println(options.keyUp.isDown());
                 }
                 if(manager.getDataValue(ComboBasicAttack.DOWN) != options.keyDown.isDown()){
                     manager.setDataSync(ComboBasicAttack.DOWN, options.keyDown.isDown(), playerPatch.getOriginal());
-                    System.out.println(options.keyDown.isDown());
                 }
                 if(manager.getDataValue(ComboBasicAttack.LEFT) != options.keyLeft.isDown()){
                     manager.setDataSync(ComboBasicAttack.LEFT, options.keyLeft.isDown(), playerPatch.getOriginal());
-                    System.out.println(options.keyLeft.isDown());
                 }
                 if(manager.getDataValue(ComboBasicAttack.RIGHT) != options.keyRight.isDown()){
                     manager.setDataSync(ComboBasicAttack.RIGHT, options.keyRight.isDown(), playerPatch.getOriginal());
-                    System.out.println(options.keyRight.isDown());
                 }
             }
         }

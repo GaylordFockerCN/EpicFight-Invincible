@@ -22,6 +22,12 @@ public class SetPlayerStateCommand {
                                 })
                         )
                 )
+                .then(Commands.literal("resetPhase").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
+                        .executes((context) -> {
+                            InvincibleCapabilityProvider.get(context.getSource().getPlayerOrException()).resetPhase();
+                            return 0;
+                        })
+                )
                 .then(Commands.literal("setStamina").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
                         .then(Commands.argument("value", FloatArgumentType.floatArg())
                                 .executes((context) -> {

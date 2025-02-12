@@ -205,6 +205,9 @@ public class ComboBasicAttack extends Skill {
         container.getDataManager().registerData(DOWN);
         container.getDataManager().registerData(LEFT);
         container.getDataManager().registerData(RIGHT);
+
+        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).resetPhase();
+
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
             for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
