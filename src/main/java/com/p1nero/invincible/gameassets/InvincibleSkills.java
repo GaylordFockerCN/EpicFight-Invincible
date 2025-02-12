@@ -55,7 +55,7 @@ public class InvincibleSkills {
         basicAttack.key2(ab);//1a后按key2可变招
 
         ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3)//3a
-                .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.SWORD_AUTO1, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;
+                .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;
         aa.key1(aaa);
         aaa.key1(a);//闭环，增加手感
 
@@ -83,6 +83,7 @@ public class InvincibleSkills {
         ComboNode ba = ComboNode.createNode(()->Animations.BIPED_STEP_BACKWARD).addCondition(new DownCondition());
         ComboNode dodge = ComboNode.create().addConditionAnimation(l).addConditionAnimation(r).addConditionAnimation(f).addConditionAnimation(ba);
         basicAttack.key1_2(dodge);//双键触发
+        dodge.key1(a);
         SkillManager.register(ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(true), InvincibleMod.MOD_ID, "combo_demo");
 
         //You can also create the tree like this:
