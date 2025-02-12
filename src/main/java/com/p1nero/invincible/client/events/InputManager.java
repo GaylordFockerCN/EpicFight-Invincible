@@ -9,6 +9,7 @@ import com.p1nero.invincible.skill.api.ComboNode;
 import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.Options;
 import net.minecraft.client.player.Input;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
@@ -93,19 +94,19 @@ public class InputManager {
 
             //判断asdw是否按下，用于Condition判断。
             if(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
-                Input input = playerPatch.getOriginal().input;
+                Options options = Minecraft.getInstance().options;
                 SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-                if(manager.getDataValue(InvincibleSkillDataKeys.UP.get()) != input.up){
-                    manager.setDataSync(InvincibleSkillDataKeys.UP.get(), input.up, playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.UP.get()) != options.keyUp.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.UP.get(), options.keyUp.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.DOWN.get()) != input.down){
-                    manager.setDataSync(InvincibleSkillDataKeys.DOWN.get(), input.down, playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.DOWN.get()) != options.keyDown.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.DOWN.get(), options.keyDown.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.LEFT.get()) != input.left){
-                    manager.setDataSync(InvincibleSkillDataKeys.LEFT.get(), input.left, playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.LEFT.get()) != options.keyLeft.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.LEFT.get(), options.keyLeft.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.RIGHT.get()) != input.right){
-                    manager.setDataSync(InvincibleSkillDataKeys.RIGHT.get(), input.right, playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.RIGHT.get()) != options.keyRight.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.RIGHT.get(), options.keyRight.isDown(), playerPatch.getOriginal());
                 }
             }
         }

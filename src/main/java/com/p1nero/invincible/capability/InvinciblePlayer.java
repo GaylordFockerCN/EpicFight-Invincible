@@ -164,7 +164,6 @@ public class InvinciblePlayer {
         stunTypeModifier = null;
         canBeInterrupt = true;
         notCharge = false;
-        timeStampedEvents.clear();
         dodgeSuccessEvents.clear();
         hitSuccessEvents.clear();
         hurtEvents.clear();

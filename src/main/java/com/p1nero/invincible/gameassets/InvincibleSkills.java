@@ -45,7 +45,8 @@ public class InvincibleSkills {
                         serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
                 })))
-                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false));
+                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.22F, "summon minecraft:zombie", false))
+                .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画
         ComboNode aa = ComboNode.createNode(() -> Animations.SWORD_AUTO2);
         ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
         ComboNode aaa = ComboNode.createNode(() -> Animations.SWORD_AUTO3);
@@ -71,6 +72,12 @@ public class InvincibleSkills {
         a.key2(ab);
         aa.key1(aaa);
         aa.key2(aab);
+        ComboNode l = ComboNode.createNode(()->Animations.BIPED_STEP_LEFT).addCondition(new LeftCondition());
+        ComboNode r = ComboNode.createNode(()->Animations.BIPED_STEP_RIGHT).addCondition(new RightCondition());
+        ComboNode f = ComboNode.createNode(()->Animations.BIPED_STEP_FORWARD).addCondition(new UpCondition());
+        ComboNode ba = ComboNode.createNode(()->Animations.BIPED_STEP_BACKWARD).addCondition(new DownCondition());
+        ComboNode dodge = ComboNode.create().addConditionAnimation(l).addConditionAnimation(r).addConditionAnimation(f).addConditionAnimation(ba);
+        aa.key1_2(dodge);
         aaa.key1(aaaa);
         aaa.key2(aaab);
         root.key1(a);
