@@ -31,7 +31,7 @@ public class InvincibleKeyMappings {
     }
 
     public static Component getName(KeyMapping keyMapping) {
-        return new TranslatableComponent(keyMapping.getKey().getName());
+        return keyMapping.getTranslatedKeyMessage();
     }
 
     public static Component getTranslatableKey1(){

@@ -1,6 +1,5 @@
-package com.p1nero.invincible.animation;
+package com.p1nero.invincible.api.animation;
 
-import com.p1nero.invincible.animation.AnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 
 /**

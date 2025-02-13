@@ -1,7 +1,7 @@
 package com.p1nero.invincible.skill;
 
 import com.p1nero.invincible.Config;
-import com.p1nero.invincible.animation.StaticAnimationProvider;
+import com.p1nero.invincible.api.animation.StaticAnimationProvider;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
@@ -30,6 +30,7 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -205,11 +206,15 @@ public class ComboBasicAttack extends Skill {
         container.getDataManager().registerData(LEFT);
         container.getDataManager().registerData(RIGHT);
 
+        //初始化连段
+        if (!container.getExecuter().isLogicalClient()) {
+            resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
+        }
         InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).resetPhase();
 
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-            for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents()) {
-                hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            for (BiEvent dodgeEvent : new ArrayList<>(InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents())) {
+                dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
             container.getDataManager().setDataSync(DODGE_SUCCESS_TIMER, Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
         }));
@@ -228,7 +233,8 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
-            for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents()) {
+            //复制一份ArrayList，防止一起被修改
+            for (BiEvent hurtEvent : new ArrayList<>(InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents())) {
                 hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
         }));
@@ -255,8 +261,8 @@ public class ComboBasicAttack extends Skill {
                     }
                 }
             }
-            for (BiEvent hurtEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents()) {
-                hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            for (BiEvent hitEvent : InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents()) {
+                hitEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
             }
         }));
         //取消原版的普攻和跳攻
@@ -266,10 +272,6 @@ public class ComboBasicAttack extends Skill {
                 event.setCanceled(true);
             }
         }));
-        //初始化连段
-        if (!container.getExecuter().isLogicalClient()) {
-            resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
-        }
         //播放walk的过渡动画
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID, (event -> {
             Input input = event.getMovementInput();

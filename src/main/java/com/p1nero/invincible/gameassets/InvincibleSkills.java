@@ -1,12 +1,14 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.api.data.reloader.SkillManager;
@@ -14,7 +16,6 @@ import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.skill.Skill;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 /**
@@ -67,6 +68,12 @@ public class InvincibleSkills {
                 .setCooldown(200)//进入冷却
                 .addCondition(new StackCondition(1, 2))//检测Stack数量
                 .addCondition(new CooldownCondition(false))//检测是否处于冷却状态
+                .setHurtDamageMultiplier(0.5F)//减伤
+                .addHurtEvent(new BiEvent((entityPatch, entity) -> {
+                    entityPatch.playSound(SoundEvents.ANVIL_BREAK, 2.0F, 0.0F, 0.0F);
+                    System.out.println("hurt");
+                }))
+                .setCanBeInterrupt(false)//抗打断
                 .setNotCharge(true)//取消本次攻击的充能
                 .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.0F, "invincible consumeStack 1", false));
         skill.key1(a);

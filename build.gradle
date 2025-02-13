@@ -21,7 +21,7 @@ apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'org.spongepowered.mixin'
 
 
-version = '18.5.5'
+version = '18.5.6'
 group = 'com.p1nero.invincible' // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = 'invincible-' + System.currentTimeSeconds()
 

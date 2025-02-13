@@ -1,6 +1,6 @@
 package com.p1nero.invincible.skill.api;
 
-import com.p1nero.invincible.animation.AnimationProvider;
+import com.p1nero.invincible.api.animation.AnimationProvider;
 import com.p1nero.invincible.api.events.*;
 import com.p1nero.invincible.conditions.Condition;
 import org.jetbrains.annotations.NotNull;

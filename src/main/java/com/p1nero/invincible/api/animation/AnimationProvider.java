@@ -1,4 +1,4 @@
-package com.p1nero.invincible.animation;
+package com.p1nero.invincible.api.animation;
 
 import net.minecraft.resources.ResourceLocation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
