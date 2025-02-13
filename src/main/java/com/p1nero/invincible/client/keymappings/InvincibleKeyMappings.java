@@ -29,7 +29,7 @@ public class InvincibleKeyMappings {
     }
 
     public static Component getName(KeyMapping keyMapping) {
-        return Component.translatable(keyMapping.getKey().getName());
+        return keyMapping.getTranslatedKeyMessage();
     }
 
     public static Component getTranslatableKey1(){
