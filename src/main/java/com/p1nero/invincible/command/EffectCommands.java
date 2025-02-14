@@ -43,8 +43,8 @@ public class EffectCommands {
                                                                             entity.position().add(0, -1, 0),
                                                                             DoubleArgumentType.getDouble(context, "radius"),
                                                                             BoolArgumentType.getBool(context, "noSound"),
-                                                                            BoolArgumentType.getBool(context, "noSound"),
-                                                                            BoolArgumentType.getBool(context, "noSound"));
+                                                                            BoolArgumentType.getBool(context, "noParticle"),
+                                                                            BoolArgumentType.getBool(context, "hurtEntities"));
                                                                     return 0;
                                                                 }))
                                                 )
