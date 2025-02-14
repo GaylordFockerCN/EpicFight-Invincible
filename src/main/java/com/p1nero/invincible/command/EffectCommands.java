@@ -13,7 +13,7 @@ import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 
-public class EffectCommand {
+public class EffectCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("invincible")
                 .then(Commands.literal("entityAfterImage").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
@@ -43,8 +43,8 @@ public class EffectCommand {
                                                                             entity.position().add(0, -1, 0),
                                                                             DoubleArgumentType.getDouble(context, "radius"),
                                                                             BoolArgumentType.getBool(context, "noSound"),
-                                                                            BoolArgumentType.getBool(context, "noSound"),
-                                                                            BoolArgumentType.getBool(context, "noSound"));
+                                                                            BoolArgumentType.getBool(context, "noParticle"),
+                                                                            BoolArgumentType.getBool(context, "hurtEntities"));
                                                                     return 0;
                                                                 }))
                                                 )

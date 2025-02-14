@@ -230,7 +230,10 @@ public class InputManager {
         for(ComboType comboType : typeList){
             if(test(comboType)){
                 packet.getBuffer().writeInt(comboType.universalOrdinal());
-                break;
+                //双键符合就退出，单键以防两个按键相同的情况
+                if(!comboType.getSubTypes().isEmpty()){
+                    break;
+                }
             }
         }
         return packet;

@@ -11,7 +11,7 @@ import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
-public class SetPlayerStateCommand {
+public class SetPlayerStateCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("invincible")
                 .then(Commands.literal("setPlayerPhase").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
@@ -81,7 +81,7 @@ public class SetPlayerStateCommand {
                                 .executes((context) -> {
                                     ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayerOrException(), ServerPlayerPatch.class);
                                     SkillContainer weaponInnate = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
-                                    weaponInnate.getSkill().setConsumptionSynchronize(serverPlayerPatch, Math.max(0, weaponInnate.getStack() - FloatArgumentType.getFloat(context, "value")));
+                                    weaponInnate.getSkill().setConsumptionSynchronize(serverPlayerPatch, Math.max(0, weaponInnate.getResource() - FloatArgumentType.getFloat(context, "value")));
                                     return 0;
                                 })
                         )
