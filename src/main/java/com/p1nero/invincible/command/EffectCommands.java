@@ -13,7 +13,7 @@ import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 
-public class EffectCommand {
+public class EffectCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("invincible")
                 .then(Commands.literal("entityAfterImage").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
