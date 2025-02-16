@@ -1,9 +1,11 @@
 package com.p1nero.invincible.capability;
 
+import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.world.damagesource.StunType;
 
@@ -12,17 +14,28 @@ import java.util.List;
 public class InvinciblePlayer {
     private ComboNode currentNode = null;
     private final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
-    private final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
-    private final List<BiEvent> hitSuccessEvents = new ArrayList<>();
-    private final List<BiEvent> hurtEvents = new ArrayList<>();
+    @Nullable
+    private ImmutableList<BiEvent> dodgeSuccessEvents = null;
+    @Nullable
+    private ImmutableList<BiEvent> hitSuccessEvents = null;
+    @Nullable
+    private ImmutableList<BiEvent> hurtEvents = null;
     private float playSpeedMultiplier;
     private ValueModifier damageMultiplier;
     private float impactMultiplier;
     private float hurtDamageMultiplier;
+    private float armorNegation;
     private StunType stunTypeModifier = StunType.NONE;
     private boolean notCharge, canBeInterrupt = true;
     private int phase;
     private int cooldown;
+
+    public float getArmorNegation() {
+        return armorNegation;
+    }
+    public void setArmorNegation(float armorNegation) {
+        this.armorNegation = armorNegation;
+    }
 
     public float getHurtDamageMultiplier() {
         return hurtDamageMultiplier;
@@ -117,15 +130,15 @@ public class InvinciblePlayer {
         return timeStampedEvents;
     }
 
-    public List<BiEvent> getDodgeSuccessEvents() {
+    public @Nullable ImmutableList<BiEvent> getDodgeSuccessEvents() {
         return dodgeSuccessEvents;
     }
 
-    public List<BiEvent> getHurtEvents() {
+    public @Nullable ImmutableList<BiEvent> getHurtEvents() {
         return hurtEvents;
     }
 
-    public List<BiEvent> getHitSuccessEvents() {
+    public @Nullable ImmutableList<BiEvent> getHitSuccessEvents() {
         return hitSuccessEvents;
     }
 
@@ -133,16 +146,16 @@ public class InvinciblePlayer {
         return timeStampedEvents.add(event);
     }
 
-    public boolean addHurtEvent(BiEvent event) {
-        return hurtEvents.add(event);
+    public void setHitSuccessEvents(@Nullable ImmutableList<BiEvent> hitSuccessEvents) {
+        this.hitSuccessEvents = hitSuccessEvents;
     }
 
-    public boolean addDodgeSuccessEvent(BiEvent event) {
-        return dodgeSuccessEvents.add(event);
+    public void setHurtEvents(@Nullable ImmutableList<BiEvent> hurtEvents) {
+        this.hurtEvents = hurtEvents;
     }
 
-    public boolean addHitSuccessEvent(BiEvent event) {
-        return hitSuccessEvents.add(event);
+    public void setDodgeSuccessEvents(@Nullable ImmutableList<BiEvent> dodgeSuccessEvents) {
+        this.dodgeSuccessEvents = dodgeSuccessEvents;
     }
 
     public void clearTimeEvents() {
@@ -171,9 +184,9 @@ public class InvinciblePlayer {
         stunTypeModifier = null;
         canBeInterrupt = true;
         notCharge = false;
-        dodgeSuccessEvents.clear();
-        hitSuccessEvents.clear();
-        hurtEvents.clear();
+        dodgeSuccessEvents = null;
+        hitSuccessEvents = null;
+        hurtEvents = null;
     }
 
     public CompoundTag saveNBTData(CompoundTag tag) {
