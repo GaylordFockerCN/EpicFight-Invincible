@@ -252,16 +252,7 @@ public class ComboBasicAttack extends Skill {
                 event.getDamageSource().setDamageModifier(invinciblePlayer.getDamageMultiplier());
             }
         }));
-        //自己写个充能用 FIXME 怪有抗性也会正常充能
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_POST, EVENT_UUID, (event -> {
-            if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
-                if (!container.isFull()) {
-                    float value = container.getResource() + event.getAttackDamage();
-                    if (value > 0.0F) {
-                        this.setConsumptionSynchronize(event.getPlayerPatch(), value);
-                    }
-                }
-            }
             ImmutableList<BiEvent> hitEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if(hitEvents != null){
                 hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
