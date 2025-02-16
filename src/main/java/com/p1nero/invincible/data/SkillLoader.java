@@ -113,6 +113,10 @@ public class SkillLoader {
                     child.setHurtDamageMultiplier(combo.get("hurt_damage_multiplier").getAsFloat());
                 }
 
+                if (combo.has("armor_negation")) {
+                    child.setArmorNegation(combo.get("armor_negation").getAsFloat());
+                }
+
                 if (combo.has("impact_multiplier")) {
                     child.setImpactMultiplier(combo.get("impact_multiplier").getAsFloat());
                 }

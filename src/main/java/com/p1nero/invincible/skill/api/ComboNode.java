@@ -28,6 +28,7 @@ public class ComboNode {
     private float impactMultiplier = 1.0F;
 
     private float hurtDamageMultiplier;
+    private float armorNegation;
     private StunType stunTypeModifier = null;
     private boolean canBeInterrupt = true;
     protected boolean notCharge;
@@ -43,6 +44,14 @@ public class ComboNode {
 
     protected ComboNode() {
         root = this;
+    }
+
+    public void setArmorNegation(float armorNegation) {
+        this.armorNegation = armorNegation;
+    }
+
+    public float getArmorNegation() {
+        return armorNegation;
     }
 
     public float getHurtDamageMultiplier() {

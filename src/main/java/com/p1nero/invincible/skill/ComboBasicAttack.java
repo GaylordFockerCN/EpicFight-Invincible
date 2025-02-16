@@ -1,5 +1,6 @@
 package com.p1nero.invincible.skill;
 
+import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
@@ -163,25 +164,21 @@ public class ComboBasicAttack extends Skill {
      * 根据预存来初始化玩家信息
      */
     private void initPlayer(InvinciblePlayer invinciblePlayer, ComboNode next) {
-        invinciblePlayer.clearTimeEvents();
+        invinciblePlayer.resetTimeEvents();
         for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
             invinciblePlayer.addTimeEvent(event);
         }
-        for (BiEvent event : next.getHurtEvents()) {
-            invinciblePlayer.addHurtEvent(event);
-        }
-        for (BiEvent event : next.getHitEvents()) {
-            invinciblePlayer.addHitSuccessEvent(event);
-        }
-        for (BiEvent event : next.getDodgeSuccessEvents()) {
-            invinciblePlayer.addDodgeSuccessEvent(event);
-        }
+        invinciblePlayer.setHurtEvents(ImmutableList.copyOf(next.getHurtEvents()));
+        invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(next.getHitEvents()));
+        invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(next.getDodgeSuccessEvents()));
         invinciblePlayer.setCanBeInterrupt(next.isCanBeInterrupt());
         invinciblePlayer.setPlaySpeedMultiplier(next.getPlaySpeed());
         invinciblePlayer.setNotCharge(next.isNotCharge());
         invinciblePlayer.setPhase(next.getNewPhase());
         invinciblePlayer.setCooldown(next.getCooldown());
+        invinciblePlayer.setArmorNegation(next.getArmorNegation());
+        invinciblePlayer.setHurtDamageMultiplier(next.getHurtDamageMultiplier());
         invinciblePlayer.setDamageMultiplier(next.getDamageMultiplier());
         invinciblePlayer.setImpactMultiplier(next.getImpactMultiplier());
         invinciblePlayer.setStunTypeModifier(next.getStunTypeModifier());
@@ -205,8 +202,9 @@ public class ComboBasicAttack extends Skill {
         }
         InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).resetPhase();
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-            for (BiEvent dodgeEvent : new ArrayList<>(InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents())) {
-                dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            ImmutableList<BiEvent> dodgeSuccessEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+            if(dodgeSuccessEvents != null){
+                dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
             container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
         }));
@@ -225,8 +223,9 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
-            for (BiEvent hurtEvent : new ArrayList<>(InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents())) {
-                hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            ImmutableList<BiEvent> hurtEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+            if(hurtEvents != null){
+                hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
         }));
         //调整攻击倍率，冲击，硬直类型等
@@ -237,6 +236,9 @@ public class ComboBasicAttack extends Skill {
             }
             if (invinciblePlayer.getImpactMultiplier() != 0) {
                 event.getDamageSource().setImpact(invinciblePlayer.getImpactMultiplier());
+            }
+            if(invinciblePlayer.getArmorNegation() != 0){
+                event.getDamageSource().setArmorNegation(invinciblePlayer.getArmorNegation());
             }
             if (invinciblePlayer.getDamageMultiplier() != null) {
                 event.getDamageSource().setDamageModifier(invinciblePlayer.getDamageMultiplier());
@@ -252,8 +254,9 @@ public class ComboBasicAttack extends Skill {
                     }
                 }
             }
-            for (BiEvent hitEvent : new ArrayList<>(InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents())) {
-                hitEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget());
+            ImmutableList<BiEvent> hitEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+            if(hitEvents != null){
+                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
         }));
         //取消原版的普攻和跳攻

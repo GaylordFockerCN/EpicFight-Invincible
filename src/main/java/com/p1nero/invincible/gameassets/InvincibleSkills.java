@@ -59,6 +59,11 @@ public class InvincibleSkills {
         jumpAttack.key1(a);//闭环
 
         ComboNode aa = ComboNode.createNode(() -> Animations.SWORD_AUTO2);//2a
+        aa.addHitEvent(new BiEvent((entityPatch, entity) -> {
+            if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
+                serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
+            }
+        }));
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a
 
         ComboNode ab = ComboNode.createNode(() -> Animations.LONGSWORD_AUTO2);
