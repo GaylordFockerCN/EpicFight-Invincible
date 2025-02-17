@@ -17,27 +17,14 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.ForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistry;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import yesman.epicfight.api.animation.AnimationManager;
-import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.data.reloader.SkillManager;
-import yesman.epicfight.api.utils.math.ValueModifier;
-import yesman.epicfight.data.conditions.Condition;
-import yesman.epicfight.skill.Skill;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
-import yesman.epicfight.world.damagesource.StunType;
 
 import java.io.IOException;
 import java.util.Map;
-
-import static yesman.epicfight.api.data.reloader.SkillManager.getSkillRegistry;
 
 /**
  * 从数据包注册技能

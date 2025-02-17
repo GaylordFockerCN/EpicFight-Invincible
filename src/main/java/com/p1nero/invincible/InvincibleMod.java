@@ -24,15 +24,15 @@ public class InvincibleMod {
     public static final String MOD_ID = "invincible";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    public InvincibleMod() {
-        IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+    public InvincibleMod(FMLJavaModLoadingContext context) {
+        IEventBus modEventBus = context.getModEventBus();
         InvincibleItems.ITEMS.register(modEventBus);
         InvincibleConditions.CONDITIONS.register(modEventBus);
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
         modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(this::clientSetup);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event){

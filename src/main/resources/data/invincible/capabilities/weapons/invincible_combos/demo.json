@@ -13,7 +13,7 @@
   //下面这俩是技能参数，和skill_parameters里的内容一致。目前仅支持这俩。本模组自带的skill_parameters中的那个文件是给代码注册用的，数据包无需关心，只需填下面两个即可。
   "consumption": 5,
   "max_stacks": 2,
-  //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/${name}
+  //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/weapon_innate/${name}
   "drawSkillIcon": true,
   //连段数据
   "combos": [
