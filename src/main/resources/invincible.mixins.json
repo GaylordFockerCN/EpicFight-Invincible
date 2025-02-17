@@ -8,7 +8,6 @@
     "ClientPacketListenerMixin"
   ],
   "mixins": [
-    "AdvancedCustomHumanoidMobPatchAccessor",
     "AnimationPlayerMixin",
     "SkillManagerMixin",
     "StaticAnimationMixin"

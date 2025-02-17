@@ -1,7 +1,7 @@
 package com.p1nero.invincible.conditions;
 
-import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
-import com.p1nero.invincible.mixin.AdvancedCustomHumanoidMobPatchAccessor;
+//import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
+//import com.p1nero.invincible.mixin.AdvancedCustomHumanoidMobPatchAccessor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,9 +10,9 @@ import net.minecraftforge.fml.ModList;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlots;
-import yesman.epicfight.world.capabilities.EpicFightCapabilities;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
-import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
+//import yesman.epicfight.world.capabilities.EpicFightCapabilities;
+//import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+//import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
@@ -47,10 +47,10 @@ public class TargetBlockingCondition implements Condition<ServerPlayerPatch> {
         if (!ModList.get().isLoaded("indestructible") || serverPlayerPatch.getTarget() == null) {
             return false;
         }
-        AdvancedCustomHumanoidMobPatch<?> patch = EpicFightCapabilities.getEntityPatch(serverPlayerPatch.getTarget(), AdvancedCustomHumanoidMobPatch.class);
-        if (patch != null) {
-            return patch.isBlocking();
-        }
+//        AdvancedCustomHumanoidMobPatch<?> patch = EpicFightCapabilities.getEntityPatch(serverPlayerPatch.getTarget(), AdvancedCustomHumanoidMobPatch.class);
+//        if (patch != null) {
+//            return patch.isBlocking();
+//        }
         return false;
     }
 

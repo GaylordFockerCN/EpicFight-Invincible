@@ -14,11 +14,12 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.api.animation.StaticAnimationProvider;
+import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.data.conditions.Condition;
@@ -32,7 +33,6 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -47,7 +47,7 @@ public class ComboBasicAttack extends Skill {
     protected boolean shouldDrawGui;
 
     @Nullable
-    protected StaticAnimationProvider walkBegin, walkEnd;
+    protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
 
@@ -64,12 +64,12 @@ public class ComboBasicAttack extends Skill {
     }
 
     @Override
-    public boolean canExecute(PlayerPatch<?> executer) {
-        if (executer.isLogicalClient()) {
-            return super.canExecute(executer);
+    public boolean canExecute(SkillContainer container) {
+        if (container.getExecutor().isLogicalClient()) {
+            return super.canExecute(container);
         } else {
-            ItemStack itemstack = executer.getOriginal().getMainHandItem();
-            return super.canExecute(executer) && EpicFightCapabilities.getItemStackCapability(itemstack).getInnateSkill(executer, itemstack) == this && executer.getOriginal().getVehicle() == null;
+            ItemStack itemstack = container.getExecutor().getOriginal().getMainHandItem();
+            return super.canExecute(container) && EpicFightCapabilities.getItemStackCapability(itemstack).getInnateSkill(container.getExecutor(), itemstack) == this && container.getExecutor().getOriginal().getVehicle() == null;
         }
     }
 
@@ -83,16 +83,16 @@ public class ComboBasicAttack extends Skill {
      * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
      */
     @Override
-    public void executeOnServer(ServerPlayerPatch executor, FriendlyByteBuf args) {
+    public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
         ComboType type = ComboType.ENUM_MANAGER.get(args.readInt());
         if (type == null) {
             return;
         }
-        boolean debugMode = executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
+        boolean debugMode = container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
         if (debugMode) {
-            System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + type);
+            System.out.println(container.getExecutor().getOriginal().getMainHandItem().getDescriptionId() + " " + type);
         }
-        executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
+        container.getExecutor().getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode last = invinciblePlayer.getCurrentNode();
             ComboNode current = last.getNext(type);
             ComboNode next = current;
@@ -115,7 +115,7 @@ public class ComboBasicAttack extends Skill {
                     for (ComboNode conditionAnimation : current.getConditionAnimations()) {
                         boolean canExecute = true;
                         for (Condition condition : conditionAnimation.getConditions()) {
-                            if (!condition.predicate(executor)) {
+                            if (!condition.predicate(container.getExecutor())) {
                                 canExecute = false;
                                 break;
                             }
@@ -132,25 +132,25 @@ public class ComboBasicAttack extends Skill {
                 } else {
                     //多个条件指向同一动画
                     for (Condition condition : current.getConditions()) {
-                        if (!condition.predicate(executor)) {
+                        if (!condition.predicate(container.getExecutor())) {
                             return;
                         }
                     }
                 }
-                StaticAnimation animation = current.getAnimation();
-                if (animation == null) {
+                AnimationManager.AnimationAccessor animationAccessor = current.getAnimationAccessor();
+                if (animationAccessor == null) {
                     return;
                 }
                 float convertTime = current.getConvertTime();
                 if (debugMode) {
-                    System.out.println("animation: " + animation);
+                    System.out.println("animationAccessor: " + animationAccessor);
                 }
-                executor.playAnimationSynchronized(animation, convertTime);
+                container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
                 initPlayer(invinciblePlayer, current);
                 //把玩家参数同步给客户端
-                SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
+                SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(container.getSlotId());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
-                EpicFightNetworkManager.sendToPlayer(feedbackPacket, executor.getOriginal());
+                EpicFightNetworkManager.sendToPlayer(feedbackPacket, (ServerPlayer) container.getExecutor().getOriginal());
                 invinciblePlayer.setCurrentNode(next);
             } else {
                 invinciblePlayer.setCurrentNode(root);
@@ -186,10 +186,10 @@ public class ComboBasicAttack extends Skill {
 
     @Override
     @OnlyIn(Dist.CLIENT)
-    public void executeOnClient(LocalPlayerPatch executor, FriendlyByteBuf args) {
+    public void executeOnClient(SkillContainer container, FriendlyByteBuf args) {
         CompoundTag tag = args.readNbt();
         if (tag != null) {
-            InvincibleCapabilityProvider.get(executor.getOriginal()).loadNBTData(tag);
+            InvincibleCapabilityProvider.get(container.getExecutor().getOriginal()).loadNBTData(tag);
         }
     }
 
@@ -197,11 +197,11 @@ public class ComboBasicAttack extends Skill {
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         //初始化连段
-        if (!container.getExecuter().isLogicalClient()) {
-            resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
+        if (!container.getExecutor().isLogicalClient()) {
+            resetCombo(((ServerPlayerPatch) container.getExecutor()), root);
         }
-        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).resetPhase();
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
+        InvincibleCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
             ImmutableList<BiEvent> dodgeSuccessEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
             if(dodgeSuccessEvents != null){
                 dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
@@ -209,7 +209,7 @@ public class ComboBasicAttack extends Skill {
             container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
         }));
         //减伤和霸体的判断
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
                 epicFightDamageSource.setStunType(StunType.NONE);
@@ -222,14 +222,14 @@ public class ComboBasicAttack extends Skill {
                 container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
             }
         }));
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
             ImmutableList<BiEvent> hurtEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
             if(hurtEvents != null){
                 hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
         }));
         //调整攻击倍率，冲击，硬直类型等
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (invinciblePlayer.getStunTypeModifier() != null) {
                 event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
@@ -245,12 +245,12 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         //自己写个充能用
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
             if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
                 if (!container.isFull()) {
                     float value = container.getResource() + event.getAttackDamage();
                     if (value > 0.0F) {
-                        this.setConsumptionSynchronize(event.getPlayerPatch(), value);
+                        this.setConsumptionSynchronize(container, value);
                     }
                 }
             }
@@ -260,25 +260,25 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         //取消原版的普攻和跳攻
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
             if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
                 event.setCanceled(true);
             }
         }));
         //播放walk的过渡动画
-        container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID, (event -> {
             Input input = event.getMovementInput();
             boolean isUp = input.up;
             if (isUp && !isWalking) {
                 if (walkBegin != null) {
-                    container.getExecuter().playAnimationSynchronized(walkBegin.get(), 0.15F);
+                    container.getExecutor().playAnimationSynchronized(walkBegin, 0.15F);
                 }
                 isWalking = true;
             }
             if (!isUp && isWalking) {
                 if (walkEnd != null) {
-                    container.getExecuter().playAnimationSynchronized(walkEnd.get(), 0.15F);
+                    container.getExecutor().playAnimationSynchronized(walkEnd, 0.15F);
                 }
                 isWalking = false;
             }
@@ -288,13 +288,13 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
-        container.getExecuter().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
     }
 
     /**
@@ -303,10 +303,10 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
-        if (!container.getExecuter().isLogicalClient() && container.getExecuter().getTickSinceLastAction() > Config.RESET_TICK.get()) {
-            resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
+        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
+            resetCombo(((ServerPlayerPatch) container.getExecutor()), root);
         }
-        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).tick();
+        InvincibleCapabilityProvider.get(container.getExecutor().getOriginal()).tick();
         SkillDataManager manager = container.getDataManager();
         if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get())){
             manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get()) - 1, 0));
@@ -331,11 +331,11 @@ public class ComboBasicAttack extends Skill {
         return shouldDrawGui;
     }
 
-    public static class Builder extends Skill.Builder<ComboBasicAttack> {
+    public static class Builder extends SkillBuilder<ComboBasicAttack> {
         protected ComboNode root;
 
         @Nullable
-        protected StaticAnimationProvider walkBegin, walkEnd;
+        protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
         protected boolean shouldDrawGui;
 
@@ -367,12 +367,12 @@ public class ComboBasicAttack extends Skill {
             return this;
         }
 
-        public Builder setWalkBeginAnim(StaticAnimationProvider walkBegin) {
+        public Builder setWalkBeginAnim(AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin) {
             this.walkBegin = walkBegin;
             return this;
         }
 
-        public Builder setWalkEndAnim(StaticAnimationProvider walkEnd) {
+        public Builder setWalkEndAnim(AnimationManager.AnimationAccessor<? extends StaticAnimation> walkEnd) {
             this.walkEnd = walkEnd;
             return this;
         }

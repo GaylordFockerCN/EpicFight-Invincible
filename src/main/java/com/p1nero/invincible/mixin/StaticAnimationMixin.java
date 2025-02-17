@@ -9,6 +9,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
@@ -19,7 +20,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 @Mixin(value = StaticAnimation.class, remap = false)
 public class StaticAnimationMixin {
     @Inject(method = "end", at = @At("HEAD"))
-    private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, DynamicAnimation nextAnimation, boolean isEnd, CallbackInfo ci){
+    private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
         if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
             invinciblePlayer.clear();

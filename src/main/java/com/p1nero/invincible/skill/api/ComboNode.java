@@ -3,7 +3,7 @@ package com.p1nero.invincible.skill.api;
 import com.p1nero.invincible.api.events.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.api.animation.AnimationProvider;
+import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
@@ -21,7 +21,7 @@ public class ComboNode {
     protected ComboNode root;
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
     @Nullable
-    protected AnimationProvider<?> animation;
+    protected AnimationManager.AnimationAccessor<? extends StaticAnimation> animationAccessor;
     private int priority;
     protected float playSpeed, convertTime;
     private ValueModifier damageMultiplier = null;
@@ -202,17 +202,17 @@ public class ComboNode {
     }
 
     @Nullable
-    public StaticAnimation getAnimation() {
-        return animation == null ? null : animation.get();
+    public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationAccessor() {
+        return animationAccessor == null ? null : animationAccessor;
     }
 
-    public void setAnimationProvider(@Nullable AnimationProvider<?> animation) {
-        this.animation = animation;
+    public void setAnimationProvider(@Nullable AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
+        this.animationAccessor = animation;
     }
 
     @Nullable
-    public AnimationProvider<?> getAnimationProvider() {
-        return animation;
+    public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationProvider() {
+        return animationAccessor;
     }
 
     @Nullable
@@ -230,16 +230,16 @@ public class ComboNode {
         return root;
     }
 
-    public static ComboNode createNode(@Nullable AnimationProvider<?> animation) {
+    public static ComboNode createNode(@Nullable AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode node = new ComboNode();
         node.root = node;//先设自己，add的时候再换
-        node.animation = animation;
+        node.animationAccessor = animation;
         return node;
     }
 
-    public ComboNode addLeaf(ComboType type, @Nullable AnimationProvider<?> animation) {
+    public ComboNode addLeaf(ComboType type, @Nullable AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(type, child);
         return child;
@@ -346,97 +346,97 @@ public class ComboNode {
         return this;
     }
 
-    public ComboNode key1(AnimationProvider<?> animation) {
+    public ComboNode key1(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_1, child);
         return child;
     }
 
-    public ComboNode key2(AnimationProvider<?> animation) {
+    public ComboNode key2(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_2, child);
         return child;
     }
 
-    public ComboNode key3(AnimationProvider<?> animation) {
+    public ComboNode key3(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_3, child);
         return child;
     }
 
-    public ComboNode key4(AnimationProvider<?> animation) {
+    public ComboNode key4(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_4, child);
         return child;
     }
 
-    public ComboNode keyWeaponInnate(AnimationProvider<?> animation) {
+    public ComboNode keyWeaponInnate(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.WEAPON_INNATE, child);
         return child;
     }
 
-    public ComboNode keyDodge(AnimationProvider<?> animation) {
+    public ComboNode keyDodge(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.DODGE, child);
         return child;
     }
 
-    public ComboNode key1_2(AnimationProvider<?> animation) {
+    public ComboNode key1_2(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_1_2, child);
         return child;
     }
 
-    public ComboNode key1_3(AnimationProvider<?> animation) {
+    public ComboNode key1_3(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_1_3, child);
         return child;
     }
 
-    public ComboNode key1_4(AnimationProvider<?> animation) {
+    public ComboNode key1_4(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_1_4, child);
         return child;
     }
 
-    public ComboNode key2_3(AnimationProvider<?> animation) {
+    public ComboNode key2_3(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_2_3, child);
         return child;
     }
 
-    public ComboNode key2_4(AnimationProvider<?> animation) {
+    public ComboNode key2_4(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_2_4, child);
         return child;
     }
 
-    public ComboNode key3_4(AnimationProvider<?> animation) {
+    public ComboNode key3_4(AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         ComboNode child = new ComboNode();
-        child.animation = animation;
+        child.animationAccessor = animation;
         child.root = root;
         children.put(ComboTypes.KEY_3_4, child);
         return child;

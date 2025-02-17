@@ -37,7 +37,7 @@ public class SetPlayerStateCommands {
                                 .executes((context) -> {
                                     if(context.getSource().getPlayer() != null){
                                         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
-                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill().setStackSynchronize(serverPlayerPatch, IntegerArgumentType.getInteger(context, "value"));
+                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill().setStackSynchronize(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), IntegerArgumentType.getInteger(context, "value"));
                                     }
                                     return 0;
                                 })
@@ -49,7 +49,7 @@ public class SetPlayerStateCommands {
                                     if(context.getSource().getPlayer() != null){
                                         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
                                         SkillContainer weaponInnate = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
-                                        weaponInnate.getSkill().setStackSynchronize(serverPlayerPatch, Math.max(0, weaponInnate.getStack() - IntegerArgumentType.getInteger(context, "value")));
+                                        weaponInnate.getSkill().setStackSynchronize(weaponInnate, Math.max(0, weaponInnate.getStack() - IntegerArgumentType.getInteger(context, "value")));
                                     }
                                     return 0;
                                 })
@@ -60,7 +60,7 @@ public class SetPlayerStateCommands {
                                 .executes((context) -> {
                                     if(context.getSource().getPlayer() != null){
                                         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
-                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill().setConsumptionSynchronize(serverPlayerPatch, FloatArgumentType.getFloat(context, "value"));
+                                        serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill().setConsumptionSynchronize(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), FloatArgumentType.getFloat(context, "value"));
                                     }
                                     return 0;
                                 })
@@ -72,7 +72,7 @@ public class SetPlayerStateCommands {
                                     if(context.getSource().getPlayer() != null){
                                         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(context.getSource().getPlayer(), ServerPlayerPatch.class);
                                         SkillContainer weaponInnate = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
-                                        weaponInnate.getSkill().setConsumptionSynchronize(serverPlayerPatch, Math.max(0, weaponInnate.getResource() - FloatArgumentType.getFloat(context, "value")));
+                                        weaponInnate.getSkill().setConsumptionSynchronize(weaponInnate, Math.max(0, weaponInnate.getResource() - FloatArgumentType.getFloat(context, "value")));
                                     }
                                     return 0;
                                 })

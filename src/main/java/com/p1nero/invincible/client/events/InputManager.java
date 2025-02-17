@@ -228,7 +228,7 @@ public class InputManager {
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         if (!container.canExecute(executor, event)) {
             if(container.getSkill() != null){
-                container.getSkill().validationFeedback(executor);
+                container.getSkill().validationFeedback(container);
             }
             return event;
         }

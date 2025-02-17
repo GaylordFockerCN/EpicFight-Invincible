@@ -88,7 +88,7 @@ public class SkillLoader {
                 deserializeCombos(child, conditionAnimationsListList);
             } else {
                 String animation = combo.get("animation").getAsString();
-                child.setAnimationProvider(() -> AnimationManager.getInstance().byKeyOrThrow(animation));
+//                child.setAnimationProvider(() -> AnimationManager.getInstance().byKeyOrThrow(animation));//FIXME 暂时无替代
 
                 if (combo.has("speed_multiplier")) {
                     child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
