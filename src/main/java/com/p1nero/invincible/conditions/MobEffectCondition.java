@@ -42,7 +42,7 @@ public class MobEffectCondition implements Condition<ServerPlayerPatch>{
     }
 
     public boolean test(LivingEntity livingEntity){
-        if(livingEntity.hasEffect(effectSupplier.get())){
+        if(!livingEntity.hasEffect(effectSupplier.get())){
             return false;
         }
         int level = livingEntity.getEffect(effectSupplier.get()).getAmplifier();

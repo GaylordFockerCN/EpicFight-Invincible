@@ -14,7 +14,7 @@ public class StaminaCondition implements Condition<ServerPlayerPatch>{
     private final boolean isTarget, isLarger;
     private final float ratio;
 
-    public StaminaCondition(boolean isTarget, int ratio, boolean isLarger) {
+    public StaminaCondition(boolean isTarget, float ratio, boolean isLarger) {
         this.isTarget = isTarget;
         this.ratio = ratio;
         this.isLarger = isLarger;

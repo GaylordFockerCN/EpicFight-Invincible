@@ -46,8 +46,9 @@ public class ComboNode {
         root = this;
     }
 
-    public void setArmorNegation(float armorNegation) {
+    public ComboNode setArmorNegation(float armorNegation) {
         this.armorNegation = armorNegation;
+        return this;
     }
     public float getArmorNegation() {
         return armorNegation;
