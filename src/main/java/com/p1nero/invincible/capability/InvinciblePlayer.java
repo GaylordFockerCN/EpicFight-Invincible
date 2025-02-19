@@ -12,6 +12,7 @@ import yesman.epicfight.world.damagesource.StunType;
 import java.util.ArrayList;
 import java.util.List;
 public class InvinciblePlayer {
+    @Nullable
     private ComboNode currentNode = null;
     private final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
     @Nullable

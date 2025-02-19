@@ -99,6 +99,9 @@ public class ComboBasicAttack extends Skill {
         }
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode last = invinciblePlayer.getCurrentNode();
+            if(last == null){
+                return;
+            }
             ComboNode current = last.getNext(type);
             ComboNode next = current;
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
