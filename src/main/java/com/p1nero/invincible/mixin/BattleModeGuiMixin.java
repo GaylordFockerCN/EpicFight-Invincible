@@ -17,6 +17,7 @@ import yesman.epicfight.client.gui.BattleModeGui;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.config.ConfigurationIngame;
 import yesman.epicfight.skill.SkillContainer;
+import yesman.epicfight.skill.SkillDataManager;
 
 @Mixin(value = BattleModeGui.class)
 public class BattleModeGuiMixin {
@@ -40,7 +41,8 @@ public class BattleModeGuiMixin {
      */
     @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
     private void invincible$drawCooldown(LocalPlayerPatch playerPatch, SkillContainer container, PoseStack matStack, float partialTicks, CallbackInfo ci){
-        int cooldown = InvincibleCapabilityProvider.get(playerPatch.getOriginal()).getCooldown();
+        SkillDataManager manager = container.getDataManager();
+        int cooldown = manager.hasData(ComboBasicAttack.COOLDOWN_TIMER) ? manager.getDataValue(ComboBasicAttack.COOLDOWN_TIMER) : 0;
         if(cooldown > 0){
             Window sr = Minecraft.getInstance().getWindow();
             int width = sr.getGuiScaledWidth();

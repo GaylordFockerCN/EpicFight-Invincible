@@ -28,7 +28,6 @@ public class InvinciblePlayer {
     private StunType stunTypeModifier = StunType.NONE;
     private boolean notCharge, canBeInterrupt = true;
     private int phase;
-    private int cooldown;
 
     public float getArmorNegation() {
         return armorNegation;
@@ -75,19 +74,6 @@ public class InvinciblePlayer {
 
     public void setCanBeInterrupt(boolean canBeInterrupt) {
         this.canBeInterrupt = canBeInterrupt;
-    }
-
-    /**
-     * 0 表示默认，防止被顶掉
-     */
-    public void setCooldown(int cooldown) {
-        if(cooldown != 0){
-            this.cooldown = cooldown;
-        }
-    }
-
-    public int getCooldown() {
-        return cooldown;
     }
 
     /**
@@ -170,12 +156,6 @@ public class InvinciblePlayer {
         this.currentNode = currentNode;
     }
 
-    public void tick() {
-        if(cooldown > 0){
-            cooldown--;
-        }
-    }
-
     public void clear(){
         playSpeedMultiplier = 0;
         damageMultiplier = null;
@@ -192,14 +172,12 @@ public class InvinciblePlayer {
     public CompoundTag saveNBTData(CompoundTag tag) {
         tag.putBoolean("notCharge", notCharge);
         tag.putFloat("playSpeed", playSpeedMultiplier);
-        tag.putInt("cooldown", cooldown);
         return tag;
     }
 
     public void loadNBTData(CompoundTag tag) {
         notCharge = tag.getBoolean("notCharge");
         playSpeedMultiplier = tag.getFloat("playSpeed");
-        cooldown = tag.getInt("cooldown");
     }
 
     /**

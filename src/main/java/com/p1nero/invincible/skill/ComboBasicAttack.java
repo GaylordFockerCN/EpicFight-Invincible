@@ -40,6 +40,7 @@ public class ComboBasicAttack extends Skill {
 
     protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
     public static SkillDataManager.SkillDataKey<Integer> DODGE_SUCCESS_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
+    public static SkillDataManager.SkillDataKey<Integer> COOLDOWN_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
     public static SkillDataManager.SkillDataKey<Integer> PARRY_TIMER = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.INTEGER);
     public static SkillDataManager.SkillDataKey<Boolean> UP = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.BOOLEAN);
     public static SkillDataManager.SkillDataKey<Boolean> DOWN = SkillDataManager.SkillDataKey.createDataKey(SkillDataManager.ValueType.BOOLEAN);
@@ -147,7 +148,7 @@ public class ComboBasicAttack extends Skill {
                 }
                 float convertTime = current.getConvertTime();
                 executor.playAnimationSynchronized(animation, convertTime);
-                initPlayer(invinciblePlayer, current);
+                initPlayer(executor.getSkill(SkillSlots.WEAPON_INNATE), invinciblePlayer, current);
                 //把玩家参数同步给客户端
                 SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
@@ -163,7 +164,7 @@ public class ComboBasicAttack extends Skill {
     /**
      * 根据预存来初始化玩家信息
      */
-    private void initPlayer(InvinciblePlayer invinciblePlayer, ComboNode next) {
+    private void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode next) {
         invinciblePlayer.clearTimeEvents();
         for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
@@ -176,7 +177,9 @@ public class ComboBasicAttack extends Skill {
         invinciblePlayer.setPlaySpeedMultiplier(next.getPlaySpeed());
         invinciblePlayer.setNotCharge(next.isNotCharge());
         invinciblePlayer.setPhase(next.getNewPhase());
-        invinciblePlayer.setCooldown(next.getCooldown());
+        if(next.getCooldown() > 0){
+            container.getDataManager().setDataSync(COOLDOWN_TIMER, next.getCooldown(), ((ServerPlayerPatch) container.getExecuter()).getOriginal());
+        }
         invinciblePlayer.setArmorNegation(next.getArmorNegation());
         invinciblePlayer.setHurtDamageMultiplier(next.getHurtDamageMultiplier());
         invinciblePlayer.setDamageMultiplier(next.getDamageMultiplier());
@@ -197,6 +200,7 @@ public class ComboBasicAttack extends Skill {
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         container.getDataManager().registerData(DODGE_SUCCESS_TIMER);
+        container.getDataManager().registerData(COOLDOWN_TIMER);
         container.getDataManager().registerData(PARRY_TIMER);
         container.getDataManager().registerData(UP);
         container.getDataManager().registerData(DOWN);
@@ -305,10 +309,13 @@ public class ComboBasicAttack extends Skill {
         if (!container.getExecuter().isLogicalClient() && container.getExecuter().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
         }
-        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).tick();
+
         SkillDataManager manager = container.getDataManager();
         if(manager.hasData(DODGE_SUCCESS_TIMER)){
             manager.setData(DODGE_SUCCESS_TIMER, Math.max(manager.getDataValue(DODGE_SUCCESS_TIMER) - 1, 0));
+        }
+        if(manager.hasData(COOLDOWN_TIMER)){
+            manager.setData(COOLDOWN_TIMER, Math.max(manager.getDataValue(COOLDOWN_TIMER) - 1, 0));
         }
         if(manager.hasData(PARRY_TIMER)){
             manager.setData(PARRY_TIMER, Math.max(manager.getDataValue(PARRY_TIMER) - 1, 0));
