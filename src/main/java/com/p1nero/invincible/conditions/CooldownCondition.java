@@ -1,9 +1,11 @@
 package com.p1nero.invincible.conditions;
 
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import yesman.epicfight.data.conditions.Condition;
+import yesman.epicfight.skill.SkillDataManager;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
@@ -39,7 +41,11 @@ public class CooldownCondition implements Condition<ServerPlayerPatch> {
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        return this.inCooldown == InvincibleCapabilityProvider.get(serverPlayerPatch.getOriginal()).getCooldown() > 0;
+        SkillDataManager manager = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
+        if(!manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
+            return false;
+        }
+        return this.inCooldown == manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get()) > 0;
     }
 
     @Override

@@ -2,6 +2,8 @@ package com.p1nero.invincible.mixin;
 
 import com.mojang.blaze3d.platform.Window;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -40,7 +42,10 @@ public class BattleModeGuiMixin {
      */
     @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
     private void invincible$drawCooldown(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
-        int cooldown = InvincibleCapabilityProvider.get(playerPatch.getOriginal()).getCooldown();
+        if(!container.getDataManager().hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
+            return;
+        }
+        int cooldown = container.getDataManager().getDataValue(InvincibleSkillDataKeys.COOLDOWN.get());
         if(cooldown > 0){
             Window sr = Minecraft.getInstance().getWindow();
             int width = sr.getGuiScaledWidth();

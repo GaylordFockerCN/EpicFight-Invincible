@@ -14,6 +14,7 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -94,6 +95,9 @@ public class ComboBasicAttack extends Skill {
         }
         executor.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode last = invinciblePlayer.getCurrentNode();
+            if(last == null){
+                return;
+            }
             ComboNode current = last.getNext(type);
             ComboNode next = current;
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
@@ -146,7 +150,7 @@ public class ComboBasicAttack extends Skill {
                     System.out.println("animation: " + animation);
                 }
                 executor.playAnimationSynchronized(animation, convertTime);
-                initPlayer(invinciblePlayer, current);
+                initPlayer(executor.getSkill(this), invinciblePlayer, current);
                 //把玩家参数同步给客户端
                 SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(executor.getSkill(this).getSlotId());
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
@@ -163,7 +167,7 @@ public class ComboBasicAttack extends Skill {
     /**
      * 根据预存来初始化玩家信息
      */
-    private void initPlayer(InvinciblePlayer invinciblePlayer, ComboNode next) {
+    private void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode next) {
         invinciblePlayer.resetTimeEvents();
         for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
@@ -176,7 +180,11 @@ public class ComboBasicAttack extends Skill {
         invinciblePlayer.setPlaySpeedMultiplier(next.getPlaySpeed());
         invinciblePlayer.setNotCharge(next.isNotCharge());
         invinciblePlayer.setPhase(next.getNewPhase());
-        invinciblePlayer.setCooldown(next.getCooldown());
+
+        if(next.getCooldown() > 0){
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), next.getCooldown(), ((ServerPlayer) container.getExecuter().getOriginal()));
+        }
+
         invinciblePlayer.setArmorNegation(next.getArmorNegation());
         invinciblePlayer.setHurtDamageMultiplier(next.getHurtDamageMultiplier());
         invinciblePlayer.setDamageMultiplier(next.getDamageMultiplier());
@@ -306,13 +314,15 @@ public class ComboBasicAttack extends Skill {
         if (!container.getExecuter().isLogicalClient() && container.getExecuter().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
         }
-        InvincibleCapabilityProvider.get(container.getExecuter().getOriginal()).tick();
         SkillDataManager manager = container.getDataManager();
         if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get())){
             manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get()) - 1, 0));
         }
         if(manager.hasData(InvincibleSkillDataKeys.PARRY_TIMER.get())){
             manager.setData(InvincibleSkillDataKeys.PARRY_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.PARRY_TIMER.get()) - 1, 0));
+        }
+        if(manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
+            manager.setData(InvincibleSkillDataKeys.COOLDOWN.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get()) - 1, 0));
         }
     }
 
