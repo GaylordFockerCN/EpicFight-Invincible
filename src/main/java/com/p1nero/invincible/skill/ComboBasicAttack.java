@@ -340,6 +340,10 @@ public class ComboBasicAttack extends Skill {
         return shouldDrawGui;
     }
 
+    public boolean isShouldDrawGui() {
+        return shouldDrawGui;
+    }
+
     public static class Builder extends Skill.Builder<ComboBasicAttack> {
         protected ComboNode root;
 

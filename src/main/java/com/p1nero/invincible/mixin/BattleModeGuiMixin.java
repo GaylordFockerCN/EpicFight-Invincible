@@ -31,7 +31,7 @@ public class BattleModeGuiMixin {
      */
     @Inject(method = "drawWeaponInnateIcon", at = @At(value = "HEAD"), cancellable = true, remap = false)
     private void invincible$modifyTexture(LocalPlayerPatch playerpatch, SkillContainer container, PoseStack matStack, float partialTicks, CallbackInfo ci){
-        if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack && !comboBasicAttack.shouldDraw(container)){
+        if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack && !comboBasicAttack.isShouldDrawGui()){
             ci.cancel();
         }
     }
