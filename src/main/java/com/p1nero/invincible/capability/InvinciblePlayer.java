@@ -213,10 +213,10 @@ public class InvinciblePlayer {
     }
 
     public void tick() {
-        cooldownMap.forEach(((item, integer) -> {
-            if(integer > 0){
-                cooldownMap.put(item, integer - 1);
-            }
-        }));
+//        cooldownMap.forEach(((item, integer) -> {
+//            if(integer > 0){
+//                cooldownMap.put(item, integer - 1);
+//            }
+//        }));
     }
 }

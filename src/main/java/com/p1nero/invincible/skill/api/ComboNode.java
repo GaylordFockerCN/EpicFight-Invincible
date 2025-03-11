@@ -43,16 +43,20 @@ public class ComboNode {
     protected final List<BiEvent> hitEvents = new ArrayList<>();
     protected final List<BiEvent> hurtEvents = new ArrayList<>();
 
-    public void setIsSkill(boolean skill) {
-        isSkill = skill;
+    protected ComboNode() {
+        root = this;
+    }
+
+    /**
+     * true则使用canSkillExecute来判断是否执行。 TODO
+     */
+    public ComboNode setIsSkill(boolean isSkill) {
+        this.isSkill = isSkill;
+        return this;
     }
 
     public boolean isSkill() {
         return isSkill;
-    }
-
-    protected ComboNode() {
-        root = this;
     }
 
     public ComboNode setArmorNegation(float armorNegation) {

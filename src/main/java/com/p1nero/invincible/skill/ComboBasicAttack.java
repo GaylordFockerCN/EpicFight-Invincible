@@ -326,16 +326,21 @@ public class ComboBasicAttack extends Skill {
         InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecuter().getOriginal());
 
         SkillDataManager manager = container.getDataManager();
-        if(manager.getDataValue(DODGE_SUCCESS_TIMER) > 0){
+        if (manager.getDataValue(DODGE_SUCCESS_TIMER) > 0) {
             manager.setData(DODGE_SUCCESS_TIMER, manager.getDataValue(DODGE_SUCCESS_TIMER) - 1);
         }
-        if(container.getExecuter() instanceof ServerPlayerPatch serverPlayerPatch){
-            int currentCooldown = invinciblePlayer.getItemCooldown(serverPlayerPatch.getOriginal().getMainHandItem());
-            if(currentCooldown != manager.getDataValue(COOLDOWN_TIMER)){
+        if (container.getExecuter() instanceof ServerPlayerPatch serverPlayerPatch) {
+            ItemStack itemStack = serverPlayerPatch.getOriginal().getMainHandItem();
+            int currentCooldown = invinciblePlayer.getItemCooldown(itemStack);
+            if (currentCooldown > 0) {
+                currentCooldown = currentCooldown - 1;
+                invinciblePlayer.setItemCooldown(itemStack, currentCooldown);
+            }
+            if (currentCooldown != manager.getDataValue(COOLDOWN_TIMER)) {
                 manager.setDataSync(COOLDOWN_TIMER, currentCooldown, serverPlayerPatch.getOriginal());
             }
         }
-        if(manager.getDataValue(PARRY_TIMER) > 0){
+        if (manager.getDataValue(PARRY_TIMER) > 0) {
             manager.setData(PARRY_TIMER, manager.getDataValue(PARRY_TIMER) - 1);
         }
     }
