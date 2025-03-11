@@ -98,6 +98,8 @@ public class InvincibleSkills {
         dodge.key1(a);
         SkillManager.register(ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(true), InvincibleMod.MOD_ID, "combo_demo");
 
+        ComboNode a_b = ComboNode.createNode(()->Animations.SPEAR_DASH);
+        root.key1_2(a_b);
         //You can also create the tree like this:
         //你也可以这样构建：
         ComboNode root2 = ComboNode.create()

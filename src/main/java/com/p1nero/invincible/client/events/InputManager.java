@@ -9,7 +9,6 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraft.client.player.Input;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
@@ -216,27 +215,35 @@ public class InputManager {
     public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         ControllEngine controllEngine = ClientEngine.getInstance().controllEngine;
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
-        if (!container.canExecute(executor, event)) {
-            return event;
-        }
-        controllEngine.addPacketToSend(getExecutionPacket(container));
-        return event;
-    }
-
-    public static Object getExecutionPacket(SkillContainer container) {
-        CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
-        List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
-        typeList.sort(Comparator.comparingInt((comboType) -> -1 * comboType.getSubTypes().size()));//subType多的优先
-        for(ComboType comboType : typeList){
-            if(test(comboType)){
+        List<ComboType> comboTypes = getExecutableType();
+        for(ComboType comboType : comboTypes){
+            if (container.canExecute(executor, event) || (comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE) && executor.getEntityState().canUseSkill())) {
+                CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
                 packet.getBuffer().writeInt(comboType.universalOrdinal());
-                //双键符合就退出，单键以防两个按键相同的情况
-                if(!comboType.getSubTypes().isEmpty()){
-                    break;
+                controllEngine.addPacketToSend(packet);
+                if(comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE)){
+                    event.setSkillExecutable(true);
+                    event.setStateExecutable(true);
+                    event.setResourcePredicate(true);
                 }
             }
         }
-        return packet;
+        return event;
+    }
+
+    public static List<ComboType> getExecutableType(){
+        List<ComboType> comboTypes = new ArrayList<>();
+        for(ComboType comboType : ComboType.SORTED_ALL_TYPES){
+            if(test(comboType)){
+                //双键符合就退出，单键以防两个按键相同的情况
+                if(!comboType.getSubTypes().isEmpty()){
+                    return List.of(comboType);
+                } else {
+                    comboTypes.add(comboType);
+                }
+            }
+        }
+        return comboTypes;
     }
 
     public static boolean test(ComboType comboType){

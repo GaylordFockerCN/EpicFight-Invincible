@@ -80,9 +80,11 @@ public class ComboBasicAttack extends Skill {
         }
     }
 
-    @Override
     public boolean isExecutableState(PlayerPatch<?> executor) {
-        return executor.getEntityState().canBasicAttack() && !executor.getOriginal().isSpectator();
+        if(!executor.isLogicalClient()){
+            return !executor.isUnstable() && !executor.getOriginal().isSpectator();
+        }
+        return executor.getEntityState().canBasicAttack() && !executor.isUnstable() && !executor.getOriginal().isSpectator();
     }
 
     /**
@@ -183,7 +185,7 @@ public class ComboBasicAttack extends Skill {
         invinciblePlayer.setPhase(next.getNewPhase());
         if(next.getCooldown() > 0){
             container.getDataManager().setDataSync(COOLDOWN_TIMER, next.getCooldown(), ((ServerPlayerPatch) container.getExecuter()).getOriginal());
-            invinciblePlayer.setItemCooldown(container.getExecuter().getOriginal().getMainHandItem().getItem(), next.getCooldown());
+            invinciblePlayer.setItemCooldown(container.getExecuter().getOriginal().getMainHandItem(), next.getCooldown());
 
         }
         invinciblePlayer.setArmorNegation(next.getArmorNegation());
@@ -271,7 +273,8 @@ public class ComboBasicAttack extends Skill {
         //取消原版的普攻和跳攻
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
             //不影响默认的普攻
-            if(EpicFightCapabilities.getItemStackCapability(event.getPlayerPatch().getOriginal().getMainHandItem()).getWeaponCategory() == CapabilityItem.WeaponCategories.FIST){
+            ItemStack mainHandItem = event.getPlayerPatch().getOriginal().getMainHandItem();
+            if(mainHandItem.isEmpty() || !mainHandItem.getCapability(EpicFightCapabilities.CAPABILITY_ITEM).isPresent()){
                 return;
             }
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
@@ -327,7 +330,7 @@ public class ComboBasicAttack extends Skill {
             manager.setData(DODGE_SUCCESS_TIMER, manager.getDataValue(DODGE_SUCCESS_TIMER) - 1);
         }
         if(container.getExecuter() instanceof ServerPlayerPatch serverPlayerPatch){
-            int currentCooldown = invinciblePlayer.getItemCooldown(serverPlayerPatch.getOriginal().getMainHandItem().getItem());
+            int currentCooldown = invinciblePlayer.getItemCooldown(serverPlayerPatch.getOriginal().getMainHandItem());
             if(currentCooldown != manager.getDataValue(COOLDOWN_TIMER)){
                 manager.setDataSync(COOLDOWN_TIMER, currentCooldown, serverPlayerPatch.getOriginal());
             }

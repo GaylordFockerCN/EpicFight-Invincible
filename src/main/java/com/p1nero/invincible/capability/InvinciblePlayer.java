@@ -6,6 +6,7 @@ import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.api.ComboNode;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.world.damagesource.StunType;
@@ -18,7 +19,7 @@ import java.util.Map;
 public class InvinciblePlayer {
     @Nullable
     private ComboNode currentNode = null;
-    private final Map<Item, Integer> cooldownMap = new HashMap<>();
+    private final Map<ItemStack, Integer> cooldownMap = new HashMap<>();
     private final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
     @Nullable
     private ImmutableList<BiEvent> dodgeSuccessEvents = null;
@@ -35,18 +36,18 @@ public class InvinciblePlayer {
     private boolean notCharge, canBeInterrupt = true;
     private int phase;
 
-    public void setItemCooldown(Item item, int cooldown){
+    public void setItemCooldown(ItemStack item, int cooldown){
         cooldownMap.put(item, cooldown);
     }
 
-    public boolean isItemInCooldown(Item item){
+    public boolean isItemInCooldown(ItemStack item){
         if(!cooldownMap.containsKey(item)){
             return false;
         }
         return cooldownMap.get(item) >= 0;
     }
 
-    public int getItemCooldown(Item item){
+    public int getItemCooldown(ItemStack item){
         if(!cooldownMap.containsKey(item)){
             return 0;
         }
@@ -172,11 +173,11 @@ public class InvinciblePlayer {
         timeStampedEvents.clear();
     }
 
-    public ComboNode getCurrentNode() {
+    public @Nullable ComboNode getCurrentNode() {
         return currentNode;
     }
 
-    public void setCurrentNode(ComboNode currentNode) {
+    public void setCurrentNode(@Nullable ComboNode currentNode) {
         this.currentNode = currentNode;
     }
 

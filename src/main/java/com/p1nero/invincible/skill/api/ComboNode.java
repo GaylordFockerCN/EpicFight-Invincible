@@ -22,6 +22,7 @@ public class ComboNode {
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
     @Nullable
     protected AnimationProvider<?> animation;
+    private boolean isSkill;
     private int priority;
     protected float playSpeed, convertTime;
     private ValueModifier damageMultiplier = null;
@@ -41,6 +42,14 @@ public class ComboNode {
     protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
     protected final List<BiEvent> hitEvents = new ArrayList<>();
     protected final List<BiEvent> hurtEvents = new ArrayList<>();
+
+    public void setIsSkill(boolean skill) {
+        isSkill = skill;
+    }
+
+    public boolean isSkill() {
+        return isSkill;
+    }
 
     protected ComboNode() {
         root = this;
