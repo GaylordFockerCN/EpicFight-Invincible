@@ -27,6 +27,7 @@ import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
@@ -182,6 +183,8 @@ public class ComboBasicAttack extends Skill {
         invinciblePlayer.setPhase(next.getNewPhase());
         if(next.getCooldown() > 0){
             container.getDataManager().setDataSync(COOLDOWN_TIMER, next.getCooldown(), ((ServerPlayerPatch) container.getExecuter()).getOriginal());
+            invinciblePlayer.setItemCooldown(container.getExecuter().getOriginal().getMainHandItem().getItem(), next.getCooldown());
+
         }
         invinciblePlayer.setArmorNegation(next.getArmorNegation());
         invinciblePlayer.setHurtDamageMultiplier(next.getHurtDamageMultiplier());
@@ -267,6 +270,10 @@ public class ComboBasicAttack extends Skill {
         }));
         //取消原版的普攻和跳攻
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
+            //不影响默认的普攻
+            if(EpicFightCapabilities.getItemStackCapability(event.getPlayerPatch().getOriginal().getMainHandItem()).getWeaponCategory() == CapabilityItem.WeaponCategories.FIST){
+                return;
+            }
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
             if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
                 event.setCanceled(true);
@@ -313,15 +320,20 @@ public class ComboBasicAttack extends Skill {
             resetCombo(((ServerPlayerPatch) container.getExecuter()), root);
         }
 
+        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecuter().getOriginal());
+
         SkillDataManager manager = container.getDataManager();
-        if(manager.hasData(DODGE_SUCCESS_TIMER)){
-            manager.setData(DODGE_SUCCESS_TIMER, Math.max(manager.getDataValue(DODGE_SUCCESS_TIMER) - 1, 0));
+        if(manager.getDataValue(DODGE_SUCCESS_TIMER) > 0){
+            manager.setData(DODGE_SUCCESS_TIMER, manager.getDataValue(DODGE_SUCCESS_TIMER) - 1);
         }
-        if(manager.hasData(COOLDOWN_TIMER)){
-            manager.setData(COOLDOWN_TIMER, Math.max(manager.getDataValue(COOLDOWN_TIMER) - 1, 0));
+        if(container.getExecuter() instanceof ServerPlayerPatch serverPlayerPatch){
+            int currentCooldown = invinciblePlayer.getItemCooldown(serverPlayerPatch.getOriginal().getMainHandItem().getItem());
+            if(currentCooldown != manager.getDataValue(COOLDOWN_TIMER)){
+                manager.setDataSync(COOLDOWN_TIMER, currentCooldown, serverPlayerPatch.getOriginal());
+            }
         }
-        if(manager.hasData(PARRY_TIMER)){
-            manager.setData(PARRY_TIMER, Math.max(manager.getDataValue(PARRY_TIMER) - 1, 0));
+        if(manager.getDataValue(PARRY_TIMER) > 0){
+            manager.setData(PARRY_TIMER, manager.getDataValue(PARRY_TIMER) - 1);
         }
     }
 
