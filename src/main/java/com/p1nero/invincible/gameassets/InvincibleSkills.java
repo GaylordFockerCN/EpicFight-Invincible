@@ -5,7 +5,7 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
-import com.p1nero.invincible.skill.api.ComboNode;
+import com.p1nero.invincible.api.skill.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -14,10 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Animations;
-import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.skill.Skill;
-import yesman.epicfight.world.capabilities.entitypatch.Faction;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.ArrayList;
@@ -30,7 +27,7 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class InvincibleSkills {
     public static Skill COMBO_DEMO;
-    public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();
+    public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();//TODO 换自己的文件夹里注册，抛弃数据包
 
     @SubscribeEvent
     public static void BuildSkills(SkillBuildEvent event) {

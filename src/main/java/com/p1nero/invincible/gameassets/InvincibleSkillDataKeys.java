@@ -23,7 +23,6 @@ public class InvincibleSkillDataKeys {
     
     public static final RegistryObject<SkillDataKey<Integer>> PARRY_TIMER = DATA_KEYS.register("parry_timer", () ->
             SkillDataKey.createSkillDataKey(PacketBufferCodec.INTEGER, 0, false, ComboBasicAttack.class));//是否成功格挡计时器
-
     public static final RegistryObject<SkillDataKey<Integer>> DODGE_SUCCESS_TIMER = DATA_KEYS.register("dodge_success_timer", () ->
             SkillDataKey.createSkillDataKey(PacketBufferCodec.INTEGER, 0, false, ComboBasicAttack.class));//是否成功闪避计时器
     public static final RegistryObject<SkillDataKey<Integer>> COOLDOWN = DATA_KEYS.register("cooldown", () ->

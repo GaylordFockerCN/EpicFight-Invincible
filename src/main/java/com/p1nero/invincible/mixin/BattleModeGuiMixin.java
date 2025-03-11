@@ -2,6 +2,7 @@ package com.p1nero.invincible.mixin;
 
 import com.mojang.blaze3d.platform.Window;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -16,6 +17,8 @@ import yesman.epicfight.client.gui.BattleModeGui;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.config.ClientConfig;
 import yesman.epicfight.skill.SkillContainer;
+import yesman.epicfight.skill.SkillDataManager;
+import yesman.epicfight.skill.SkillSlots;
 
 @Mixin(value = BattleModeGui.class)
 public class BattleModeGuiMixin {
@@ -37,7 +40,8 @@ public class BattleModeGuiMixin {
      */
     @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
     private void invincible$drawCooldown(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
-        int cooldown = InvincibleCapabilityProvider.get(playerPatch.getOriginal()).getCooldown();
+        SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
+        int cooldown = manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get());
         if(cooldown > 0){
             Window sr = Minecraft.getInstance().getWindow();
             int width = sr.getGuiScaledWidth();

@@ -1,4 +1,4 @@
-package com.p1nero.invincible.skill.api;
+package com.p1nero.invincible.api.skill;
 
 import com.p1nero.invincible.api.events.*;
 import org.jetbrains.annotations.NotNull;

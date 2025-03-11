@@ -3,18 +3,22 @@ package com.p1nero.invincible.capability;
 import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
-import com.p1nero.invincible.skill.api.ComboNode;
+import com.p1nero.invincible.api.skill.ComboNode;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InvinciblePlayer {
     private ComboNode currentNode = null;
     private final ArrayList<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
+    private final Map<Item, Integer> cooldownMap = new HashMap<>();
     @Nullable
     private ImmutableList<BiEvent> dodgeSuccessEvents = null;
     @Nullable
@@ -29,6 +33,23 @@ public class InvinciblePlayer {
     private StunType stunTypeModifier = StunType.NONE;
     private boolean notCharge, canBeInterrupt = true;
     private int phase;
+    public void setItemCooldown(Item item, int cooldown){
+        cooldownMap.put(item, cooldown);
+    }
+
+    public boolean isItemInCooldown(Item item){
+        if(!cooldownMap.containsKey(item)){
+            return false;
+        }
+        return cooldownMap.get(item) >= 0;
+    }
+
+    public int getItemCooldown(Item item){
+        if(!cooldownMap.containsKey(item)){
+            return 0;
+        }
+        return cooldownMap.get(item);
+    }
 
     public float getArmorNegation() {
         return armorNegation;
@@ -184,6 +205,14 @@ public class InvinciblePlayer {
      */
     public void copyFrom(InvinciblePlayer old) {
         currentNode = old.currentNode;
+    }
+
+    public void tick() {
+        cooldownMap.forEach(((item, integer) -> {
+            if(integer > 0){
+                cooldownMap.put(item, integer - 1);
+            }
+        }));
     }
 
 }

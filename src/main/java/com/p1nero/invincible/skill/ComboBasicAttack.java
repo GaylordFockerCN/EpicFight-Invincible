@@ -9,8 +9,8 @@ import com.p1nero.invincible.capability.InvinciblePlayer;
 import com.p1nero.invincible.client.events.InputManager;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
-import com.p1nero.invincible.skill.api.ComboNode;
-import com.p1nero.invincible.skill.api.ComboType;
+import com.p1nero.invincible.api.skill.ComboNode;
+import com.p1nero.invincible.api.skill.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -21,7 +21,6 @@ import net.minecraftforge.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
-import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
@@ -29,6 +28,7 @@ import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
@@ -182,6 +182,7 @@ public class ComboBasicAttack extends Skill {
 
         if(next.getCooldown() > 0){
             container.getDataManager().setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), next.getCooldown(), ((ServerPlayer) container.getExecutor().getOriginal()));
+            invinciblePlayer.setItemCooldown(container.getExecutor().getOriginal().getMainHandItem().getItem(), next.getCooldown());
         }
 
         invinciblePlayer.setArmorNegation(next.getArmorNegation());
@@ -269,6 +270,10 @@ public class ComboBasicAttack extends Skill {
         }));
         //取消原版的普攻和跳攻
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
+            //不影响默认的普攻
+            if(EpicFightCapabilities.getItemStackCapability(event.getPlayerPatch().getOriginal().getMainHandItem()).getWeaponCategory() == CapabilityItem.WeaponCategories.FIST){
+                return;
+            }
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
             if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
                 event.setCanceled(true);
@@ -314,6 +319,7 @@ public class ComboBasicAttack extends Skill {
         if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(((ServerPlayerPatch) container.getExecutor()), root);
         }
+        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecutor().getOriginal());
         SkillDataManager manager = container.getDataManager();
         if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get())){
             manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get()) - 1, 0));
@@ -321,8 +327,11 @@ public class ComboBasicAttack extends Skill {
         if(manager.hasData(InvincibleSkillDataKeys.PARRY_TIMER.get())){
             manager.setData(InvincibleSkillDataKeys.PARRY_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.PARRY_TIMER.get()) - 1, 0));
         }
-        if(manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
-            manager.setData(InvincibleSkillDataKeys.COOLDOWN.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get()) - 1, 0));
+        if(container.getExecutor() instanceof ServerPlayerPatch serverPlayerPatch){
+            int currentCooldown = invinciblePlayer.getItemCooldown(serverPlayerPatch.getOriginal().getMainHandItem().getItem());
+            if(currentCooldown != manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get())){
+                manager.setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), currentCooldown, serverPlayerPatch.getOriginal());
+            }
         }
     }
 
