@@ -41,6 +41,9 @@ public class BattleModeGuiMixin {
     @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
     private void invincible$drawCooldown(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
         SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
+        if(!manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
+            return;
+        }
         int cooldown = manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get());
         if(cooldown > 0){
             Window sr = Minecraft.getInstance().getWindow();
