@@ -219,7 +219,7 @@ public class InputManager {
         for(ComboType comboType : comboTypes){
             boolean flag = false;
             if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack) {
-                flag = comboBasicAttack.isDisableSkillState() && comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE);
+                flag = !comboBasicAttack.isDisableSkillState() && comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE);
             }
             if (container.canExecute(executor, event) || (flag && executor.getEntityState().canUseSkill())) {
                 CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
