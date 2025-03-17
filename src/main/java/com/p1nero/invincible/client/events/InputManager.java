@@ -217,11 +217,15 @@ public class InputManager {
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         List<ComboType> comboTypes = getExecutableType();
         for(ComboType comboType : comboTypes){
-            if (container.canExecute(executor, event) || (comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE) && executor.getEntityState().canUseSkill())) {
+            boolean flag = false;
+            if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+                flag = comboBasicAttack.isDisableSkillState() && comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE);
+            }
+            if (container.canExecute(executor, event) || (flag && executor.getEntityState().canUseSkill())) {
                 CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
                 packet.getBuffer().writeInt(comboType.universalOrdinal());
                 controllEngine.addPacketToSend(packet);
-                if(comboType.equals(ComboNode.ComboTypes.WEAPON_INNATE)){
+                if(flag){
                     event.setSkillExecutable(true);
                     event.setStateExecutable(true);
                     event.setResourcePredicate(true);

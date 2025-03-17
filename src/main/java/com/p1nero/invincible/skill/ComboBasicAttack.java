@@ -15,6 +15,7 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -27,12 +28,10 @@ import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
-import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -51,7 +50,7 @@ public class ComboBasicAttack extends Skill {
     @OnlyIn(Dist.CLIENT)
     protected boolean isWalking;
 
-    protected boolean shouldDrawGui;
+    protected boolean shouldDrawGui, disableSkillState;
 
     @Nullable
     protected StaticAnimationProvider walkBegin, walkEnd;
@@ -65,9 +64,14 @@ public class ComboBasicAttack extends Skill {
     public ComboBasicAttack(Builder builder) {
         super(builder);
         shouldDrawGui = builder.shouldDrawGui;
+        disableSkillState = builder.disableSkillState;
         root = builder.root;
         walkBegin = builder.walkBegin;
         walkEnd = builder.walkEnd;
+    }
+
+    public boolean isDisableSkillState() {
+        return disableSkillState;
     }
 
     @Override
@@ -97,6 +101,13 @@ public class ComboBasicAttack extends Skill {
         if (type == null) {
             return;
         }
+        executeOnServer(executor, type);
+    }
+
+    /**
+     * 独立出来方便调用
+     */
+    public void executeOnServer(ServerPlayerPatch executor, ComboType type){
         if (executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get())) {
             System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + type);
         }
@@ -164,7 +175,13 @@ public class ComboBasicAttack extends Skill {
                 invinciblePlayer.setCurrentNode(root);
             }
         });
+    }
 
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
+            comboBasicAttack.executeOnServer(serverPlayerPatch, type);
+        }
     }
 
     /**
@@ -370,7 +387,7 @@ public class ComboBasicAttack extends Skill {
         @Nullable
         protected StaticAnimationProvider walkBegin, walkEnd;
 
-        protected boolean shouldDrawGui;
+        protected boolean shouldDrawGui, disableSkillState;
 
         public Builder() {
         }
@@ -409,6 +426,12 @@ public class ComboBasicAttack extends Skill {
             this.walkEnd = walkEnd;
             return this;
         }
+
+        public Builder disableSkillState(boolean disableSkillState){
+            this.disableSkillState = disableSkillState;
+            return this;
+        }
+
     }
 
 }
