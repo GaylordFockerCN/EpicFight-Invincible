@@ -231,7 +231,7 @@ public class InputManager {
             }
             return event;
         }
-        executor.disableModelYRot(true);
+//        executor.disableModelYRot(true);
         controllEngine.addPacketToSend(getExecutionPacket(container));
         return event;
     }
