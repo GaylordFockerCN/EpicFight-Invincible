@@ -17,7 +17,7 @@ import java.util.Map;
 
 public class InvinciblePlayer {
     private ComboNode currentNode = null;
-    private final ArrayList<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
+    private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
     private final Map<Item, Integer> cooldownMap = new HashMap<>();
     @Nullable
     private ImmutableList<BiEvent> dodgeSuccessEvents = null;
@@ -160,12 +160,12 @@ public class InvinciblePlayer {
         this.hurtEvents = hurtEvents;
     }
 
-    public void addTimeEvent(TimeStampedEvent event) {
-        this.timeStampedEvents.add(event);
+    public void setTimeStampedEvents(ImmutableList<TimeStampedEvent> event) {
+        this.timeStampedEvents = event;
     }
 
     public void resetTimeEvents() {
-        timeStampedEvents.clear();
+        timeStampedEvents = null;
     }
 
     public ComboNode getCurrentNode() {
@@ -184,6 +184,7 @@ public class InvinciblePlayer {
         stunTypeModifier = null;
         canBeInterrupt = true;
         notCharge = false;
+        timeStampedEvents = null;
         dodgeSuccessEvents = null;
         hitSuccessEvents = null;
         hurtEvents = null;

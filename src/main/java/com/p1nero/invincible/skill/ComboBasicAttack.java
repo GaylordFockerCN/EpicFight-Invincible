@@ -88,6 +88,13 @@ public class ComboBasicAttack extends Skill {
         if (type == null) {
             return;
         }
+        this.executeOnServer(container, type);
+    }
+
+    /**
+     * 方便额外调用
+     */
+    public void executeOnServer(SkillContainer container, ComboType type){
         boolean debugMode = container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
         if (debugMode) {
             System.out.println(container.getExecutor().getOriginal().getMainHandItem().getDescriptionId() + " " + type);
@@ -159,8 +166,13 @@ public class ComboBasicAttack extends Skill {
                 invinciblePlayer.setCurrentNode(root);
             }
         });
+    }
 
-
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
+            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type);
+        }
     }
 
     /**
@@ -168,10 +180,12 @@ public class ComboBasicAttack extends Skill {
      */
     private void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode next) {
         invinciblePlayer.resetTimeEvents();
+        ImmutableList.Builder builder = ImmutableList.<TimeStampedEvent>builder();
         for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
-            invinciblePlayer.addTimeEvent(event);
+            builder.add(event);
         }
+        invinciblePlayer.setTimeStampedEvents(builder.build());
         invinciblePlayer.setHurtEvents(ImmutableList.copyOf(next.getHurtEvents()));
         invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(next.getHitEvents()));
         invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(next.getDodgeSuccessEvents()));
