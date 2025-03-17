@@ -20,7 +20,8 @@ public class InvinciblePlayer {
     @Nullable
     private ComboNode currentNode = null;
     private final Map<ItemStack, Integer> cooldownMap = new HashMap<>();
-    private final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
+    @Nullable
+    private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
     @Nullable
     private ImmutableList<BiEvent> dodgeSuccessEvents = null;
     @Nullable
@@ -153,8 +154,8 @@ public class InvinciblePlayer {
         return hitSuccessEvents;
     }
 
-    public boolean addTimeEvent(TimeStampedEvent event) {
-        return timeStampedEvents.add(event);
+    public void setTimeEvents(@Nullable ImmutableList<TimeStampedEvent> timeStampedEvents) {
+        this.timeStampedEvents = timeStampedEvents;
     }
 
     public void setHitSuccessEvents(@Nullable ImmutableList<BiEvent> hitSuccessEvents) {
@@ -170,7 +171,7 @@ public class InvinciblePlayer {
     }
 
     public void clearTimeEvents() {
-        timeStampedEvents.clear();
+        timeStampedEvents = null;
     }
 
     public @Nullable ComboNode getCurrentNode() {
@@ -189,6 +190,7 @@ public class InvinciblePlayer {
         stunTypeModifier = null;
         canBeInterrupt = true;
         notCharge = false;
+        timeStampedEvents = null;
         dodgeSuccessEvents = null;
         hitSuccessEvents = null;
         hurtEvents = null;

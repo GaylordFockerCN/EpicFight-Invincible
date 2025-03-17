@@ -32,7 +32,9 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -189,10 +191,12 @@ public class ComboBasicAttack extends Skill {
      */
     private void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode next) {
         invinciblePlayer.clearTimeEvents();
+        ImmutableList.Builder builder = ImmutableList.<TimeStampedEvent>builder();
         for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
-            invinciblePlayer.addTimeEvent(event);
+            builder.add(event);
         }
+        invinciblePlayer.setTimeEvents(builder.build());
         invinciblePlayer.setHurtEvents(ImmutableList.copyOf(next.getHurtEvents()));
         invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(next.getHitEvents()));
         invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(next.getDodgeSuccessEvents()));
