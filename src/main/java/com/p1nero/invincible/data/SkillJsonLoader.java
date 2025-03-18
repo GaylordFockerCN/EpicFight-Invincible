@@ -5,7 +5,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -13,34 +12,23 @@ import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraftforge.fml.loading.FMLEnvironment;
-import net.minecraftforge.registries.ForgeRegistry;
 import org.spongepowered.asm.mixin.Unique;
+import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
-import yesman.epicfight.api.data.reloader.SkillManager;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
-import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
-@SuppressWarnings("UnstableApiUsage")
-public class SkillLoader {
+import java.util.ArrayList;
+import java.util.List;
+
+public class SkillJsonLoader {
     public static void loadSkill(CompoundTag data) throws CommandSyntaxException {
         loadSkill(JsonParser.parseString(data.toString()).getAsJsonObject());
     }
 
-    public static void loadSkill(JsonObject weapon) throws CommandSyntaxException {
-        ForgeRegistry<Skill> registry = (ForgeRegistry<Skill>) SkillManager.getSkillRegistry();
-        InvincibleMod.LOGGER.warn("unfreezing Skill Registry.");
-        registry.unfreeze();
-        String modId = weapon.get("mod_id").getAsString();
-        String name = weapon.get("name").getAsString();
-        //防止读到模板以及避免无数据包情况下服务端进不去
-        if (modId.isEmpty() || (FMLEnvironment.dist.isDedicatedServer() && name.equals("datapack_demo"))) {
-            return;
-        }
+    public static ComboBasicAttack.Builder loadSkill(JsonObject weapon) throws CommandSyntaxException {
         boolean drawSkillIcon = false;
         if (weapon.has("drawSkillIcon")) {
             drawSkillIcon = weapon.get("drawSkillIcon").getAsBoolean();
@@ -51,23 +39,17 @@ public class SkillLoader {
         ComboNode root = ComboNode.create();
         deserializeCombos(root, combos);
 
-        ComboBasicAttack.Builder builder = ((ComboBasicAttack.Builder) ComboBasicAttack.createComboBasicAttack()
+        List<String> tipList = new ArrayList<>();
+        if (weapon.has("translationKeys")){
+            for(JsonElement element : weapon.get("translationKeys").getAsJsonArray()){
+                tipList.add(element.getAsString());
+            }
+        }
+
+        return ComboBasicAttack.createComboBasicAttack()
                 .setShouldDrawGui(drawSkillIcon)
                 .setCombo(root)
-                .setRegistryName(new ResourceLocation(modId, name)));
-
-        ComboBasicAttack skill = new ComboBasicAttack(builder);
-        CompoundTag params = new CompoundTag();
-        if (weapon.has("consumption")) {
-            params.putFloat("consumption", weapon.get("consumption").getAsFloat());
-        }
-        if (weapon.has("max_stacks")) {
-            params.putInt("max_stacks", weapon.get("max_stacks").getAsInt());
-        }
-        skill.setParams(params);
-        registry.register(skill.getRegistryName(), skill);
-        registry.freeze();
-        InvincibleMod.LOGGER.warn("freezing Skill Registry.");
+                .addToolTipOnItem(tipList);
     }
 
     /**
@@ -87,7 +69,7 @@ public class SkillLoader {
                 deserializeCombos(child, conditionAnimationsListList);
             } else {
                 String animation = combo.get("animation").getAsString();
-//                child.setAnimationProvider(() -> AnimationManager.getInstance().byKeyOrThrow(animation));//FIXME 暂时无替代
+                child.setAnimationProvider(AnimationManager.byKey(animation));
 
                 if (combo.has("speed_multiplier")) {
                     child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());

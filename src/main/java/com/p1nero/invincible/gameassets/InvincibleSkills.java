@@ -27,10 +27,9 @@ import java.util.List;
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class InvincibleSkills {
     public static Skill COMBO_DEMO;
-    public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();//TODO 换自己的文件夹里注册，抛弃数据包
 
     @SubscribeEvent
-    public static void BuildSkills(SkillBuildEvent event) {
+    public static void buildSkills(SkillBuildEvent event) {
         SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
         //我使用的是史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.create();

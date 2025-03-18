@@ -1,6 +1,7 @@
 package com.p1nero.invincible.skill;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
@@ -14,6 +15,7 @@ import com.p1nero.invincible.api.skill.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -34,6 +36,7 @@ import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -43,24 +46,25 @@ public class ComboBasicAttack extends Skill {
 
     @OnlyIn(Dist.CLIENT)
     protected boolean isWalking;
-
     protected boolean shouldDrawGui;
+    protected List<String> translationKeys;
 
     @Nullable
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
 
-    public static Builder createComboBasicAttack() {
-        return new Builder().setCategory(SkillCategories.WEAPON_INNATE).setActivateType(ActivateType.ONE_SHOT).setResource(Resource.NONE);
-    }
-
     public ComboBasicAttack(Builder builder) {
         super(builder);
-        shouldDrawGui = builder.shouldDrawGui;
-        root = builder.root;
-        walkBegin = builder.walkBegin;
-        walkEnd = builder.walkEnd;
+        this.shouldDrawGui = builder.shouldDrawGui;
+        this.root = builder.root;
+        this.walkBegin = builder.walkBegin;
+        this.walkEnd = builder.walkEnd;
+        this.translationKeys = builder.translationKeys;
+    }
+
+    public static Builder createComboBasicAttack() {
+        return new Builder().setCategory(SkillCategories.WEAPON_INNATE).setActivateType(ActivateType.ONE_SHOT).setResource(Resource.NONE);
     }
 
     @Override
@@ -361,12 +365,26 @@ public class ComboBasicAttack extends Skill {
     }
 
     @Override
+    public List<Component> getTooltipOnItem(ItemStack itemStack, CapabilityItem cap, PlayerPatch<?> playerpatch) {
+        if(translationKeys.isEmpty()){
+            return super.getTooltipOnItem(itemStack, cap, playerpatch);
+        }
+        List<Component> list = Lists.newArrayList();
+        for(String translationKey : translationKeys){
+            list.add(Component.translatable(translationKey));
+        }
+        return list;
+    }
+
+    @Override
     public boolean shouldDraw(SkillContainer container) {
         return shouldDrawGui;
     }
 
     public static class Builder extends SkillBuilder<ComboBasicAttack> {
         protected ComboNode root;
+
+        protected List<String> translationKeys = List.of();
 
         @Nullable
         protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
@@ -410,6 +428,12 @@ public class ComboBasicAttack extends Skill {
             this.walkEnd = walkEnd;
             return this;
         }
+
+        public Builder addToolTipOnItem(List<String> translationKeys) {
+            this.translationKeys = translationKeys;
+            return this;
+        }
+
     }
 
 }

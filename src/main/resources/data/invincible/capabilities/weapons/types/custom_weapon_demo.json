@@ -26,7 +26,7 @@
     },
     "innate_skills":
     {
-    	"two_hand": "invincible:datapack_demo"
+    	"two_hand": "invincible:custom_weapon_demo"
     },
     "livingmotion_modifier": {
     	"two_hand":
