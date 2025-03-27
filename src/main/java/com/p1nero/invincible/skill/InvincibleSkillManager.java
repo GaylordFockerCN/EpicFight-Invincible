@@ -7,7 +7,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.data.SkillJsonLoader;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
 import net.minecraftforge.fml.loading.FMLPaths;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 
@@ -15,14 +14,11 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 public class InvincibleSkillManager {
 
-    //或许以后可以做成纯服务端形式？
-    public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();
+
 
     public static void buildDatapackSkills(SkillBuildEvent event) {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
@@ -51,7 +47,6 @@ public class InvincibleSkillManager {
                     skill.setParams(params);
 
                     InvincibleMod.LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
-                    NEW_SKILLS.add(TagParser.parseTag(combo.toString()));
                 } catch (IOException | CommandSyntaxException e) {
                     throw new RuntimeException(e);
                 }
