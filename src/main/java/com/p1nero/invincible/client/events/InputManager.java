@@ -16,9 +16,9 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.client.ClientEngine;
-import yesman.epicfight.client.events.engine.ControllEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.client.CPExecuteSkill;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillDataManager;
@@ -223,16 +223,10 @@ public class InputManager {
     }
 
     public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
-        ControllEngine controllEngine = ClientEngine.getInstance().controllEngine;
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
-        if (!container.canExecute(executor, event)) {
-            if(container.getSkill() != null){
-                container.getSkill().validationFeedback(container);
-            }
-            return event;
+        if (container.canExecute(executor, event)) {
+            EpicFightNetworkManager.sendToServer(getExecutionPacket(container));
         }
-//        executor.disableModelYRot(true);
-        controllEngine.addPacketToSend(getExecutionPacket(container));
         return event;
     }
 

@@ -18,10 +18,16 @@ import java.util.stream.Stream;
 
 public class InvincibleSkillManager {
 
-
-
     public static void buildDatapackSkills(SkillBuildEvent event) {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
+        if(!Files.exists(invincibleCombos)){
+            try {
+                Files.createDirectory(invincibleCombos);
+                return;
+            } catch (IOException e){
+                InvincibleMod.LOGGER.error("Failed to create default file!", e);
+            }
+        }
         try (Stream<Path> subDirs = Files.list(invincibleCombos)) {
             subDirs.filter(path -> path.getFileName().toString().toLowerCase().endsWith(".json")).forEach(comboFile -> {
                 try {

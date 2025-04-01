@@ -200,7 +200,7 @@ public class ComboBasicAttack extends Skill {
 
         if(next.getCooldown() > 0){
             container.getDataManager().setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), next.getCooldown(), ((ServerPlayer) container.getExecutor().getOriginal()));
-            invinciblePlayer.setItemCooldown(container.getExecutor().getOriginal().getMainHandItem().getItem(), next.getCooldown());
+            invinciblePlayer.setItemCooldown(container.getExecutor().getOriginal().getMainHandItem(), next.getCooldown());
         }
 
         invinciblePlayer.setArmorNegation(next.getArmorNegation());
@@ -346,9 +346,14 @@ public class ComboBasicAttack extends Skill {
         if(manager.hasData(InvincibleSkillDataKeys.PARRY_TIMER.get())){
             manager.setData(InvincibleSkillDataKeys.PARRY_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.PARRY_TIMER.get()) - 1, 0));
         }
-        if(container.getExecutor() instanceof ServerPlayerPatch serverPlayerPatch){
-            int currentCooldown = invinciblePlayer.getItemCooldown(serverPlayerPatch.getOriginal().getMainHandItem().getItem());
-            if(currentCooldown != manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get())){
+        if (container.getExecutor() instanceof ServerPlayerPatch serverPlayerPatch) {
+            ItemStack itemStack = serverPlayerPatch.getOriginal().getMainHandItem();
+            int currentCooldown = invinciblePlayer.getItemCooldown(itemStack);
+            if (currentCooldown > 0) {
+                currentCooldown = currentCooldown - 1;
+                invinciblePlayer.setItemCooldown(itemStack, currentCooldown);
+            }
+            if (currentCooldown != manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get())) {
                 manager.setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), currentCooldown, serverPlayerPatch.getOriginal());
             }
         }
