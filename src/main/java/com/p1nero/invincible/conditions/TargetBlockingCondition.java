@@ -40,7 +40,7 @@ public class TargetBlockingCondition implements Condition<ServerPlayerPatch> {
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
         if (serverPlayerPatch.getTarget() instanceof ServerPlayer serverPlayer) {
-            SkillContainer guardSkill = serverPlayerPatch.getSkill(SkillSlots.GUARD);
+            SkillContainer guardSkill = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class).getSkill(SkillSlots.GUARD);
             CapabilityItem itemCapability = serverPlayerPatch.getHoldingItemCapability((serverPlayer.getUsedItemHand()));
             return itemCapability.getUseAnimation(serverPlayerPatch) == UseAnim.BLOCK && (serverPlayer.isUsingItem() && guardSkill.getSkill() != null && guardSkill.getSkill().isExecutableState(serverPlayerPatch));
         }

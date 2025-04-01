@@ -5,6 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import yesman.epicfight.api.animation.LivingMotions;
 import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.ColliderPreset;
@@ -33,6 +34,7 @@ public class InvincibleWeaponCapabilityPresets {
                     .canBePlacedOffhand(false)
                     .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
                     .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_DEMO)
+                    .livingMotionModifier(CapabilityItem.Styles.COMMON, LivingMotions.BLOCK, Animations.BIPED_BLOCK)
                     .comboCancel((style) -> false);
 
     @SubscribeEvent

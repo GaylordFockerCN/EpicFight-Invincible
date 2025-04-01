@@ -50,10 +50,11 @@ public class InvincibleSkills {
                         serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
                 })));
+        ComboNode guardAttack = ComboNode.createNode(()->Animations.SWORD_DUAL_DASH).setPriority(4).addCondition(new BlockingCondition());//修改了原版的跳跃攻击机制，以此补偿
         ComboNode jumpAttack = ComboNode.createNode(()->Animations.SWORD_AIR_SLASH).setPriority(3).addCondition(new JumpCondition());//修改了原版的跳跃攻击机制，以此补偿
         ComboNode dashAttack = ComboNode.createNode(()->Animations.SWORD_DASH).setPriority(2).addCondition(new SprintingCondition());//修改了原版的冲刺攻击机制，以此补偿
         ComboNode a = ComboNode.create();
-        a.addConditionAnimation(basicAttack).addConditionAnimation(jumpAttack).addConditionAnimation(dashAttack);
+        a.addConditionAnimation(guardAttack).addConditionAnimation(basicAttack).addConditionAnimation(jumpAttack).addConditionAnimation(dashAttack);
         root.key1(a);//初始态后按key1则根据不同条件来播放不同动画
         dashAttack.key1(a);//闭环
         jumpAttack.key1(a);//闭环
