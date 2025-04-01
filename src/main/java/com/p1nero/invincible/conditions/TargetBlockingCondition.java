@@ -13,6 +13,7 @@ import yesman.epicfight.skill.SkillSlots;
 //import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 //import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 //import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
@@ -40,7 +41,7 @@ public class TargetBlockingCondition implements Condition<ServerPlayerPatch> {
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
         if (serverPlayerPatch.getTarget() instanceof ServerPlayer serverPlayer) {
-            SkillContainer guardSkill = serverPlayerPatch.getSkill(SkillSlots.GUARD);
+            SkillContainer guardSkill = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class).getSkill(SkillSlots.GUARD);
             CapabilityItem itemCapability = serverPlayerPatch.getHoldingItemCapability((serverPlayer.getUsedItemHand()));
             return itemCapability.getUseAnimation(serverPlayerPatch) == UseAnim.BLOCK && (serverPlayer.isUsingItem() && guardSkill.getSkill() != null && guardSkill.getSkill().isExecutableState(serverPlayerPatch));
         }
