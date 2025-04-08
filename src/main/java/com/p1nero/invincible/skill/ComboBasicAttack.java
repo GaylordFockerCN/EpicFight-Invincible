@@ -359,7 +359,7 @@ public class ComboBasicAttack extends Skill {
         }
     }
 
-    public static void resetCombo(ServerPlayerPatch serverPlayerPatch, ComboNode root) {
+    public void resetCombo(ServerPlayerPatch serverPlayerPatch, ComboNode root) {
         InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(serverPlayerPatch.getOriginal());
         invinciblePlayer.setCurrentNode(root);
         invinciblePlayer.clear();
