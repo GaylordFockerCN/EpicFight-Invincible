@@ -10,7 +10,7 @@ import yesman.epicfight.main.EpicFightMod;
 import yesman.epicfight.skill.SkillDataKey;
 
 public class InvincibleSkillDataKeys {
-    public static final DeferredRegister<SkillDataKey<?>> DATA_KEYS = DeferredRegister.create(new ResourceLocation(EpicFightMod.MODID, "skill_data_keys"), InvincibleMod.MOD_ID);
+    public static final DeferredRegister<SkillDataKey<?>> DATA_KEYS = DeferredRegister.create(ResourceLocation.fromNamespaceAndPath(EpicFightMod.MODID, "skill_data_keys"), InvincibleMod.MOD_ID);
 
     public static final RegistryObject<SkillDataKey<Boolean>> LEFT = DATA_KEYS.register("left", () ->
             SkillDataKey.createSkillDataKey(PacketBufferCodec.BOOLEAN, false, false, ComboBasicAttack.class));//a按键是否按下

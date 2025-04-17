@@ -39,7 +39,7 @@ public class MobEffectCondition implements Condition<ServerPlayerPatch> {
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
         this.isTarget = compoundTag.getBoolean("is_target");
-        this.effectSupplier = () -> ForgeRegistries.MOB_EFFECTS.getValue(new ResourceLocation(compoundTag.getString("effect")));
+        this.effectSupplier = () -> ForgeRegistries.MOB_EFFECTS.getValue(ResourceLocation.parse(compoundTag.getString("effect")));
         this.min = compoundTag.getInt("min");
         this.max = compoundTag.getInt("max");
         return this;

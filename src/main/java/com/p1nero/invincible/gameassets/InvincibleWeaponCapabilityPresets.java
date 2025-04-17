@@ -37,7 +37,7 @@ public class InvincibleWeaponCapabilityPresets {
 
     @SubscribeEvent
     public static void register(WeaponCapabilityPresetRegistryEvent event) {
-        event.getTypeEntry().put(new ResourceLocation(InvincibleMod.MOD_ID, "demo"), DEMO);
+        event.getTypeEntry().put(ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "demo"), DEMO);
     }
 
 }

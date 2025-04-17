@@ -21,9 +21,9 @@ import yesman.epicfight.skill.SkillDataManager;
 import yesman.epicfight.skill.SkillSlots;
 
 @Mixin(value = BattleModeGui.class)
-public class BattleModeGuiMixin {
+public abstract class BattleModeGuiMixin {
 
-    @Shadow(remap = false) public Font font;
+    @Shadow(remap = false) public abstract Font getFont();
 
     /**
      * 取消绘制技能图标
@@ -51,8 +51,8 @@ public class BattleModeGuiMixin {
             int height = sr.getGuiScaledHeight();
             Vec2i pos = ClientConfig.getWeaponInnatePosition(width, height);
             String s = String.format("%.1fs", cooldown / 20.0);
-            int stringWidth = (this.font.width(s) - 6) / 3;
-            guiGraphics.drawString(font, s, pos.x - stringWidth, pos.y + 22, 16777215, true);
+            int stringWidth = (this.getFont().width(s) - 6) / 3;
+            guiGraphics.drawString(this.getFont(), s, pos.x - stringWidth, pos.y + 22, 16777215, true);
         }
     }
 

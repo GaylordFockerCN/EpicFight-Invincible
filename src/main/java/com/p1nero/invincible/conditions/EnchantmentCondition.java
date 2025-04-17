@@ -38,7 +38,7 @@ public class EnchantmentCondition implements Condition<ServerPlayerPatch> {
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
         this.isMainHand = compoundTag.getBoolean("is_main_hand");
-        this.effectSupplier = () -> ForgeRegistries.ENCHANTMENTS.getValue(new ResourceLocation(compoundTag.getString("enchantment")));
+        this.effectSupplier = () -> ForgeRegistries.ENCHANTMENTS.getValue(ResourceLocation.parse(compoundTag.getString("enchantment")));
         this.min = compoundTag.getInt("min");
         this.max = compoundTag.getInt("max");
         return this;

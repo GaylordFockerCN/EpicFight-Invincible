@@ -64,7 +64,7 @@ public class InvincibleCapabilityProvider implements ICapabilityProvider, INBTSe
     public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof Player) {
             if(!event.getObject().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).isPresent()){
-                event.addCapability(new ResourceLocation(InvincibleMod.MOD_ID, "invincible_player"), new InvincibleCapabilityProvider());
+                event.addCapability(ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "invincible_player"), new InvincibleCapabilityProvider());
             }
         }
     }
