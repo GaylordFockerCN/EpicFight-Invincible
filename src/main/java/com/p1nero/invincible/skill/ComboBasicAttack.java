@@ -80,7 +80,7 @@ public class ComboBasicAttack extends Skill {
     }
 
     /**
-     * 处理客户端的输入信息，原谅我无脑if偷懒
+     * 处理客户端的输入信息
      * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
      */
     @Override
@@ -89,6 +89,10 @@ public class ComboBasicAttack extends Skill {
         if (type == null) {
             return;
         }
+        this.executeOnServer(executor, type);
+    }
+
+    public void executeOnServer(ServerPlayerPatch executor, ComboType type) {
         boolean debugMode = executor.getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || executor.getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
         if (debugMode) {
             System.out.println(executor.getOriginal().getMainHandItem().getDescriptionId() + " " + type);
@@ -160,8 +164,13 @@ public class ComboBasicAttack extends Skill {
                 invinciblePlayer.setCurrentNode(root);
             }
         });
+    }
 
-
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
+            comboBasicAttack.executeOnServer(serverPlayerPatch, type);
+        }
     }
 
     /**
@@ -264,7 +273,7 @@ public class ComboBasicAttack extends Skill {
             }
             ImmutableList<BiEvent> hitEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if(hitEvents != null){
-                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget()));
             }
         }));
         //取消原版的普攻和跳攻
