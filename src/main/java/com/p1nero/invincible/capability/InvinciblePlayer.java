@@ -26,7 +26,7 @@ public class InvinciblePlayer {
     private float armorNegation;
     private float impactMultiplier;
     private float hurtDamageMultiplier;
-    private StunType stunTypeModifier = StunType.NONE;
+    private StunType stunTypeModifier = null;
     private boolean notCharge, canBeInterrupt = true;
     private int phase;
 
