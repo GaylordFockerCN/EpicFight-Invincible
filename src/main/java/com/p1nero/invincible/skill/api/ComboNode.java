@@ -29,6 +29,7 @@ public class ComboNode {
 
     private float hurtDamageMultiplier;
     private float armorNegation;
+    @Nullable
     private StunType stunTypeModifier = null;
     private boolean canBeInterrupt = true;
     protected boolean notCharge;
@@ -82,6 +83,7 @@ public class ComboNode {
         return this;
     }
 
+    @Nullable
     public StunType getStunTypeModifier() {
         return stunTypeModifier;
     }
