@@ -29,9 +29,9 @@ public class InvinciblePlayer {
     private float playSpeedMultiplier;
     private ValueModifier damageMultiplier;
     private float armorNegation;
-    private float impactMultiplier;
+    private float impactMultiplier = 1.0F;
     private float hurtDamageMultiplier;
-    private StunType stunTypeModifier = StunType.NONE;
+    private StunType stunTypeModifier = null;
     private boolean notCharge, canBeInterrupt = true;
     private int phase;
     public void setItemCooldown(ItemStack item, int cooldown){

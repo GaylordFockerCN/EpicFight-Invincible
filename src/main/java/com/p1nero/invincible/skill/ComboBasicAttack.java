@@ -261,8 +261,8 @@ public class ComboBasicAttack extends Skill {
             if (invinciblePlayer.getStunTypeModifier() != null) {
                 event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
             }
-            if (invinciblePlayer.getImpactMultiplier() != 0) {
-                event.getDamageSource().setImpact(invinciblePlayer.getImpactMultiplier());
+            if (invinciblePlayer.getImpactMultiplier() != 1.0F) {
+                event.getDamageSource().setImpact(event.getDamageSource().getImpact() * invinciblePlayer.getImpactMultiplier());
             }
             if(invinciblePlayer.getArmorNegation() != 0){
                 event.getDamageSource().setArmorNegation(invinciblePlayer.getArmorNegation());
@@ -283,7 +283,7 @@ public class ComboBasicAttack extends Skill {
             }
             ImmutableList<BiEvent> hitEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if(hitEvents != null){
-                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget()));
+                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
             }
         }));
         //取消原版的普攻和跳攻
