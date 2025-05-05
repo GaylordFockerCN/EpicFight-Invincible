@@ -9,12 +9,12 @@ import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.world.damagesource.StunType;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class InvinciblePlayer {
     private ComboNode currentNode = null;
-    private final ArrayList<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
+    @Nullable
+    private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
     @Nullable
     private ImmutableList<BiEvent> dodgeSuccessEvents = null;
     @Nullable
@@ -139,12 +139,12 @@ public class InvinciblePlayer {
         this.hurtEvents = hurtEvents;
     }
 
-    public void addTimeEvent(TimeStampedEvent event) {
-        this.timeStampedEvents.add(event);
+    public void setTimeStampedEvents(@Nullable ImmutableList<TimeStampedEvent> event) {
+        this.timeStampedEvents = event;
     }
 
     public void resetTimeEvents() {
-        timeStampedEvents.clear();
+        timeStampedEvents = null;
     }
 
     public ComboNode getCurrentNode() {
@@ -163,6 +163,7 @@ public class InvinciblePlayer {
         stunTypeModifier = null;
         canBeInterrupt = true;
         notCharge = false;
+        timeStampedEvents = null;
         dodgeSuccessEvents = null;
         hitSuccessEvents = null;
         hurtEvents = null;

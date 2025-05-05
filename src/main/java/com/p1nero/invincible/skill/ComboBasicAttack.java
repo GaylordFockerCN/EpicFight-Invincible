@@ -23,6 +23,7 @@ import yesman.epicfight.api.animation.StaticAnimationProvider;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.data.conditions.Condition;
+import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
 import yesman.epicfight.skill.*;
@@ -33,7 +34,6 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -178,10 +178,12 @@ public class ComboBasicAttack extends Skill {
      */
     private void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode next) {
         invinciblePlayer.resetTimeEvents();
+        ImmutableList.Builder builder = ImmutableList.<TimeStampedEvent>builder();
         for (TimeStampedEvent event : next.getTimeEvents()) {
             event.resetExecuted();
-            invinciblePlayer.addTimeEvent(event);
+            builder.add(event);
         }
+        invinciblePlayer.setTimeStampedEvents(builder.build());
         invinciblePlayer.setHurtEvents(ImmutableList.copyOf(next.getHurtEvents()));
         invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(next.getHitEvents()));
         invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(next.getDodgeSuccessEvents()));
@@ -263,6 +265,9 @@ public class ComboBasicAttack extends Skill {
         }));
         //自己写个充能用
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
+            if(event.getDamageSource().getAnimation() == Animations.DUMMY_ANIMATION) {
+                return;
+            }
             if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
                 if (!container.isFull()) {
                     float value = container.getResource() + event.getAttackDamage();
@@ -273,7 +278,7 @@ public class ComboBasicAttack extends Skill {
             }
             ImmutableList<BiEvent> hitEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if(hitEvents != null){
-                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget()));
+                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
             }
         }));
         //取消原版的普攻和跳攻
