@@ -283,6 +283,11 @@ public class ComboBasicAttack extends Skill {
         }));
         //取消原版的普攻和跳攻
         container.getExecuter().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID, (event -> {
+            //不影响默认的普攻
+            ItemStack mainHandItem = event.getPlayerPatch().getOriginal().getMainHandItem();
+            if(mainHandItem.isEmpty() || !mainHandItem.getCapability(EpicFightCapabilities.CAPABILITY_ITEM).isPresent()){
+                return;
+            }
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
             if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
                 event.setCanceled(true);
