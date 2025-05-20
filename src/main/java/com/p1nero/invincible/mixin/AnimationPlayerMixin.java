@@ -29,6 +29,8 @@ public abstract class AnimationPlayerMixin {
 
     @Shadow protected float elapsedTime;
 
+    @Shadow public abstract DynamicAnimation getAnimation();
+
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lyesman/epicfight/api/animation/types/DynamicAnimation;getPlaySpeed(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lyesman/epicfight/api/animation/types/DynamicAnimation;)F"))
     private float invincible$onGetPlaySpeed(DynamicAnimation instance, LivingEntityPatch<?> entityPatch, DynamicAnimation animation) {
         if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
@@ -42,6 +44,9 @@ public abstract class AnimationPlayerMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void invincible$injectTick(LivingEntityPatch<?> entityPatch, CallbackInfo ci){
+        if(this.getAnimation().isLinkAnimation()) {
+            return;
+        }
         if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             serverPlayerPatch.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
                 if(invinciblePlayer.getTimeEventList() == null){
