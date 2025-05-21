@@ -44,9 +44,6 @@ public abstract class AnimationPlayerMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void invincible$injectTick(LivingEntityPatch<?> entityPatch, CallbackInfo ci){
-        if(this.getAnimation().isLinkAnimation()) {
-            return;
-        }
         if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             serverPlayerPatch.getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
                 if(invinciblePlayer.getTimeEventList() == null){
@@ -56,7 +53,9 @@ public abstract class AnimationPlayerMixin {
                     if (!entityPatch.getOriginal().isAlive()) {
                         break;
                     }
-                    event.testAndExecute(entityPatch, this.prevElapsedTime, this.elapsedTime);
+                    if(!event.isExecuted()) {
+                        event.testAndExecute(entityPatch, this.prevElapsedTime, this.elapsedTime);
+                    }
                 }
             });
         }
