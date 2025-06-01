@@ -24,6 +24,7 @@ import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillDataManager;
 import yesman.epicfight.skill.SkillSlot;
 import yesman.epicfight.skill.SkillSlots;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
 
 import java.util.*;
@@ -208,7 +209,7 @@ public class InputManager {
      */
     public static boolean tryRequestSkillExecute(SkillSlot slot, boolean shouldReserve) {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
-        if (executor != null && executor.isBattleMode()) {
+        if (executor != null && executor.getPlayerMode() == PlayerPatch.PlayerMode.EPICFIGHT) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
                 if(shouldReserve){
                     setReserve(slot);

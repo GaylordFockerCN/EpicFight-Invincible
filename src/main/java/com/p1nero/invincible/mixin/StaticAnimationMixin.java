@@ -18,10 +18,10 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
  * 动画的末尾重置状态，即各个事件
  */
 @Mixin(value = StaticAnimation.class, remap = false)
-public class StaticAnimationMixin {
+public abstract class StaticAnimationMixin extends DynamicAnimation {
     @Inject(method = "end", at = @At("HEAD"))
     private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
-        if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
+        if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack && !this.isLinkAnimation()){
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
             invinciblePlayer.clear();
         }

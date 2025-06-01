@@ -51,7 +51,9 @@ public abstract class AnimationPlayerMixin {
                     if (!entityPatch.getOriginal().isAlive()) {
                         break;
                     }
-                    event.testAndExecute(entityPatch, this.prevElapsedTime, this.elapsedTime);
+                    if(!event.isExecuted()) {
+                        event.testAndExecute(entityPatch, this.prevElapsedTime, this.elapsedTime);
+                    }
                 }
             });
         }

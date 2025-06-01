@@ -293,6 +293,10 @@ public class ComboBasicAttack extends Skill {
             if(mainHandItem.isEmpty() || !mainHandItem.getCapability(EpicFightCapabilities.CAPABILITY_ITEM).isPresent()){
                 return;
             }
+            //不影响没技能但是有模板的武器
+            if(EpicFightCapabilities.getItemStackCapability(mainHandItem).getInnateSkill(event.getPlayerPatch(), mainHandItem) == null) {
+                return;
+            }
             SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
             if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
                 event.setCanceled(true);
