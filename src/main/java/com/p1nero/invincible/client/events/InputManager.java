@@ -29,9 +29,6 @@ import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
 
 import java.util.*;
 
-/**
- * 仅针对四个键的控制，写的一言难尽，能跑就行
- */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
 public class InputManager {
 
