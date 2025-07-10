@@ -27,6 +27,7 @@ import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
@@ -223,11 +224,18 @@ public class InputManager {
     public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         if (container.canExecute(executor, event)) {
-            EpicFightNetworkManager.sendToServer(getExecutionPacket(container));
+            Object packet = getExecutionPacket(container);
+            if(packet != null) {
+                EpicFightNetworkManager.sendToServer(packet);
+            }
         }
         return event;
     }
 
+    /**
+     * @return 没有对应的触发就返回null
+     */
+    @Nullable
     public static Object getExecutionPacket(SkillContainer container) {
         CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
         List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
@@ -235,10 +243,10 @@ public class InputManager {
         for(ComboType comboType : typeList){
             if(test(comboType)){
                 packet.getBuffer().writeInt(comboType.universalOrdinal());
-                break;
+                return packet;
             }
         }
-        return packet;
+        return null;
     }
 
     public static boolean test(ComboType comboType){

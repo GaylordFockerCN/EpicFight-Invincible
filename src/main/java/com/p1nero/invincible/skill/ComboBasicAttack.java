@@ -83,7 +83,7 @@ public class ComboBasicAttack extends Skill {
     }
 
     /**
-     * 处理客户端的输入信息，原谅我无脑if偷懒
+     * 处理客户端的输入信息
      * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
      */
     @Override
