@@ -4,13 +4,12 @@ import com.p1nero.invincible.InvincibleMod;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.Tiers;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.registries.DeferredItem;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 public class InvincibleItems {
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, InvincibleMod.MOD_ID);
-    public static final RegistryObject<Item> DEBUG = ITEMS.register("debug", () -> new SwordItem(Tiers.WOOD, 3, -2.4F, new Item.Properties()));
-    public static final RegistryObject<Item> DATAPACK_DEBUG = ITEMS.register("custom_weapon_demo", () -> new SwordItem(Tiers.WOOD, 3, -2.4F, new Item.Properties()));
+    public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(InvincibleMod.MOD_ID);
+    public static final DeferredItem<Item> DEBUG = ITEMS.register("debug", () -> new SwordItem(Tiers.WOOD, new Item.Properties()));
+    public static final DeferredItem<Item> DATAPACK_DEBUG = ITEMS.register("custom_weapon_demo", () -> new SwordItem(Tiers.WOOD, new Item.Properties()));
 
 }

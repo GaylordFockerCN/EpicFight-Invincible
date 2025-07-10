@@ -1,11 +1,11 @@
 package com.p1nero.invincible.api.skill;
 
-import yesman.epicfight.api.utils.ExtendableEnum;
-import yesman.epicfight.api.utils.ExtendableEnumManager;
+import yesman.epicfight.api.utils.ExtensibleEnum;
+import yesman.epicfight.api.utils.ExtensibleEnumManager;
 
 import java.util.List;
 
-public interface ComboType extends ExtendableEnum {
-    ExtendableEnumManager<ComboType> ENUM_MANAGER = new ExtendableEnumManager<>("combo_type");
+public interface ComboType extends ExtensibleEnum {
+    ExtensibleEnumManager<ComboType> ENUM_MANAGER = new ExtensibleEnumManager<>("combo_type");
     List<ComboType> getSubTypes();
 }

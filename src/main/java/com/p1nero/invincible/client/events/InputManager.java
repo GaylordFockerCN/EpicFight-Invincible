@@ -10,11 +10,13 @@ import com.p1nero.invincible.api.skill.ComboType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.InputEvent;
+import yesman.epicfight.api.neoforgeevent.playerpatch.SkillExecuteEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
@@ -25,12 +27,11 @@ import yesman.epicfight.skill.SkillDataManager;
 import yesman.epicfight.skill.SkillSlot;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
-import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-@Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
+@EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
 public class InputManager {
 
     private static int reserveCounter, delayCounter;
@@ -65,7 +66,8 @@ public class InputManager {
      * 同时给了按键输入一点小延迟，方便读取双键
      */
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
+    public static void onClientTick(ClientTickEvent.Post event) {
+
         LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (playerPatch != null) {
             //延迟输入的判断
@@ -94,17 +96,17 @@ public class InputManager {
             if(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
                 Options options = Minecraft.getInstance().options;
                 SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-                if(manager.getDataValue(InvincibleSkillDataKeys.UP.get()) != options.keyUp.isDown()){
-                    manager.setDataSync(InvincibleSkillDataKeys.UP.get(), options.keyUp.isDown(), playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.UP) != options.keyUp.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.UP, options.keyUp.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.DOWN.get()) != options.keyDown.isDown()){
-                    manager.setDataSync(InvincibleSkillDataKeys.DOWN.get(), options.keyDown.isDown(), playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.DOWN) != options.keyDown.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.DOWN, options.keyDown.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.LEFT.get()) != options.keyLeft.isDown()){
-                    manager.setDataSync(InvincibleSkillDataKeys.LEFT.get(), options.keyLeft.isDown(), playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.LEFT) != options.keyLeft.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.LEFT, options.keyLeft.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.RIGHT.get()) != options.keyRight.isDown()){
-                    manager.setDataSync(InvincibleSkillDataKeys.RIGHT.get(), options.keyRight.isDown(), playerPatch.getOriginal());
+                if(manager.getDataValue(InvincibleSkillDataKeys.RIGHT) != options.keyRight.isDown()){
+                    manager.setDataSync(InvincibleSkillDataKeys.RIGHT, options.keyRight.isDown(), playerPatch.getOriginal());
                 }
             }
         }
@@ -119,7 +121,7 @@ public class InputManager {
     }
 
     @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton event) {
+    public static void onMouseInput(InputEvent.MouseButton.Pre event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
             if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
@@ -224,7 +226,7 @@ public class InputManager {
     public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         if (container.canExecute(executor, event)) {
-            Object packet = getExecutionPacket(container);
+            CPExecuteSkill packet = getExecutionPacket(container);
             if(packet != null) {
                 EpicFightNetworkManager.sendToServer(packet);
             }
@@ -236,13 +238,13 @@ public class InputManager {
      * @return 没有对应的触发就返回null
      */
     @Nullable
-    public static Object getExecutionPacket(SkillContainer container) {
-        CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
+    public static CPExecuteSkill getExecutionPacket(SkillContainer container) {
+        CPExecuteSkill packet = new CPExecuteSkill(container.getSlot());
         List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
         typeList.sort(Comparator.comparingInt((comboType) -> -1 * comboType.getSubTypes().size()));//subType多的优先
         for(ComboType comboType : typeList){
             if(test(comboType)){
-                packet.getBuffer().writeInt(comboType.universalOrdinal());
+                packet.buffer().writeInt(comboType.universalOrdinal());
                 return packet;
             }
         }

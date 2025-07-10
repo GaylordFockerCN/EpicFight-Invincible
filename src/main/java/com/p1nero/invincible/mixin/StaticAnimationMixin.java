@@ -1,7 +1,7 @@
 package com.p1nero.invincible.mixin;
 
-import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
-import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.attachment.InvincibleAttachments;
+import com.p1nero.invincible.attachment.InvinciblePlayer;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,7 +22,7 @@ public abstract class StaticAnimationMixin extends DynamicAnimation {
     @Inject(method = "end", at = @At("HEAD"))
     private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
         if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack && !this.isLinkAnimation()){
-            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
+            InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(playerPatch.getOriginal());
             invinciblePlayer.clear();
         }
     }

@@ -3,11 +3,11 @@ package com.p1nero.invincible.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.p1nero.invincible.InvincibleMod;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 
-@Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+@EventBusSubscriber(modid = InvincibleMod.MOD_ID)
 public class InvincibleCommands {
     @SubscribeEvent
     public static void registerCommands(RegisterCommandsEvent event) {

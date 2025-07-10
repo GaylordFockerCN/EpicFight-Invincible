@@ -3,7 +3,7 @@ package com.p1nero.invincible.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.attachment.InvincibleAttachments;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import yesman.epicfight.skill.SkillContainer;
@@ -18,7 +18,7 @@ public class SetPlayerStateCommands {
                         .then(Commands.argument("value", IntegerArgumentType.integer())
                                 .executes((context) -> {
                                     if(context.getSource().getPlayer() != null){
-                                        InvincibleCapabilityProvider.get(context.getSource().getPlayer()).setPhase(IntegerArgumentType.getInteger(context, "value"));
+                                        InvincibleAttachments.get(context.getSource().getPlayer()).setPhase(IntegerArgumentType.getInteger(context, "value"));
                                     }
                                     return 0;
                                 })
@@ -27,7 +27,7 @@ public class SetPlayerStateCommands {
                 .then(Commands.literal("resetPhase").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
                         .executes((context) -> {
                             if(context.getSource().getPlayer() != null){
-                                InvincibleCapabilityProvider.get(context.getSource().getPlayer()).resetPhase();
+                                InvincibleAttachments.get(context.getSource().getPlayer()).resetPhase();
                             }
                             return 0;
                         })
