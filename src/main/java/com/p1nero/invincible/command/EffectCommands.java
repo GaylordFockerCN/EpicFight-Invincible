@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.DoubleArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import yesman.epicfight.api.utils.LevelUtil;
@@ -46,7 +47,24 @@ public class EffectCommands {
                                                                             BoolArgumentType.getBool(context, "noParticle"),
                                                                             BoolArgumentType.getBool(context, "hurtEntities"));
                                                                     return 0;
-                                                                }))
+                                                                })
+                                                                .then(Commands.argument("position", Vec3Argument.vec3())
+                                                                        .executes(
+                                                                                (context) -> {
+                                                                                    Entity entity = EntityArgument.getEntity(context, "entity");
+                                                                                    LevelUtil.circleSlamFracture(
+                                                                                            entity instanceof LivingEntity livingEntity ? livingEntity : null,
+                                                                                            entity.level(),
+                                                                                            Vec3Argument.getVec3(context, "position"),
+                                                                                            DoubleArgumentType.getDouble(context, "radius"),
+                                                                                            BoolArgumentType.getBool(context, "noSound"),
+                                                                                            BoolArgumentType.getBool(context, "noParticle"),
+                                                                                            BoolArgumentType.getBool(context, "hurtEntities"));
+                                                                                    return 0;
+                                                                                }
+                                                                        )
+                                                                )
+                                                        )
                                                 )
                                         )
                                 )
