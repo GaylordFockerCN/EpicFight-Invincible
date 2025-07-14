@@ -7,12 +7,14 @@ import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import yesman.epicfight.api.utils.math.Vec2i;
+import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.BattleModeGui;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.config.ClientConfig;
@@ -28,18 +30,26 @@ public abstract class BattleModeGuiMixin {
     /**
      * 取消绘制技能图标
      */
-    @Inject(method = "drawWeaponInnateIcon", at = @At(value = "HEAD"), cancellable = true, remap = false)
-    private void invincible$modifyTexture(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
-        if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack && !comboBasicAttack.shouldDraw(container)){
-            ci.cancel();
+    @Inject(method = "renderWeaponInnateSkill", at = @At(value = "HEAD"), cancellable = true, remap = false)
+    private void invincible$modifyTexture(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight, CallbackInfo ci){
+        LocalPlayerPatch playerpatch = ClientEngine.getInstance().getPlayerPatch();
+        if (playerpatch != null) {
+            SkillContainer container = playerpatch.getSkill(SkillSlots.WEAPON_INNATE);
+            if(container.getSkill() instanceof ComboBasicAttack comboBasicAttack && !comboBasicAttack.shouldDraw(container)){
+                ci.cancel();
+            }
         }
     }
 
     /**
      * 画冷却
      */
-    @Inject(method = "drawWeaponInnateIcon", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
-    private void invincible$drawCooldown(LocalPlayerPatch playerPatch, SkillContainer container, GuiGraphics guiGraphics, float partialTicks, CallbackInfo ci){
+    @Inject(method = "renderWeaponInnateSkill", at = @At(value = "INVOKE", target = "Lcom/mojang/blaze3d/vertex/PoseStack;popPose()V"))
+    private void invincible$drawCooldown(ForgeGui gui, GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight, CallbackInfo ci){
+        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        if (playerPatch == null) {
+            return;
+        }
         SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
         if(!manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
             return;
