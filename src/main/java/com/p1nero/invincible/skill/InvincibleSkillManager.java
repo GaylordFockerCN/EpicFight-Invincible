@@ -4,10 +4,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.data.SkillJsonLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fml.loading.FMLPaths;
+import org.slf4j.Logger;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 
 import java.io.*;
@@ -17,7 +19,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 public class InvincibleSkillManager {
-
+    public static final Logger LOGGER = LogUtils.getLogger();
     public static void buildDatapackSkills(SkillBuildEvent event) {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
         if(!Files.exists(invincibleCombos)){
@@ -25,7 +27,7 @@ public class InvincibleSkillManager {
                 Files.createDirectory(invincibleCombos);
                 return;
             } catch (IOException e){
-                InvincibleMod.LOGGER.error("Failed to create default file!", e);
+                LOGGER.error("Failed to create default file!", e);
             }
         }
         try (Stream<Path> subDirs = Files.list(invincibleCombos)) {
@@ -52,13 +54,13 @@ public class InvincibleSkillManager {
                     }
                     skill.setParams(params);
 
-                    InvincibleMod.LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
+                    LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
                 } catch (IOException | CommandSyntaxException e) {
                     throw new RuntimeException(e);
                 }
             });
         } catch (IOException e) {
-            InvincibleMod.LOGGER.error("error when loading combos", e);
+            LOGGER.error("error when loading combos", e);
             throw new RuntimeException(e);
         }
     }

@@ -7,7 +7,6 @@ import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.api.skill.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -16,9 +15,6 @@ import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.damagesource.StunType;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 注册技能，然后在{@link InvincibleWeaponCapabilityPresets}中使用

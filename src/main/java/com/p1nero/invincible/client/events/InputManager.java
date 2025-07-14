@@ -1,5 +1,6 @@
 package com.p1nero.invincible.client.events;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.client.keymappings.InvincibleKeyMappings;
@@ -33,17 +34,18 @@ import java.util.*;
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
 public class InputManager {
 
-    private static int reserveCounter, delayCounter;
+    private static int longPressCounter;
+    private static int reserveCounter;
     private static SkillSlot currentSlot;
     private static SkillSlot reservedSkillSlot;
     private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
-    private static final Map<KeyMapping, Boolean> KEY_STATE_CACHE = new HashMap<>();
+    private static final Map<KeyMapping, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<KeyMapping> INPUT_QUEUE = new ArrayDeque<>();
 
     /**
      * 绑定模组自带的的按键
      */
-    public static void init(){
+    public static void init() {
         register(ComboNode.ComboTypes.KEY_1, InvincibleKeyMappings.KEY1);
         register(ComboNode.ComboTypes.KEY_2, InvincibleKeyMappings.KEY2);
         register(ComboNode.ComboTypes.KEY_3, InvincibleKeyMappings.KEY3);
@@ -55,9 +57,9 @@ public class InputManager {
     /**
      * 自定义按键的注册
      */
-    public static void register(ComboType type, KeyMapping keyMapping){
+    public static void register(ComboType type, KeyMapping keyMapping) {
         TYPE_KEY_MAP.put(type, keyMapping);
-        KEY_STATE_CACHE.put(keyMapping, false);
+        KEY_STATE_CACHE.put(keyMapping, 0);
     }
 
     /**
@@ -66,44 +68,38 @@ public class InputManager {
      */
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
+        if(event.phase == TickEvent.Phase.END) {
+            return;
+        }
         LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (playerPatch != null) {
-            //延迟输入的判断
-            if (delayCounter > 0) {
-                delayCounter--;
-                clearReservedKeys();
-                if (delayCounter == 0) {
-                    delayCounter = -1;
-                    tryRequestSkillExecute(currentSlot, true);
-                }
-            }
             //缓存的按键的处理
             if (reserveCounter > 0) {
                 --reserveCounter;
-                if(tryRequestSkillExecute(reservedSkillSlot, false)){
+                if (tryRequestSkillExecute(reservedSkillSlot, false)) {
                     clearReservedKeys();
                     clearKeyCache();
                 }
-                if(reserveCounter == 0){
+                if (reserveCounter == 0) {
                     clearReservedKeys();
                     clearKeyCache();
                 }
             }
 
             //判断asdw是否按下，用于Condition判断。
-            if(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack){
+            if (playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
                 Options options = Minecraft.getInstance().options;
                 SkillDataManager manager = playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-                if(manager.getDataValue(InvincibleSkillDataKeys.UP.get()) != options.keyUp.isDown()){
+                if (manager.getDataValue(InvincibleSkillDataKeys.UP.get()) != options.keyUp.isDown()) {
                     manager.setDataSync(InvincibleSkillDataKeys.UP.get(), options.keyUp.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.DOWN.get()) != options.keyDown.isDown()){
+                if (manager.getDataValue(InvincibleSkillDataKeys.DOWN.get()) != options.keyDown.isDown()) {
                     manager.setDataSync(InvincibleSkillDataKeys.DOWN.get(), options.keyDown.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.LEFT.get()) != options.keyLeft.isDown()){
+                if (manager.getDataValue(InvincibleSkillDataKeys.LEFT.get()) != options.keyLeft.isDown()) {
                     manager.setDataSync(InvincibleSkillDataKeys.LEFT.get(), options.keyLeft.isDown(), playerPatch.getOriginal());
                 }
-                if(manager.getDataValue(InvincibleSkillDataKeys.RIGHT.get()) != options.keyRight.isDown()){
+                if (manager.getDataValue(InvincibleSkillDataKeys.RIGHT.get()) != options.keyRight.isDown()) {
                     manager.setDataSync(InvincibleSkillDataKeys.RIGHT.get(), options.keyRight.isDown(), playerPatch.getOriginal());
                 }
             }
@@ -112,7 +108,7 @@ public class InputManager {
         if (INPUT_QUEUE.size() > 2) {
             KeyMapping keyMapping = INPUT_QUEUE.poll();
             if (!INPUT_QUEUE.contains(keyMapping)) {
-                KEY_STATE_CACHE.put(keyMapping, false);
+                KEY_STATE_CACHE.put(keyMapping, 0);
             }
         }
 
@@ -121,31 +117,38 @@ public class InputManager {
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
-            if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-                check(event.getButton(), event.getAction());
-            }
+        if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
+                && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+            check(event.getButton(), event.getAction());
         }
     }
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
         LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()) {
-            if (event.getAction() == 1 && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-                check(event.getKey(), event.getAction());
-            }
+        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
+                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+            check(event.getKey(), event.getAction());
         }
 
     }
 
+    /**
+     * 按下时记录
+     * 松手时发包
+     */
     public static void check(int key, int action) {
-        for (KeyMapping keyMapping : KEY_STATE_CACHE.keySet()) {
-            if (action == 1 && key == keyMapping.getKey().getValue()) {
-                INPUT_QUEUE.add(keyMapping);
-                KEY_STATE_CACHE.put(keyMapping, true);
-                setDelay(SkillSlots.WEAPON_INNATE);
+        if(action == InputConstants.PRESS || action == InputConstants.REPEAT) {
+            for (KeyMapping keyMapping : KEY_STATE_CACHE.keySet()) {
+                if (key == keyMapping.getKey().getValue()) {
+                    INPUT_QUEUE.add(keyMapping);
+                    KEY_STATE_CACHE.put(keyMapping, KEY_STATE_CACHE.getOrDefault(keyMapping, 0) + 1);
+                    clearReservedKeys();
+                }
             }
+        }
+        if(action == InputConstants.RELEASE) {
+            tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
         }
     }
 
@@ -153,27 +156,12 @@ public class InputManager {
      * 清理存下的按键，成功执行才清除
      */
     public static void clearKeyCache() {
-        KEY_STATE_CACHE.forEach(((keyMapping, aBoolean) -> KEY_STATE_CACHE.put(keyMapping, false)));
+        KEY_STATE_CACHE.forEach(((keyMapping, aBoolean) -> KEY_STATE_CACHE.put(keyMapping, 0)));
     }
 
     public static void clearReservedKeys() {
         reserveCounter = -1;
         reservedSkillSlot = null;
-    }
-
-    /**
-     * 延迟输入计时器，影响双键按下
-     */
-    public static void setDelayCounter(int delayCounter) {
-        InputManager.delayCounter = delayCounter;
-    }
-
-    public static void setDelay(SkillSlot slot) {
-        //不能被顶掉
-        if (InputManager.delayCounter <= 0) {
-            InputManager.delayCounter = Config.INPUT_DELAY_TICK.get();
-            InputManager.currentSlot = slot;
-        }
     }
 
     /**
@@ -209,7 +197,7 @@ public class InputManager {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.getPlayerMode() == PlayerPatch.PlayerMode.EPICFIGHT) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
-                if(shouldReserve){
+                if (shouldReserve) {
                     setReserve(slot);
                 }
                 return false;
@@ -225,7 +213,7 @@ public class InputManager {
         SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
         if (container.canExecute(executor, event)) {
             Object packet = getExecutionPacket(container);
-            if(packet != null) {
+            if (packet != null) {
                 EpicFightNetworkManager.sendToServer(packet);
             }
         }
@@ -240,25 +228,36 @@ public class InputManager {
         CPExecuteSkill packet = new CPExecuteSkill(container.getSlotId());
         List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
         typeList.sort(Comparator.comparingInt((comboType) -> -1 * comboType.getSubTypes().size()));//subType多的优先
-        for(ComboType comboType : typeList){
-            if(test(comboType)){
+        for (ComboType comboType : typeList) {
+            int pressedTime = test(comboType);
+            if (pressedTime > 0) {
                 packet.getBuffer().writeInt(comboType.universalOrdinal());
+                packet.getBuffer().writeInt(pressedTime);
                 return packet;
             }
         }
         return null;
     }
 
-    public static boolean test(ComboType comboType){
-        if(comboType.getSubTypes().isEmpty()){
-            return KEY_STATE_CACHE.get(TYPE_KEY_MAP.get(comboType));
+    /**
+     * 返回长按最大值
+     */
+    public static int test(ComboType comboType) {
+        if (comboType.getSubTypes().isEmpty()) {
+            int pressedTime = KEY_STATE_CACHE.get(TYPE_KEY_MAP.get(comboType));
+            return Math.max(pressedTime, 0);
         } else {
-            for(ComboType subType : comboType.getSubTypes()){
-                if(!test(subType)){
-                    return false;
+            int maxPressedTime = 0;
+            for (ComboType subType : comboType.getSubTypes()) {
+                int currentPressedTime = test(subType);
+                if(currentPressedTime == 0) {
+                    return 0;
+                }
+                if (currentPressedTime > maxPressedTime) {
+                    maxPressedTime = currentPressedTime;
                 }
             }
-            return true;
+            return maxPressedTime;
         }
     }
 
