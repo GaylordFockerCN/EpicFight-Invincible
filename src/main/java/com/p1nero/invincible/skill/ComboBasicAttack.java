@@ -138,14 +138,11 @@ public class ComboBasicAttack extends Skill {
                         for (Condition condition : conditionAnimation.getConditions()) {
 
                             if(condition instanceof PressedTimeCondition pressedTimeCondition) {
-                                hasPressedTimeCondition = true;
                                 if(pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
                                     canExecute = false;
                                     break;
                                 }
-                            }
-
-                            if (!condition.predicate(container.getExecutor())) {
+                            } else if (!condition.predicate(container.getExecutor())) {
                                 canExecute = false;
                                 break;
                             }

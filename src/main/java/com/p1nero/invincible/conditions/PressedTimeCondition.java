@@ -15,9 +15,9 @@ public class PressedTimeCondition implements Condition<ServerPlayerPatch> {
         this.min = min;
     }
 
-    public PressedTimeCondition(int min, int max) {
-        this.min = min;
-        this.max = max;
+    public PressedTimeCondition(int minTicks, int maxTicks) {
+        this.min = minTicks;
+        this.max = maxTicks;
     }
     
     @Override

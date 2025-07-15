@@ -16,7 +16,7 @@ import yesman.epicfight.world.capabilities.item.WeaponCapability;
 import java.util.function.Function;
 
 /**
- * 需要先注册技能，参考{@link InvincibleSkills}
+ * 需要先注册技能，参考{@link InvincibleDemoSkills}
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class InvincibleWeaponCapabilityPresets {
@@ -32,7 +32,7 @@ public class InvincibleWeaponCapabilityPresets {
                     .hitParticle(EpicFightParticles.HIT_BLADE.get())
                     .canBePlacedOffhand(false)
                     .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
-                    .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_DEMO)
+                    .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleDemoSkills.COMBO_DEMO)
                     .comboCancel((style) -> false);
 
     @SubscribeEvent

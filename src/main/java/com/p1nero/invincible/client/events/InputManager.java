@@ -34,9 +34,7 @@ import java.util.*;
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT)
 public class InputManager {
 
-    private static int longPressCounter;
     private static int reserveCounter;
-    private static SkillSlot currentSlot;
     private static SkillSlot reservedSkillSlot;
     private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
     private static final Map<KeyMapping, Integer> KEY_STATE_CACHE = new HashMap<>();
@@ -63,6 +61,13 @@ public class InputManager {
     }
 
     /**
+     * 获取某个按键的长按时间
+     */
+    public static int getPressedTickFor(ComboType comboType) {
+        return test(comboType);
+    }
+
+    /**
      * 用史诗战斗的那套可能会被顶掉所以自己写了预存
      * 同时给了按键输入一点小延迟，方便读取双键
      */
@@ -84,6 +89,13 @@ public class InputManager {
                     clearReservedKeys();
                     clearKeyCache();
                 }
+            } else {
+                //没缓存时长按才算数
+                KEY_STATE_CACHE.forEach((keyMapping, integer) -> {
+                    if(integer > 0) {
+                        KEY_STATE_CACHE.put(keyMapping, integer + 1);
+                    }
+                });
             }
 
             //判断asdw是否按下，用于Condition判断。
@@ -116,39 +128,36 @@ public class InputManager {
 
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
-        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (localPlayerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
-                && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-            check(event.getButton(), event.getAction());
-        }
+        handleInput(event.getButton(), event.getAction());
     }
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
-                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-            check(event.getKey(), event.getAction());
-        }
-
+        handleInput(event.getKey(), event.getAction());
     }
 
     /**
      * 按下时记录
      * 松手时发包
      */
-    public static void check(int key, int action) {
-        if(action == InputConstants.PRESS || action == InputConstants.REPEAT) {
-            for (KeyMapping keyMapping : KEY_STATE_CACHE.keySet()) {
-                if (key == keyMapping.getKey().getValue()) {
-                    INPUT_QUEUE.add(keyMapping);
-                    KEY_STATE_CACHE.put(keyMapping, KEY_STATE_CACHE.getOrDefault(keyMapping, 0) + 1);
-                    clearReservedKeys();
+    private static void handleInput(int key, int action) {
+        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
+                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+            if(action == InputConstants.PRESS || action == InputConstants.REPEAT) {
+                for (KeyMapping keyMapping : KEY_STATE_CACHE.keySet()) {
+                    if (key == keyMapping.getKey().getValue()) {
+                        if(!INPUT_QUEUE.contains(keyMapping)) {
+                            INPUT_QUEUE.add(keyMapping);
+                        }
+                        KEY_STATE_CACHE.put(keyMapping, KEY_STATE_CACHE.getOrDefault(keyMapping, 0) + 1);
+                        clearReservedKeys();
+                    }
                 }
             }
-        }
-        if(action == InputConstants.RELEASE) {
-            tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
+            if(action == InputConstants.RELEASE) {
+                tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
+            }
         }
     }
 
@@ -156,19 +165,12 @@ public class InputManager {
      * 清理存下的按键，成功执行才清除
      */
     public static void clearKeyCache() {
-        KEY_STATE_CACHE.forEach(((keyMapping, aBoolean) -> KEY_STATE_CACHE.put(keyMapping, 0)));
+        KEY_STATE_CACHE.forEach(((keyMapping, aInt) -> KEY_STATE_CACHE.put(keyMapping, 0)));
     }
 
     public static void clearReservedKeys() {
         reserveCounter = -1;
         reservedSkillSlot = null;
-    }
-
-    /**
-     * 延迟输入的技能栏
-     */
-    public static void setCurrentSlot(SkillSlot currentSlot) {
-        InputManager.currentSlot = currentSlot;
     }
 
     /**

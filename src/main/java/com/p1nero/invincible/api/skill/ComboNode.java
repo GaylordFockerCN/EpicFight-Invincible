@@ -266,7 +266,7 @@ public class ComboNode {
         return conditions;
     }
 
-    public ComboNode addConditionAnimation(ComboNode conditionAnimation) {
+    public ComboNode addConditionNode(ComboNode conditionAnimation) {
         this.conditionAnimations.add(conditionAnimation);
         return this;
     }
