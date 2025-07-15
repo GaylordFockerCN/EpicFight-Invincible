@@ -14,10 +14,7 @@ import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.api.forgeevent.SkillBuildEvent;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.gameasset.Animations;
-import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.skill.Skill;
-import yesman.epicfight.world.capabilities.entitypatch.Faction;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.ArrayList;
@@ -28,7 +25,7 @@ import java.util.List;
  * 预设的Condition可以参考 {@link yesman.epicfight.data.conditions.EpicFightConditions} 和 {@link InvincibleConditions}
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class InvincibleSkills {
+public class InvincibleDemoSkills {
     public static Skill COMBO_DEMO;
     public static final List<CompoundTag> NEW_SKILLS = new ArrayList<>();
 
@@ -44,6 +41,7 @@ public class InvincibleSkills {
                 .setCanBeInterrupt(false)//是否霸体
                 .setImpactMultiplier(2.0F)//修改冲击
                 .setConvertTime(0.15F)
+                .setPriority(1)
                 //自定义事件
                 .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
@@ -53,8 +51,9 @@ public class InvincibleSkills {
         ComboNode guardAttack = ComboNode.createNode(()->Animations.SWORD_DUAL_DASH).setPriority(4).addCondition(new BlockingCondition());//修改了原版的跳跃攻击机制，以此补偿
         ComboNode jumpAttack = ComboNode.createNode(()->Animations.SWORD_AIR_SLASH).setPriority(3).addCondition(new JumpCondition());//修改了原版的跳跃攻击机制，以此补偿
         ComboNode dashAttack = ComboNode.createNode(()->Animations.SWORD_DASH).setPriority(2).addCondition(new SprintingCondition());//修改了原版的冲刺攻击机制，以此补偿
+        ComboNode longPressAttack = ComboNode.createNode(()->Animations.SWORD_DASH).setPriority(5).addCondition(new PressedTimeCondition(20, Integer.MAX_VALUE));//长按攻击，长按时间达到20则播放这个攻击。蓄力的动画需要额外实现
         ComboNode a = ComboNode.create();
-        a.addConditionAnimation(guardAttack).addConditionAnimation(basicAttack).addConditionAnimation(jumpAttack).addConditionAnimation(dashAttack);
+        a.addConditionNode(guardAttack).addConditionNode(basicAttack).addConditionNode(jumpAttack).addConditionNode(dashAttack).addConditionNode(longPressAttack);
         root.key1(a);//初始态后按key1则根据不同条件来播放不同动画
         dashAttack.key1(a);//闭环
         jumpAttack.key1(a);//闭环
@@ -97,11 +96,16 @@ public class InvincibleSkills {
         ComboNode r = ComboNode.createNode(()->Animations.BIPED_STEP_RIGHT).addCondition(new RightCondition());
         ComboNode f = ComboNode.createNode(()->Animations.BIPED_STEP_FORWARD).addCondition(new UpCondition());
         ComboNode ba = ComboNode.createNode(()->Animations.BIPED_STEP_BACKWARD).addCondition(new DownCondition());
-        ComboNode dodge = ComboNode.create().addConditionAnimation(l).addConditionAnimation(r).addConditionAnimation(f).addConditionAnimation(ba);
+        ComboNode dodge = ComboNode.create().addConditionNode(l).addConditionNode(r).addConditionNode(f).addConditionNode(ba);
         basicAttack.key1_2(dodge);//双键触发
         dodge.key1(a);
 
-        COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(true));
+        COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack()
+                .setCombo(root)
+                .setMaxPressTime(22)
+                .setMaxProtectTime(30)
+                .setReserveTime(16)
+                .setShouldDrawGui(true));
 
         //You can also create the tree like this:
         //你也可以这样构建：

@@ -18,6 +18,10 @@ public class MobEffectCondition implements Condition<ServerPlayerPatch> {
     private Supplier<MobEffect> effectSupplier;
     private int min, max;
 
+    public MobEffectCondition(){
+
+    }
+
     public MobEffectCondition(boolean isTarget, Supplier<MobEffect> effectSupplier, int min, int max) {
         this.isTarget = isTarget;
         this.effectSupplier = effectSupplier;

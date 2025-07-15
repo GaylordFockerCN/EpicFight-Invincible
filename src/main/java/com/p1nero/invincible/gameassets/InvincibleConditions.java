@@ -25,5 +25,7 @@ public class InvincibleConditions {
     public static final RegistryObject<Supplier<Condition<?>>> DOWN = CONDITIONS.register("down", () -> DownCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> LEFT = CONDITIONS.register("left", () -> LeftCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> RIGHT = CONDITIONS.register("right", () -> RightCondition::new);
-
+    public static final RegistryObject<Supplier<Condition<?>>> ENCHANTMENT = CONDITIONS.register("enchantment", () -> EnchantmentCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> MOB_EFFECT = CONDITIONS.register("mob_effect", () -> MobEffectCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> PRESS_TIME_CONDITION = CONDITIONS.register("press_time_condition", () -> PressedTimeCondition::new);
 }

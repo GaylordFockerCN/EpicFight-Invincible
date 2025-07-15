@@ -201,7 +201,7 @@ public class SkillLoader {
                 //有优先级代表是属于ConditionAnimations列表的
                 if(combo.has("priority")){
                     child.setPriority(combo.get("priority").getAsInt());
-                    parent.addConditionAnimation(child);
+                    parent.addConditionNode(child);
                 }
             }
 

@@ -17,7 +17,9 @@ public class EnchantmentCondition implements Condition<ServerPlayerPatch> {
     private boolean isMainHand;
     private Supplier<Enchantment> effectSupplier;
     private int min, max;
+    public EnchantmentCondition(){
 
+    }
     public EnchantmentCondition(boolean isMainHand, Supplier<Enchantment> effectSupplier, int min, int max) {
         this.isMainHand = isMainHand;
         this.effectSupplier = effectSupplier;
