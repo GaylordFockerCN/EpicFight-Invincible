@@ -27,5 +27,6 @@ public class InvincibleConditions {
     public static final RegistryObject<Supplier<Condition<?>>> DOWN = CONDITIONS.register((ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "down")).getPath(), () -> DownCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> LEFT = CONDITIONS.register((ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "left")).getPath(), () -> LeftCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> RIGHT = CONDITIONS.register((ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "right")).getPath(), () -> RightCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> PRESS_TIME_CONDITION = CONDITIONS.register("press_time_condition", () -> PressedTimeCondition::new);
 
 }

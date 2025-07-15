@@ -94,7 +94,13 @@ public class InvincibleDemoSkills {
         basicAttack.key1_2(dodge);//双键触发
         dodge.key1(a);
 
-        COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack.createComboBasicAttack().setCombo(root).setShouldDrawGui(true));
+        COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack
+                .createComboBasicAttack()
+                .setCombo(root)
+                .setMaxProtectTime(22)
+                .setMaxPressTime(20)
+                .setReserveTime(16)
+                .setShouldDrawGui(true));
 
         //You can also create the tree like this:
         //你也可以这样构建：

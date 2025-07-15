@@ -58,6 +58,7 @@ public class ComboBasicAttack extends Skill {
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
+    protected int maxPressTime, maxReserveTime, maxProtectTime;
 
     public ComboBasicAttack(Builder builder) {
         super(builder);
@@ -66,6 +67,9 @@ public class ComboBasicAttack extends Skill {
         this.walkBegin = builder.walkBegin;
         this.walkEnd = builder.walkEnd;
         this.translationKeys = builder.translationKeys;
+        maxPressTime = builder.maxPressTime;
+        maxReserveTime = builder.maxReserveTime;
+        maxProtectTime = builder.maxProtectTime;
     }
 
     public static Builder createComboBasicAttack() {
@@ -105,6 +109,9 @@ public class ComboBasicAttack extends Skill {
      * 方便额外调用
      */
     public void executeOnServer(SkillContainer container, ComboType type, int pressedTime){
+        if(pressedTime > getMaxProtectTime()) {
+            return;
+        }
         boolean debugMode = container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
         if (debugMode) {
             LOGGER.debug("{} {} : pressed {} ticks.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime);
@@ -164,8 +171,7 @@ public class ComboBasicAttack extends Skill {
                             if(pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
                                 break;
                             }
-                        }
-                        if (!condition.predicate(container.getExecutor())) {
+                        } else if (!condition.predicate(container.getExecutor())) {
                             return;
                         }
                     }
@@ -195,9 +201,13 @@ public class ComboBasicAttack extends Skill {
     }
 
     public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
+        executeOnServer(serverPlayer, type, 1);
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressTime){
         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
         if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
-            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, 1);
+            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime);
         }
     }
 
@@ -412,10 +422,23 @@ public class ComboBasicAttack extends Skill {
         return shouldDrawGui;
     }
 
+    public int getMaxPressTime() {
+        return maxPressTime == 0 ? Config.MAX_PRESS_TICK.get() : maxPressTime;
+    }
+
+    public int getMaxProtectTime() {
+        return maxProtectTime == 0 ? Config.PRESS_PROTECT_TICK.get() : maxProtectTime;
+    }
+
+    public int getMaxReserveTime() {
+        return maxReserveTime == 0 ? Config.RESERVE_TICK.get() : maxReserveTime;
+    }
+
     public static class Builder extends SkillBuilder<ComboBasicAttack> {
         protected ComboNode root;
 
         protected List<String> translationKeys = List.of();
+        protected int maxPressTime, maxReserveTime, maxProtectTime;
 
         @Nullable
         protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
@@ -423,6 +446,21 @@ public class ComboBasicAttack extends Skill {
         protected boolean shouldDrawGui;
 
         public Builder() {
+        }
+
+        public Builder setMaxPressTime(int maxPressTime) {
+            this.maxPressTime = maxPressTime;
+            return this;
+        }
+
+        public Builder setMaxProtectTime(int maxProtectTime) {
+            this.maxProtectTime = maxProtectTime;
+            return this;
+        }
+
+        public Builder setReserveTime(int maxReserveTime) {
+            this.maxReserveTime = maxReserveTime;
+            return this;
         }
 
         public Builder setCategory(SkillCategory category) {

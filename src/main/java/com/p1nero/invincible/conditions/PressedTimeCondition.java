@@ -19,7 +19,11 @@ public class PressedTimeCondition implements Condition<ServerPlayerPatch> {
         this.min = minTicks;
         this.max = maxTicks;
     }
-    
+
+    public PressedTimeCondition() {
+
+    }
+
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
         if (!compoundTag.contains("min") || !compoundTag.contains("max") ) {
