@@ -23,7 +23,7 @@ public class EffectCommands {
                                     for (Entity entity : EntityArgument.getEntities(context, "entity")) {
                                         EntityPatch<?> entityPatch = EpicFightCapabilities.getEntityPatch(entity, EntityPatch.class);
                                         if (entityPatch != null) {
-                                            context.getSource().getLevel().sendParticles(EpicFightParticles.ENTITY_AFTER_IMAGE.get(), entity.getX(), entity.getY(), entity.getZ(), 1, entity.getId(), 1, 1, entity.getId());
+                                            context.getSource().getLevel().sendParticles(EpicFightParticles.WHITE_AFTERIMAGE.get(), entity.getX(), entity.getY(), entity.getZ(), 1, entity.getId(), 1, 1, entity.getId());
                                         }
                                     }
                                     return 0;

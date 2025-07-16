@@ -112,16 +112,16 @@ public class InputManager {
                 Options options = Minecraft.getInstance().options;
                 SkillDataManager manager = localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
                 if (manager.getDataValue(InvincibleSkillDataKeys.UP.get()) != options.keyUp.isDown()) {
-                    manager.setDataSync(InvincibleSkillDataKeys.UP.get(), options.keyUp.isDown(), localPlayerPatch.getOriginal());
+                    manager.setDataSync(InvincibleSkillDataKeys.UP.get(), options.keyUp.isDown());
                 }
                 if (manager.getDataValue(InvincibleSkillDataKeys.DOWN.get()) != options.keyDown.isDown()) {
-                    manager.setDataSync(InvincibleSkillDataKeys.DOWN.get(), options.keyDown.isDown(), localPlayerPatch.getOriginal());
+                    manager.setDataSync(InvincibleSkillDataKeys.DOWN.get(), options.keyDown.isDown());
                 }
                 if (manager.getDataValue(InvincibleSkillDataKeys.LEFT.get()) != options.keyLeft.isDown()) {
-                    manager.setDataSync(InvincibleSkillDataKeys.LEFT.get(), options.keyLeft.isDown(), localPlayerPatch.getOriginal());
+                    manager.setDataSync(InvincibleSkillDataKeys.LEFT.get(), options.keyLeft.isDown());
                 }
                 if (manager.getDataValue(InvincibleSkillDataKeys.RIGHT.get()) != options.keyRight.isDown()) {
-                    manager.setDataSync(InvincibleSkillDataKeys.RIGHT.get(), options.keyRight.isDown(), localPlayerPatch.getOriginal());
+                    manager.setDataSync(InvincibleSkillDataKeys.RIGHT.get(), options.keyRight.isDown());
                 }
             }
         }

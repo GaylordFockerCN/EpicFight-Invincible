@@ -120,12 +120,6 @@
           //优先级，根据优先级高的先检测，数字越大优先级越高。检测成功即结束。仅能在condition_animations里填，若填-1则会被忽略。
           "priority": 2,
           "speed_multiplier": 0.7,
-          "conditions": [
-            {
-              //冲刺状态下才能使用
-              "predicate": "epicfight:health"
-            }
-          ],
           "animation": "epicfight:biped/combat/longsword_auto1",
           //ConditionAnimation也可以接combos，当被选中时将以此combos为准，若没有combos则以外层condition_animations同级的combos为准。
           "combos": [

@@ -60,11 +60,13 @@ public class ScanAttackAnimation extends AttackAnimation {
         Phase phase = this.getPhaseByTime(animation.get().isLinkAnimation() ? 0.0F : elapsedTime);
 
         LivingEntity target = entityPatch.getTarget();
-        if(target == null && !entityPatch.getCurrenltyAttackedEntities().isEmpty()) {
-            LivingEntity nearest = entityPatch.getCurrenltyAttackedEntities().get(0);
-            if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                entityPatch.getCurrenltyAttackedEntities().sort((e1, e2) -> Float.compare(e1.distanceTo(entityPatch.getOriginal()), e2.distanceTo(entityPatch.getOriginal())));
-                serverPlayerPatch.setAttackTarget(nearest);
+        if(target == null && !entityPatch.getCurrentlyAttackTriedEntities().isEmpty()) {
+            Entity nearest = entityPatch.getCurrentlyAttackTriedEntities().get(0);
+            if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch && nearest instanceof LivingEntity nearestLiving) {
+                entityPatch.getCurrentlyAttackTriedEntities().sort((e1, e2) -> Float.compare(e1.distanceTo(entityPatch.getOriginal()), e2.distanceTo(entityPatch.getOriginal())));
+                if(serverPlayerPatch.getTarget() == null) {
+                    serverPlayerPatch.setAttackTarget(nearestLiving);
+                }
             }
         }
         if (target != null && elapsedTime < phase.recovery) {
@@ -96,12 +98,14 @@ public class ScanAttackAnimation extends AttackAnimation {
             while(hitEntities.next()) {
                 Entity target = hitEntities.getEntity();
                 LivingEntity trueEntity = this.getTrueEntity(target);
-                if (trueEntity != null && trueEntity.isAlive() && !entityPatch.getCurrenltyAttackedEntities().contains(trueEntity) && !entityPatch.isTargetInvulnerable(target) && (target instanceof LivingEntity || target instanceof PartEntity) && entity.hasLineOfSight(target)) {
-                    entityPatch.getCurrenltyAttackedEntities().add(trueEntity);
+                if (trueEntity != null && trueEntity.isAlive() && !entityPatch.getCurrentlyAttackTriedEntities().contains(trueEntity) && !entityPatch.isTargetInvulnerable(target) && (target instanceof LivingEntity || target instanceof PartEntity) && entity.hasLineOfSight(target)) {
+                    entityPatch.getCurrentlyAttackTriedEntities().add(trueEntity);
                     if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                        entityPatch.getCurrenltyAttackedEntities().sort((e1, e2) -> Float.compare(e1.distanceTo(entity), e2.distanceTo(entity)));
-                        LivingEntity nearest = entityPatch.getCurrenltyAttackedEntities().get(0);
-                        serverPlayerPatch.setAttackTarget(nearest);
+                        entityPatch.getCurrentlyAttackTriedEntities().sort((e1, e2) -> Float.compare(e1.distanceTo(entity), e2.distanceTo(entity)));
+                        Entity nearest = entityPatch.getCurrentlyAttackTriedEntities().get(0);
+                        if(serverPlayerPatch.getTarget() == null && nearest instanceof LivingEntity living) {
+                            serverPlayerPatch.setAttackTarget(living);
+                        }
                     }
                 }
             }

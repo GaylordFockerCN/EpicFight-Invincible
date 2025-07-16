@@ -87,7 +87,7 @@ public class SkillJsonLoader {
                     if(valueModifier.has("setter")){
                         setter = valueModifier.get("setter").getAsFloat();
                     }
-                    child.setDamageMultiplier(new ValueModifier(adder, multiplier, setter));
+                    child.setDamageMultiplier(new ValueModifier.Unified(adder, multiplier, setter));
                 }
 
                 if (combo.has("hurt_damage_multiplier")) {

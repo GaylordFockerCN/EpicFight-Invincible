@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
@@ -231,7 +232,7 @@ public class ComboBasicAttack extends Skill {
         invinciblePlayer.setPhase(next.getNewPhase());
 
         if(next.getCooldown() > 0){
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), next.getCooldown(), ((ServerPlayer) container.getExecutor().getOriginal()));
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), next.getCooldown());
             invinciblePlayer.setItemCooldown(container.getExecutor().getOriginal().getMainHandItem(), next.getCooldown());
         }
 
@@ -265,46 +266,47 @@ public class ComboBasicAttack extends Skill {
             if(dodgeSuccessEvents != null){
                 dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get());
         }));
         //减伤和霸体的判断
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
                 epicFightDamageSource.setStunType(StunType.NONE);
             }
-            if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
-                event.setAmount(event.getAmount() * invinciblePlayer.getHurtDamageMultiplier());
-            }
             //招架成功的判断，配合优先级-1使用
             if(event.isParried()){
-                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get(), event.getPlayerPatch().getOriginal());
+                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get());
             }
         }));
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
             ImmutableList<BiEvent> hurtEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
             if(hurtEvents != null){
                 hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
+            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+            if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
+                event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
+            }
         }));
         //调整攻击倍率，冲击，硬直类型等
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (invinciblePlayer.getStunTypeModifier() != null) {
                 event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
             }
             if (invinciblePlayer.getImpactMultiplier() != 1.0F) {
-                event.getDamageSource().setImpact(event.getDamageSource().getImpact() * invinciblePlayer.getImpactMultiplier());
+                event.getDamageSource().setBaseImpact(event.getDamageSource().getBaseImpact(1) * invinciblePlayer.getImpactMultiplier());
             }
             if(invinciblePlayer.getArmorNegation() != 0){
-                event.getDamageSource().setArmorNegation(invinciblePlayer.getArmorNegation());
+                event.getDamageSource().setBaseArmorNegation(invinciblePlayer.getArmorNegation());
             }
             if (invinciblePlayer.getDamageMultiplier() != null) {
-                event.getDamageSource().setDamageModifier(invinciblePlayer.getDamageMultiplier());
+                event.getDamageSource().attachDamageModifier(invinciblePlayer.getDamageMultiplier());
             }
         }));
         //自己写个充能用
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
             if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
                 if (!container.isFull()) {
                     float value = container.getResource() + event.getAttackDamage();
@@ -357,10 +359,10 @@ public class ComboBasicAttack extends Skill {
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID);
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_PRE, EVENT_UUID);
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.HURT_EVENT_POST, EVENT_UUID);
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_ATTACK, EVENT_UUID);
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEALT_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_ATTACK, EVENT_UUID);
+        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_EXECUTE_EVENT, EVENT_UUID);
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
     }
@@ -390,7 +392,7 @@ public class ComboBasicAttack extends Skill {
                 invinciblePlayer.setItemCooldown(itemStack, currentCooldown);
             }
             if (currentCooldown != manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get())) {
-                manager.setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), currentCooldown, serverPlayerPatch.getOriginal());
+                manager.setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), currentCooldown);
             }
         }
     }
