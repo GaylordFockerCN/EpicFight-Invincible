@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.skill;
+package com.p1nero.invincible.api.combo;
 
 import com.p1nero.invincible.api.events.*;
 import org.jetbrains.annotations.NotNull;
@@ -266,7 +266,7 @@ public class ComboNode {
         return conditions;
     }
 
-    public ComboNode addConditionAnimation(ComboNode conditionAnimation) {
+    public ComboNode addConditionNode(ComboNode conditionAnimation) {
         this.conditionAnimations.add(conditionAnimation);
         return this;
     }

@@ -93,7 +93,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation "curse.maven:epic-fight-mod-405076:6675159"
+    implementation "curse.maven:epic-fight-mod-405076:6774756"
 }
 
 repositories {

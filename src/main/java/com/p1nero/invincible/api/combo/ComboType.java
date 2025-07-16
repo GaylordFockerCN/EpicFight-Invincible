@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.skill;
+package com.p1nero.invincible.api.combo;
 
 import yesman.epicfight.api.utils.ExtensibleEnum;
 import yesman.epicfight.api.utils.ExtensibleEnumManager;

@@ -8,8 +8,8 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
-import com.p1nero.invincible.api.skill.ComboNode;
-import com.p1nero.invincible.api.skill.ComboType;
+import com.p1nero.invincible.api.combo.ComboNode;
+import com.p1nero.invincible.api.combo.ComboType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
 import org.spongepowered.asm.mixin.Unique;
@@ -183,7 +183,7 @@ public class SkillJsonLoader {
                 //有优先级代表是属于ConditionAnimations列表的
                 if(combo.has("priority")){
                     child.setPriority(combo.get("priority").getAsInt());
-                    parent.addConditionAnimation(child);
+                    parent.addConditionNode(child);
                 }
             }
 

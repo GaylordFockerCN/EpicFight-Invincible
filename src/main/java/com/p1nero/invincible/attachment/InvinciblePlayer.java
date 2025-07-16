@@ -3,7 +3,7 @@ package com.p1nero.invincible.attachment;
 import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
-import com.p1nero.invincible.api.skill.ComboNode;
+import com.p1nero.invincible.api.combo.ComboNode;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;

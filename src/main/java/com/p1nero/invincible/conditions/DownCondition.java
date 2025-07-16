@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.conditions;
+package com.p1nero.invincible.conditions;
 
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import net.minecraft.client.gui.screens.Screen;
@@ -10,7 +10,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.List;
 
-public class UpCondition implements Condition<ServerPlayerPatch> {
+public class DownCondition implements Condition<ServerPlayerPatch> {
     
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
@@ -25,7 +25,7 @@ public class UpCondition implements Condition<ServerPlayerPatch> {
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
         SkillDataManager dataManager = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-        return dataManager.hasData(InvincibleSkillDataKeys.UP) && dataManager.getDataValue(InvincibleSkillDataKeys.UP);
+        return dataManager.hasData(InvincibleSkillDataKeys.DOWN) && dataManager.getDataValue(InvincibleSkillDataKeys.DOWN);
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.conditions;
+package com.p1nero.invincible.conditions;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;

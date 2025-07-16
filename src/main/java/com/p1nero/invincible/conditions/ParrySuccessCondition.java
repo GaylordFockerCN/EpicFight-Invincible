@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.conditions;
+package com.p1nero.invincible.conditions;
 
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import net.minecraft.client.gui.screens.Screen;
@@ -10,7 +10,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.List;
 
-public class DodgeSuccessCondition implements Condition<ServerPlayerPatch> {
+public class ParrySuccessCondition implements Condition<ServerPlayerPatch> {
     
     @Override
     public Condition<ServerPlayerPatch> read(CompoundTag compoundTag) {
@@ -25,8 +25,8 @@ public class DodgeSuccessCondition implements Condition<ServerPlayerPatch> {
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
         SkillDataManager manager = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
-        if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER)){
-            return manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER) > 0;
+        if(manager.hasData(InvincibleSkillDataKeys.PARRY_TIMER)){
+            return manager.getDataValue(InvincibleSkillDataKeys.PARRY_TIMER) > 0;
         }
         return false;
     }

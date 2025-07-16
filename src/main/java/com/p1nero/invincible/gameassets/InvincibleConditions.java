@@ -1,7 +1,7 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
-import com.p1nero.invincible.api.conditions.*;
+import com.p1nero.invincible.conditions.*;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -27,5 +27,5 @@ public class InvincibleConditions {
     public static final DeferredHolder<Supplier<Condition<?>>, Supplier<Condition<?>>> DOWN = CONDITIONS.register((ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "down")).getPath(), () -> DownCondition::new);
     public static final DeferredHolder<Supplier<Condition<?>>, Supplier<Condition<?>>> LEFT = CONDITIONS.register((ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "left")).getPath(), () -> LeftCondition::new);
     public static final DeferredHolder<Supplier<Condition<?>>, Supplier<Condition<?>>> RIGHT = CONDITIONS.register((ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "right")).getPath(), () -> RightCondition::new);
-
+    public static final DeferredHolder<Supplier<Condition<?>>, Supplier<Condition<?>>> PRESS_TIME_CONDITION = CONDITIONS.register("press_time_condition", () -> PressedTimeCondition::new);
 }

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.skill.data.SkillJsonLoader;
 import com.p1nero.invincible.gameassets.combos.ComboDemo;
@@ -12,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.slf4j.Logger;
 import yesman.epicfight.registry.EpicFightRegistries;
 import yesman.epicfight.registry.entries.EpicFightConditions;
 import yesman.epicfight.skill.Skill;
@@ -27,9 +29,16 @@ import java.util.stream.Stream;
  * 预设的Condition可以参考 {@link EpicFightConditions} 和 {@link InvincibleConditions}
  */
 public class InvincibleSkills {
+    public static final Logger LOGGER = LogUtils.getLogger();
     public static final DeferredRegister<Skill> REGISTRY = DeferredRegister.create(EpicFightRegistries.Keys.SKILL, InvincibleMod.MOD_ID);
     public static final DeferredHolder<Skill, ComboBasicAttack> COMBO_DEMO = REGISTRY.register("combo_attacks",
-            (key) -> ComboBasicAttack.createComboBasicAttack(ComboBasicAttack::new).setCombo(ComboDemo.demo()).setShouldDrawGui(true).build(key, ComboBasicAttack.class));
+            (key) -> ComboBasicAttack.createComboBasicAttack(ComboBasicAttack::new)
+                    .setCombo(ComboDemo.demo())
+                    .setMaxProtectTime(22)
+                    .setMaxPressTime(20)
+                    .setReserveTime(16)
+                    .setShouldDrawGui(true)
+                    .build(key, ComboBasicAttack.class));
 
     public static void buildDatapackSkills() {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
@@ -38,7 +47,7 @@ public class InvincibleSkills {
                 Files.createDirectory(invincibleCombos);
                 return;
             } catch (IOException e){
-                InvincibleMod.LOGGER.error("Failed to create default file!", e);
+                LOGGER.error("Failed to create default file!", e);
             }
         }
         try (Stream<Path> subDirs = Files.list(invincibleCombos)) {
@@ -67,13 +76,13 @@ public class InvincibleSkills {
                         return skill;
                     });
 
-                    InvincibleMod.LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
+                    LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
                 } catch (IOException | CommandSyntaxException e) {
                     throw new RuntimeException(e);
                 }
             });
         } catch (IOException e) {
-            InvincibleMod.LOGGER.error("error when loading combos", e);
+            LOGGER.error("error when loading combos", e);
             throw new RuntimeException(e);
         }
     }

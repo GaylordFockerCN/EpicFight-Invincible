@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.conditions;
+package com.p1nero.invincible.conditions;
 
 //import com.nameless.indestructible.world.capability.AdvancedCustomHumanoidMobPatch;
 //import com.p1nero.invincible.mixin.AdvancedCustomHumanoidMobPatchAccessor;
