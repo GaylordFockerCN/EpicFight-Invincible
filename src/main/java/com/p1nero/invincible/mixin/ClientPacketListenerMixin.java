@@ -27,7 +27,7 @@ public class ClientPacketListenerMixin {
     private void invincible$handleEntityAfterImageParticle(ClientboundLevelParticlesPacket packet, CallbackInfo ci){
         PacketUtils.ensureRunningOnSameThread(packet, (ClientPacketListener)(Object)this, this.minecraft);
         if(packet.getParticle().equals(EpicFightParticles.WHITE_AFTERIMAGE.get())){
-            this.level.addParticle(EpicFightParticles.WHITE_AFTERIMAGE.get(), packet.getX(), packet.getY(), packet.getZ(), Double.longBitsToDouble(((long) packet.getMaxSpeed())), 0.0, 0.0);
+            this.level.addParticle(EpicFightParticles.WHITE_AFTERIMAGE.get(), packet.getX(), packet.getY(), packet.getZ(), Double.longBitsToDouble(((long) packet.getXDist())), 0.0, 0.0);
             ci.cancel();
         }
     }

@@ -296,7 +296,7 @@ public class ComboBasicAttack extends Skill {
                 event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
             }
             if (invinciblePlayer.getImpactMultiplier() != 1.0F) {
-                event.getDamageSource().setBaseImpact(event.getDamageSource().getBaseImpact(1) * invinciblePlayer.getImpactMultiplier());
+                event.getDamageSource().setBaseImpact(event.getDamageSource().getBaseImpact() * invinciblePlayer.getImpactMultiplier());
             }
             if(invinciblePlayer.getArmorNegation() != 0){
                 event.getDamageSource().setBaseArmorNegation(invinciblePlayer.getArmorNegation());
