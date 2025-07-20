@@ -79,6 +79,15 @@ public class InputManager {
         return null;
     }
 
+    @SubscribeEvent
+    public static void onKeyMappingTriggered(InputEvent.InteractionKeyMappingTriggered event) {
+        if(localPlayerPatch != null) {
+            if(event.getKeyMapping() == EpicFightKeyMappings.WEAPON_INNATE_SKILL && localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+                event.setCanceled(true);
+            }
+        }
+    }
+
     /**
      * 用史诗战斗的那套可能会被顶掉所以自己写了预存
      * 同时给了按键输入一点小延迟，方便读取双键
