@@ -1,17 +1,23 @@
 package com.p1nero.invincible;
 
-import com.p1nero.invincible.client.events.InputManager;
+import com.p1nero.invincible.client.InputManager;
+import com.p1nero.invincible.client.particles.InvincibleParticles;
+import com.p1nero.invincible.client.particles.TransparentEntityAfterImageParticle;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.skill.InvincibleSkillManager;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 @Mod(InvincibleMod.MOD_ID)
 public class InvincibleMod {
@@ -22,6 +28,7 @@ public class InvincibleMod {
         InvincibleItems.ITEMS.register(modEventBus);
         InvincibleConditions.CONDITIONS.register(modEventBus);
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
+        InvincibleParticles.PARTICLES.register(modEventBus);
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(InvincibleSkillManager::buildDatapackSkills);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);

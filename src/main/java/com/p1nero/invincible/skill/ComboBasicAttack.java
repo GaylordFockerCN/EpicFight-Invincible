@@ -8,7 +8,7 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
-import com.p1nero.invincible.client.events.InputManager;
+import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.conditions.PressedTimeCondition;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
@@ -94,7 +94,7 @@ public class ComboBasicAttack extends Skill {
 
     /**
      * 处理客户端的输入信息
-     * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
+     * 处理输入位于{@link InputManager#getAvailablePackets(SkillContainer)}
      */
     @Override
     public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
@@ -195,8 +195,12 @@ public class ComboBasicAttack extends Skill {
                 feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
                 EpicFightNetworkManager.sendToPlayer(feedbackPacket, (ServerPlayer) container.getExecutor().getOriginal());
                 invinciblePlayer.setCurrentNode(next);
+                return;
             } else {
                 invinciblePlayer.setCurrentNode(root);
+            }
+            if (debugMode) {
+                LOGGER.debug("Bad node, return.");
             }
         });
     }

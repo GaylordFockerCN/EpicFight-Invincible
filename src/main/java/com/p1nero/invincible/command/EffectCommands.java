@@ -3,6 +3,7 @@ package com.p1nero.invincible.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.p1nero.invincible.client.particles.InvincibleParticles;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -17,13 +18,26 @@ import yesman.epicfight.world.capabilities.entitypatch.EntityPatch;
 public class EffectCommands {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("invincible")
-                .then(Commands.literal("entityAfterImage").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
+                .then(Commands.literal("whiteAfterImage").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
                         .then(Commands.argument("entity", EntityArgument.entities())
                                 .executes((context) -> {
                                     for (Entity entity : EntityArgument.getEntities(context, "entity")) {
                                         EntityPatch<?> entityPatch = EpicFightCapabilities.getEntityPatch(entity, EntityPatch.class);
                                         if (entityPatch != null) {
                                             context.getSource().getLevel().sendParticles(EpicFightParticles.WHITE_AFTERIMAGE.get(), entity.getX(), entity.getY(), entity.getZ(), 1, entity.getId(), 1, 1, entity.getId());
+                                        }
+                                    }
+                                    return 0;
+                                })
+                        )
+                )
+                .then(Commands.literal("transparentAfterImage").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
+                        .then(Commands.argument("entity", EntityArgument.entities())
+                                .executes((context) -> {
+                                    for (Entity entity : EntityArgument.getEntities(context, "entity")) {
+                                        EntityPatch<?> entityPatch = EpicFightCapabilities.getEntityPatch(entity, EntityPatch.class);
+                                        if (entityPatch != null) {
+                                            context.getSource().getLevel().sendParticles(InvincibleParticles.TRANSPARENT_AFTER_IMAGE.get(), entity.getX(), entity.getY(), entity.getZ(), 1, entity.getId(), 1, 1, entity.getId());
                                         }
                                     }
                                     return 0;

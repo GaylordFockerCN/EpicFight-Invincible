@@ -1,5 +1,6 @@
 package com.p1nero.invincible.mixin;
 
+import com.p1nero.invincible.client.particles.InvincibleParticles;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.multiplayer.ClientPacketListener;
@@ -28,6 +29,11 @@ public class ClientPacketListenerMixin {
         PacketUtils.ensureRunningOnSameThread(packet, (ClientPacketListener)(Object)this, this.minecraft);
         if(packet.getParticle().equals(EpicFightParticles.WHITE_AFTERIMAGE.get())){
             this.level.addParticle(EpicFightParticles.WHITE_AFTERIMAGE.get(), packet.getX(), packet.getY(), packet.getZ(), Double.longBitsToDouble(((long) packet.getXDist())), 0.0, 0.0);
+            ci.cancel();
+        }
+
+        if(packet.getParticle().equals(InvincibleParticles.TRANSPARENT_AFTER_IMAGE.get())) {
+            this.level.addParticle(InvincibleParticles.TRANSPARENT_AFTER_IMAGE.get(), packet.getX(), packet.getY(), packet.getZ(), Double.longBitsToDouble(((long) packet.getXDist())), 0.0, 0.0);
             ci.cancel();
         }
     }
