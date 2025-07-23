@@ -1,7 +1,7 @@
 package com.p1nero.invincible;
 
 import com.p1nero.invincible.attachment.InvincibleAttachments;
-import com.p1nero.invincible.client.events.InputManager;
+import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.gameassets.InvincibleSkills;

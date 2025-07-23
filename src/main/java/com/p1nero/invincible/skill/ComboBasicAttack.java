@@ -9,7 +9,7 @@ import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.attachment.InvinciblePlayer;
-import com.p1nero.invincible.client.events.InputManager;
+import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.api.combo.ComboNode;
