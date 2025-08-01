@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.Config;
+import com.p1nero.invincible.conditions.PressIntervalCondition;
 import com.p1nero.invincible.conditions.PressedTimeCondition;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
@@ -94,7 +95,7 @@ public class ComboBasicAttack extends Skill {
 
     /**
      * 处理客户端的输入信息
-     * 处理输入位于{@link InputManager#getExecutionPacket(SkillContainer)}
+     * 处理输入位于{@link InputManager#getAvailablePackets(SkillContainer)}
      */
     @Override
     public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
@@ -102,20 +103,20 @@ public class ComboBasicAttack extends Skill {
         if (type == null) {
             return;
         }
-        this.executeOnServer(container, type, args.readInt());
+        this.executeOnServer(container, type, args.readInt(), args.readLong());
     }
 
     /**
      * 方便额外调用
      * pressedTime不为0，防止和原版的技能键冲突。
      */
-    public void executeOnServer(SkillContainer container, ComboType type, int pressedTime){
+    public void executeOnServer(SkillContainer container, ComboType type, int pressedTime, long inputInterval){
         if(pressedTime > getMaxProtectTime() || pressedTime == 0) {
             return;
         }
         boolean debugMode = container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DATAPACK_DEBUG.get());
         if (debugMode) {
-            LOGGER.debug("{} {} : pressed {} ticks.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime);
+            LOGGER.debug("{} {} : pressed {} ticks. Interval: {} ms.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime, inputInterval);
         }
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(container.getExecutor().getOriginal());
         ComboNode last = invinciblePlayer.getCurrentNode();
@@ -149,6 +150,11 @@ public class ComboBasicAttack extends Skill {
                                 canExecute = false;
                                 break;
                             }
+                        } else if(condition instanceof PressIntervalCondition pressIntervalCondition) {
+                            if(inputInterval < pressIntervalCondition.getMin() || inputInterval > pressIntervalCondition.getMax()) {
+                                canExecute = false;
+                                break;
+                            }
                         } else if (!condition.predicate(container.getExecutor())) {
                             canExecute = false;
                             break;
@@ -169,7 +175,11 @@ public class ComboBasicAttack extends Skill {
                     if(condition instanceof PressedTimeCondition pressedTimeCondition) {
                         hasPressedTimeCondition = true;
                         if(pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
-                            break;
+                            return;
+                        }
+                    } else if(condition instanceof PressIntervalCondition pressIntervalCondition) {
+                        if(inputInterval < pressIntervalCondition.getMin() || inputInterval > pressIntervalCondition.getMax()) {
+                            return;
                         }
                     } else if (!condition.predicate(container.getExecutor())) {
                         return;
@@ -200,13 +210,13 @@ public class ComboBasicAttack extends Skill {
     }
 
     public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
-        executeOnServer(serverPlayer, type, 1);
+        executeOnServer(serverPlayer, type, 1, 0);
     }
 
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressedTime){
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressedTime, long inputInterval){
         ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
         if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
-            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressedTime);
+            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressedTime, inputInterval);
         }
     }
 
@@ -317,6 +327,12 @@ public class ComboBasicAttack extends Skill {
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDealDamageEventPost(DealDamageEvent.Post event, SkillContainer container) {
         if (!InvincibleAttachments.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
+            PlayerPatch<?> playerPatch = event.getPlayerPatch();
+            ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
+            CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(mainHandItem);
+            if(capabilityItem == null || !(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
+                return;
+            }
             if (!container.isFull()) {
                 float value = container.getResource() + event.getNeoForgeEvent().getNewDamage();
                 if (value > 0.0F) {
