@@ -32,6 +32,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class InputManager {
 
     private static int reserveCounter;
+    private static long lastInputTime;
+    private static long inputInterval;
     private static SkillSlot reservedSkillSlot;
     private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
@@ -261,19 +263,25 @@ public class InputManager {
         for (ComboType comboType : typeList) {
             int pressedTime = test(comboType);
             if (pressedTime > 0) {
-                list.add(getExecutePacket(container.getSlot(), comboType, pressedTime));
+                inputInterval = System.currentTimeMillis() - lastInputTime;
+                list.add(getExecutePacket(container.getSlot(), comboType, pressedTime, inputInterval));
                 if(!comboType.getSubTypes().isEmpty()) {
                     return list;
                 }
             }
         }
+        //成功发了就更新上次按下的时间
+        if(!list.isEmpty()) {
+            lastInputTime = System.currentTimeMillis();
+        }
         return list;
     }
 
-    public static CPExecuteSkill getExecutePacket(SkillSlot slot, ComboType comboType, int pressedTime) {
+    public static CPExecuteSkill getExecutePacket(SkillSlot slot, ComboType comboType, int pressedTime, long inputInterval) {
         CPExecuteSkill packet = new CPExecuteSkill(slot.universalOrdinal());
         packet.getBuffer().writeInt(comboType.universalOrdinal());
         packet.getBuffer().writeInt(pressedTime);
+        packet.getBuffer().writeLong(inputInterval);
         return packet;
     }
 
