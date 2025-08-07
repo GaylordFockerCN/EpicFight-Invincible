@@ -4,7 +4,8 @@
     "common":
     {
       "impact":1.0,
-      "max_strikes":2
+      "max_strikes":2,
+      "armor_negation":20.0
     }
   },
   "type":"invincible:demo"

@@ -19,10 +19,10 @@ import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
 import yesman.epicfight.network.EpicFightNetworkManager;
-import yesman.epicfight.network.client.CPExecuteSkill;
+import yesman.epicfight.network.client.CPSkillRequest;
 import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
-import yesman.epicfight.world.entity.eventlistener.SkillExecuteEvent;
+import yesman.epicfight.world.entity.eventlistener.SkillCastEvent;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -230,7 +230,7 @@ public class InputManager {
     public static boolean tryRequestSkillExecute(SkillSlot slot, boolean shouldReserve) {
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.getPlayerMode() == PlayerPatch.PlayerMode.EPICFIGHT) {
-            if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserverKey()) {
+            if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserveKey()) {
                 if (shouldReserve) {
                     setReserve(slot);
                 }
@@ -243,10 +243,10 @@ public class InputManager {
         return false;
     }
 
-    public static SkillExecuteEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
-        SkillExecuteEvent event = new SkillExecuteEvent(executor, container);
-        if (container.canExecute(executor, event)) {
-            for(CPExecuteSkill packet : getAvailablePackets(container)){
+    public static SkillCastEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
+        SkillCastEvent event = new SkillCastEvent(executor, container, null);
+        if (container.canUse(executor, event)) {
+            for(CPSkillRequest packet : getAvailablePackets(container)){
                 EpicFightNetworkManager.sendToServer(packet);
             }
         }
@@ -256,8 +256,8 @@ public class InputManager {
     /**
      * @return 返回所有可能触发的
      */
-    public static List<CPExecuteSkill> getAvailablePackets(SkillContainer container) {
-        List<CPExecuteSkill> list = new ArrayList<>();
+    public static List<CPSkillRequest> getAvailablePackets(SkillContainer container) {
+        List<CPSkillRequest> list = new ArrayList<>();
         List<ComboType> typeList = new ArrayList<>(ComboType.ENUM_MANAGER.universalValues().stream().toList());
         typeList.sort(Comparator.comparingInt((comboType) -> -1 * comboType.getSubTypes().size()));//subType多的优先
         for (ComboType comboType : typeList) {
@@ -277,8 +277,8 @@ public class InputManager {
         return list;
     }
 
-    public static CPExecuteSkill getExecutePacket(SkillSlot slot, ComboType comboType, int pressedTime, long inputInterval) {
-        CPExecuteSkill packet = new CPExecuteSkill(slot.universalOrdinal());
+    public static CPSkillRequest getExecutePacket(SkillSlot slot, ComboType comboType, int pressedTime, long inputInterval) {
+        CPSkillRequest packet = new CPSkillRequest(slot);
         packet.getBuffer().writeInt(comboType.universalOrdinal());
         packet.getBuffer().writeInt(pressedTime);
         packet.getBuffer().writeLong(inputInterval);

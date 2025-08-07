@@ -15,7 +15,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 public abstract class SkillContainerMixin {
     @Shadow(remap = false) protected Skill containingSkill;
 
-    @Inject(method = "requestExecute", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "requestCasting", at = @At("HEAD"), cancellable = true, remap = false)
     private void invincible$requestExecute(ServerPlayerPatch executor, FriendlyByteBuf buf, CallbackInfoReturnable<Boolean> cir){
         if(this.containingSkill instanceof ComboBasicAttack) {
             if(this.containingSkill.canExecute((SkillContainer) (Object) this) && this.containingSkill.isExecutableState(executor)) {
