@@ -3,13 +3,13 @@ package com.p1nero.invincible.api.events;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 import java.util.function.Consumer;
 
 public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     private final float time;
-    private final Consumer<LivingEntityPatch<?>> event;
+    private final Consumer<PlayerPatch<?>> event;
     private boolean executed = false;
 
     public boolean isExecuted() {
@@ -19,12 +19,12 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
         executed = false;
     }
 
-    public TimeStampedEvent(float time, Consumer<LivingEntityPatch<?>> event) {
+    public TimeStampedEvent(float time, Consumer<PlayerPatch<?>> event) {
         this.time = time;
         this.event = event;
     }
 
-    public void testAndExecute(LivingEntityPatch<?> entityPatch, float prevElapsed, float elapsed) {
+    public void testAndExecute(PlayerPatch<?> entityPatch, float prevElapsed, float elapsed) {
         if (this.time >= prevElapsed && this.time < elapsed && !entityPatch.isLogicalClient()) {
             this.event.accept(entityPatch);
             executed = true;
@@ -32,7 +32,7 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     }
 
     public static TimeStampedEvent createTimeCommandEvent(float time, String command, boolean isTarget) {
-        Consumer<LivingEntityPatch<?>> event = (entityPatch) -> {
+        Consumer<PlayerPatch<?>> event = (entityPatch) -> {
             Level server = entityPatch.getOriginal().level();
             CommandSourceStack css = entityPatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
             if (isTarget && entityPatch.getTarget() != null) {

@@ -3,7 +3,6 @@ package com.p1nero.invincible.skill;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
@@ -22,7 +21,6 @@ import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.Input;
@@ -41,11 +39,7 @@ import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.api.utils.math.Vec2f;
-import yesman.epicfight.api.utils.math.Vec2i;
-import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.gui.BattleModeGui;
-import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
-import yesman.epicfight.config.ClientConfig;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
@@ -58,9 +52,7 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ComboBasicAttack extends Skill {
@@ -78,6 +70,8 @@ public class ComboBasicAttack extends Skill {
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
+    protected int currentId = 0;
+    protected Map<Integer, ComboNode> nodes = new HashMap<>();
     protected int maxPressTime, maxReserveTime, maxProtectTime;
 
     public ComboBasicAttack(Builder builder) {
@@ -90,6 +84,28 @@ public class ComboBasicAttack extends Skill {
         maxPressTime = builder.maxPressTime;
         maxReserveTime = builder.maxReserveTime;
         maxProtectTime = builder.maxProtectTime;
+
+        //分配id
+        assignId(root);
+    }
+
+    private void assignId(ComboNode node) {
+        if(node.isAssigned()){
+            return;
+        }
+        currentId++;
+        nodes.put(currentId, node);
+        node.assign(currentId);
+        for(ComboNode child : node.getChildren()) {
+            assignId(child);
+        }
+        for(ComboNode conditionNode: node.getConditionAnimations()) {
+            assignId(conditionNode);
+        }
+    }
+
+    public ComboNode getNodeById(int id) {
+        return nodes.get(id);
     }
 
     public static Builder createComboBasicAttack() {
@@ -218,20 +234,32 @@ public class ComboBasicAttack extends Skill {
                     LOGGER.debug("animationAccessor: {}", animationAccessor);
                 }
                 container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
+                current.getOnBeginEvents().forEach(event -> {
+                    event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget());
+                });
                 initPlayer(container, invinciblePlayer, current);
-                //把玩家参数同步给客户端
-                SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(container.getSlotId());
-                feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
-                EpicFightNetworkManager.sendToPlayer(feedbackPacket, (ServerPlayer) container.getExecutor().getOriginal());
+                //把玩家参数以及当前节点同步给客户端
                 invinciblePlayer.setCurrentNode(next);
+                sendFeedback(next, container, invinciblePlayer);
                 return;
             } else {
                 invinciblePlayer.setCurrentNode(root);
+                sendFeedback(root, container, invinciblePlayer);
             }
             if (debugMode) {
                 LOGGER.debug("Bad node, return.");
             }
         });
+    }
+
+    public static void sendFeedback(ComboNode node, SkillContainer container, InvinciblePlayer invinciblePlayer) {
+        if (node == null) {
+            return;
+        }
+        SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(container.getSlotId());
+        feedbackPacket.getBuffer().writeInt(node.getId());
+        feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
+        EpicFightNetworkManager.sendToPlayer(feedbackPacket, container.getServerExecutor().getOriginal());
     }
 
     public static void executeOnServer(ServerPlayer serverPlayer, ComboType type) {
@@ -279,9 +307,16 @@ public class ComboBasicAttack extends Skill {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void executeOnClient(SkillContainer container, FriendlyByteBuf args) {
+        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecutor().getOriginal());
+        int id = args.readInt();
+        if(id != 0 && id <= currentId) {
+            ComboNode current = this.getNodeById(id);
+            invinciblePlayer.setCurrentNode(current);
+            current.getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget()));
+        }
         CompoundTag tag = args.readNbt();
         if (tag != null) {
-            InvincibleCapabilityProvider.get(container.getExecutor().getOriginal()).loadNBTData(tag);
+            invinciblePlayer.loadNBTData(tag);
         }
     }
 

@@ -10,13 +10,11 @@ import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @SuppressWarnings("rawtypes")
 public class ComboNode {
+    private int id;
     @NotNull
     protected ComboNode root;
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
@@ -41,9 +39,22 @@ public class ComboNode {
     protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
     protected final List<BiEvent> hitEvents = new ArrayList<>();
     protected final List<BiEvent> hurtEvents = new ArrayList<>();
+    protected final List<BiEvent> onBeginEvents = new ArrayList<>();
 
     protected ComboNode() {
         root = this;
+    }
+
+    public boolean isAssigned() {
+        return id != 0;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void assign(int id) {
+        this.id = id;
     }
 
     public ComboNode setArmorNegation(float armorNegation) {
@@ -174,6 +185,11 @@ public class ComboNode {
         return this;
     }
 
+    public ComboNode addBeginEvent(BiEvent event) {
+        onBeginEvents.add(event);
+        return this;
+    }
+
     public List<TimeStampedEvent> getTimeEvents() {
         return events;
     }
@@ -190,12 +206,20 @@ public class ComboNode {
         return dodgeSuccessEvents;
     }
 
+    public List<BiEvent> getOnBeginEvents() {
+        return onBeginEvents;
+    }
+
     public boolean isRoot() {
         return this.equals(root);
     }
 
     public boolean isEnd() {
         return children.isEmpty();
+    }
+
+    public Collection<ComboNode> getChildren(){
+        return this.children.values();
     }
 
     public ComboNode getRoot() {

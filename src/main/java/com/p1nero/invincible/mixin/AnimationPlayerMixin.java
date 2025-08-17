@@ -52,7 +52,7 @@ public abstract class AnimationPlayerMixin {
                         break;
                     }
                     if(!event.isExecuted()) {
-                        event.testAndExecute(entityPatch, this.prevElapsedTime, this.elapsedTime);
+                        event.testAndExecute(serverPlayerPatch, this.prevElapsedTime, this.elapsedTime);
                     }
                 }
             });

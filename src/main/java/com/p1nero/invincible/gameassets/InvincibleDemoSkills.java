@@ -6,6 +6,7 @@ import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.api.skill.ComboNode;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -58,6 +59,10 @@ public class InvincibleDemoSkills {
                 serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
             }
         }));
+        //客户端事件测试
+        aa.addBeginEvent(BiEvent.createClientEvent((playerPatch, entity) -> System.out.println("hello Client")))
+                .addBeginEvent(BiEvent.createServerEvent((playerPatch, entity) -> System.out.println("hello")));
+
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a
 
         ComboNode ab = ComboNode.createNode(Animations.LONGSWORD_AUTO2);
