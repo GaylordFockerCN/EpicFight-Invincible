@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
@@ -179,7 +180,7 @@ public class ComboBasicAttack extends Skill {
                     //多个条件指向不同动画，根据优先级来检测
                     for (ComboNode conditionAnimation : current.getConditionAnimations()) {
                         boolean canExecute = true;
-                        for (Condition condition : conditionAnimation.getConditions()) {
+                        for (Condition condition : conditionAnimation.getConditions(Side.SERVER)) {
 
                             if (condition instanceof PressedTimeCondition pressedTimeCondition) {
                                 if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
@@ -207,7 +208,7 @@ public class ComboBasicAttack extends Skill {
                     }
                 } else {
                     //多个条件指向同一动画
-                    for (Condition condition : current.getConditions()) {
+                    for (Condition condition : current.getConditions(Side.SERVER)) {
                         if (condition instanceof PressedTimeCondition pressedTimeCondition) {
                             hasPressedTimeCondition = true;
                             if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {

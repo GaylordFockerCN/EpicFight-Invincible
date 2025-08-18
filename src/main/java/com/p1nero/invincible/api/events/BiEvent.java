@@ -50,27 +50,4 @@ public record BiEvent(BiConsumer<PlayerPatch<?>, Entity> event, Side side) {
             this.event.accept(entityPatch, target);
         }
     }
-
-    public enum Side {
-        CLIENT((entity) -> entity.level().isClientSide),
-        SERVER((entity) -> !entity.level().isClientSide),
-        BOTH((entity) -> true),
-        LOCAL_CLIENT((entity) -> {
-            if (entity instanceof Player player) {
-                return player.isLocalPlayer();
-            } else {
-                return false;
-            }
-        });
-
-        public final Predicate<Entity> predicate;
-
-        public boolean test(Entity entity) {
-            return this.predicate.test(entity);
-        }
-
-        private Side(Predicate<Entity> predicate) {
-            this.predicate = predicate;
-        }
-    }
 }

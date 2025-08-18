@@ -1,5 +1,6 @@
 package com.p1nero.invincible.api.skill;
 
+import com.mojang.datafixers.util.Pair;
 import com.p1nero.invincible.api.events.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +12,7 @@ import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class ComboNode {
@@ -33,7 +35,7 @@ public class ComboNode {
     //自定义阶段
     protected int newPhase;
     protected int cooldown;
-    protected List<Condition> conditions = new ArrayList<>();
+    protected List<Pair<Condition, Side>> conditions = new ArrayList<>();
     protected List<ComboNode> conditionAnimations = new ArrayList<>();
     protected final List<TimeStampedEvent> events = new ArrayList<>();
     protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
@@ -281,13 +283,24 @@ public class ComboNode {
     }
 
     public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition) {
-        this.conditions.add(condition);
+        this.conditions.add(Pair.of(condition, Side.BOTH));
+        return this;
+    }
+    public <T extends LivingEntityPatch<?>> ComboNode addClientCondition(@Nullable Condition<T> condition) {
+        this.conditions.add(Pair.of(condition, Side.CLIENT));
+        return this;
+    }
+    public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition, Side side) {
+        this.conditions.add(Pair.of(condition, side));
         return this;
     }
 
     @NotNull
-    public List<Condition> getConditions() {
-        return conditions;
+    public List<Condition> getConditions(Side... sides) {
+        return conditions.stream()
+                .filter(pair -> Arrays.stream(sides).anyMatch(side -> side == pair.getSecond()))
+                .map(Pair::getFirst)
+                .collect(Collectors.toList());
     }
 
     public ComboNode addConditionNode(ComboNode conditionAnimation) {
@@ -465,6 +478,11 @@ public class ComboNode {
         child.root = root;
         children.put(ComboTypes.KEY_3_4, child);
         return child;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) || (obj instanceof ComboNode comboNode && comboNode.id == this.id);
     }
 
     public enum ComboTypes implements ComboType {
