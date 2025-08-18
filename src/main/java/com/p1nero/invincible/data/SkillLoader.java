@@ -26,6 +26,9 @@ import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @SuppressWarnings("UnstableApiUsage")
 public class SkillLoader {
     public static void loadSkill(CompoundTag data) throws CommandSyntaxException {
@@ -52,9 +55,17 @@ public class SkillLoader {
         ComboNode root = ComboNode.create();
         deserializeCombos(root, combos);
 
+        List<String> tipList = new ArrayList<>();
+        if (weapon.has("translationKeys")){
+            for(JsonElement element : weapon.get("translationKeys").getAsJsonArray()){
+                tipList.add(element.getAsString());
+            }
+        }
+
         ComboBasicAttack.Builder builder = ((ComboBasicAttack.Builder) ComboBasicAttack.createComboBasicAttack()
                 .setShouldDrawGui(drawSkillIcon)
                 .setCombo(root)
+                .addToolTipOnItem(tipList)
                 .setRegistryName(new ResourceLocation(modId, name)));
 
         ComboBasicAttack skill = new ComboBasicAttack(builder);

@@ -15,6 +15,10 @@
   "max_stacks": 2,
   //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/${name}
   "drawSkillIcon": true,
+  //按shift时的技能描述
+  "translationKeys": [
+    "custom_weapon_demo.invincible.usage1", "让我们说§3§l中文", "custom_weapon_demo.invincible.usage3"
+  ],
   //连段数据
   "combos": [
     {

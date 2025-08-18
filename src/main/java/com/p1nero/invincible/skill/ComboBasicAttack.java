@@ -1,6 +1,7 @@
 package com.p1nero.invincible.skill;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
@@ -15,6 +16,7 @@ import com.p1nero.invincible.skill.api.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
@@ -31,11 +33,13 @@ import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
+import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 import static com.p1nero.invincible.InvincibleMod.LOGGER;
@@ -56,6 +60,7 @@ public class ComboBasicAttack extends Skill {
     protected ComboNode root;
     protected int maxPressTime, maxReserveTime, maxProtectTime;
 
+    protected List<String> translationKeys;
     public static Builder createComboBasicAttack() {
         return new Builder().setCategory(SkillCategories.WEAPON_INNATE).setActivateType(ActivateType.ONE_SHOT).setResource(Resource.NONE);
     }
@@ -69,6 +74,7 @@ public class ComboBasicAttack extends Skill {
         maxPressTime = builder.maxPressTime;
         maxReserveTime = builder.maxReserveTime;
         maxProtectTime = builder.maxProtectTime;
+        this.translationKeys = builder.translationKeys;
     }
 
     @Override
@@ -391,6 +397,18 @@ public class ComboBasicAttack extends Skill {
     }
 
     @Override
+    public List<Component> getTooltipOnItem(ItemStack itemStack, CapabilityItem cap, PlayerPatch<?> playerpatch) {
+        if (translationKeys.isEmpty()) {
+            return super.getTooltipOnItem(itemStack, cap, playerpatch);
+        }
+        List<Component> list = Lists.newArrayList();
+        for (String translationKey : translationKeys) {
+            list.add(Component.translatable(translationKey));
+        }
+        return list;
+    }
+
+    @Override
     public boolean shouldDraw(SkillContainer container) {
         return shouldDrawGui;
     }
@@ -415,7 +433,7 @@ public class ComboBasicAttack extends Skill {
 
         protected boolean shouldDrawGui;
         protected int maxPressTime, maxReserveTime, maxProtectTime;
-
+        protected List<String> translationKeys = List.of();
         public Builder() {
         }
 
@@ -468,6 +486,12 @@ public class ComboBasicAttack extends Skill {
             this.walkEnd = walkEnd;
             return this;
         }
+
+        public Builder addToolTipOnItem(List<String> translationKeys) {
+            this.translationKeys = translationKeys;
+            return this;
+        }
+
     }
 
 }
