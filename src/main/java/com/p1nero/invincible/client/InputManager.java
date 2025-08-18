@@ -254,9 +254,9 @@ public class InputManager {
 
     public static SkillCastEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         SkillCastEvent event = new SkillCastEvent(executor, container, null);
+        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(executor.getOriginal());
+        currentNode = invinciblePlayer.getCurrentNode();
         if (container.canUse(executor, event)) {
-            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(executor.getOriginal());
-            currentNode = invinciblePlayer.getCurrentNode();
             for(CPSkillRequest packet : getAvailablePackets(container)){
                 EpicFightNetworkManager.sendToServer(packet);
             }
@@ -324,11 +324,14 @@ public class InputManager {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static boolean testClientConditions(ComboType comboType) {
+        if(currentNode == null) {
+            return false;
+        }
         ComboNode next = currentNode.getNext(comboType);
         if(next == null) {
             return false;
         }
-        for(Condition condition : next.getConditions(Side.CLIENT, Side.LOCAL_CLIENT)) {
+        for(Condition condition : next.getConditions(Side.CLIENT, Side.LOCAL_CLIENT, Side.BOTH)) {
             if(!condition.predicate(localPlayerPatch)){
                 return false;
             }

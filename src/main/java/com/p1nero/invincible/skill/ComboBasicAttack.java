@@ -71,8 +71,6 @@ public class ComboBasicAttack extends Skill {
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
-    protected int currentId = 0;
-    protected Map<Integer, ComboNode> nodes = new HashMap<>();
     protected int maxPressTime, maxReserveTime, maxProtectTime;
 
     public ComboBasicAttack(Builder builder) {
@@ -85,28 +83,6 @@ public class ComboBasicAttack extends Skill {
         maxPressTime = builder.maxPressTime;
         maxReserveTime = builder.maxReserveTime;
         maxProtectTime = builder.maxProtectTime;
-
-        //分配id
-        assignId(root);
-    }
-
-    private void assignId(ComboNode node) {
-        if(node.isAssigned()){
-            return;
-        }
-        currentId++;
-        nodes.put(currentId, node);
-        node.assign(currentId);
-        for(ComboNode child : node.getChildren()) {
-            assignId(child);
-        }
-        for(ComboNode conditionNode: node.getConditionAnimations()) {
-            assignId(conditionNode);
-        }
-    }
-
-    public ComboNode getNodeById(int id) {
-        return nodes.get(id);
     }
 
     public static Builder createComboBasicAttack() {
@@ -180,7 +156,7 @@ public class ComboBasicAttack extends Skill {
                     //多个条件指向不同动画，根据优先级来检测
                     for (ComboNode conditionAnimation : current.getConditionAnimations()) {
                         boolean canExecute = true;
-                        for (Condition condition : conditionAnimation.getConditions(Side.SERVER)) {
+                        for (Condition condition : conditionAnimation.getConditions(Side.SERVER, Side.BOTH)) {
 
                             if (condition instanceof PressedTimeCondition pressedTimeCondition) {
                                 if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
@@ -208,7 +184,7 @@ public class ComboBasicAttack extends Skill {
                     }
                 } else {
                     //多个条件指向同一动画
-                    for (Condition condition : current.getConditions(Side.SERVER)) {
+                    for (Condition condition : current.getConditions(Side.SERVER, Side.BOTH)) {
                         if (condition instanceof PressedTimeCondition pressedTimeCondition) {
                             hasPressedTimeCondition = true;
                             if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
@@ -258,7 +234,6 @@ public class ComboBasicAttack extends Skill {
             return;
         }
         SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(container.getSlotId());
-        feedbackPacket.getBuffer().writeInt(node.getId());
         feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
         EpicFightNetworkManager.sendToPlayer(feedbackPacket, container.getServerExecutor().getOriginal());
     }
@@ -309,15 +284,13 @@ public class ComboBasicAttack extends Skill {
     @OnlyIn(Dist.CLIENT)
     public void executeOnClient(SkillContainer container, FriendlyByteBuf args) {
         InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecutor().getOriginal());
-        int id = args.readInt();
-        if(id != 0 && id <= currentId) {
-            ComboNode current = this.getNodeById(id);
-            invinciblePlayer.setCurrentNode(current);
-            current.getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget()));
-        }
         CompoundTag tag = args.readNbt();
         if (tag != null) {
             invinciblePlayer.loadNBTData(tag);
+            ComboNode current = invinciblePlayer.getCurrentNode();
+            if(current != null) {
+                invinciblePlayer.getCurrentNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget()));
+            }
         }
     }
 
@@ -325,9 +298,8 @@ public class ComboBasicAttack extends Skill {
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         //初始化连段
-        if (!container.getExecutor().isLogicalClient()) {
-            resetCombo(((ServerPlayerPatch) container.getExecutor()), root);
-        }
+        resetCombo(container, container.getExecutor(), root);
+
         InvincibleCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN.get(), 0);
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
@@ -449,7 +421,7 @@ public class ComboBasicAttack extends Skill {
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
         if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
-            resetCombo(((ServerPlayerPatch) container.getExecutor()), root);
+            resetCombo(container, container.getServerExecutor(), root);
         }
         InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecutor().getOriginal());
         SkillDataManager manager = container.getDataManager();
@@ -472,14 +444,13 @@ public class ComboBasicAttack extends Skill {
         }
     }
 
-    public void resetCombo(ServerPlayerPatch serverPlayerPatch, ComboNode root) {
-        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(serverPlayerPatch.getOriginal());
+    public void resetCombo(SkillContainer container, PlayerPatch<?> playerPatch, ComboNode root) {
+        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
         invinciblePlayer.setCurrentNode(root);
         invinciblePlayer.clear();
-        //借他的包同步数据给客户端
-        SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(SkillSlots.WEAPON_INNATE.universalOrdinal());
-        feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
-        EpicFightNetworkManager.sendToPlayer(feedbackPacket, serverPlayerPatch.getOriginal());
+        if(!playerPatch.isLogicalClient()) {
+            sendFeedback(root, container, invinciblePlayer);
+        }
     }
 
     @Override

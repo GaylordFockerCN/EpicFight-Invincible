@@ -45,6 +45,7 @@ public class ComboNode {
 
     protected ComboNode() {
         root = this;
+        ComboNodeManager.assignId(this);
     }
 
     public boolean isAssigned() {
@@ -282,8 +283,11 @@ public class ComboNode {
         return conditions.isEmpty();
     }
 
+    /**
+     * 默认加在服务端
+     */
     public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition) {
-        this.conditions.add(Pair.of(condition, Side.BOTH));
+        this.conditions.add(Pair.of(condition, Side.SERVER));
         return this;
     }
     public <T extends LivingEntityPatch<?>> ComboNode addClientCondition(@Nullable Condition<T> condition) {
