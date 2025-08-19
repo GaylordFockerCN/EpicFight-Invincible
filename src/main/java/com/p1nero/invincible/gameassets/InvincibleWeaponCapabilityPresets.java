@@ -5,7 +5,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import yesman.epicfight.api.neoforgeevent.WeaponCapabilityPresetRegistryEvent;
+import yesman.epicfight.api.neoevent.WeaponCapabilityPresetRegistryEvent;
 import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.ColliderPreset;
 import yesman.epicfight.registry.entries.EpicFightParticles;
@@ -34,6 +34,18 @@ public class InvincibleWeaponCapabilityPresets {
                     .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
                     .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_DEMO.get())
                     .comboCancel((style) -> false);
+
+    public static WeaponCapability.Builder getDefaultBuilder() {
+        return WeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
+                .styleProvider((entityPatch) -> CapabilityItem.Styles.COMMON)
+                .collider(ColliderPreset.SWORD)
+                .swingSound(EpicFightSounds.WHOOSH.get())
+                .hitSound(EpicFightSounds.BLADE_HIT.get())
+                .hitParticle(EpicFightParticles.HIT_BLADE.get())
+                .canBePlacedOffhand(false)
+                .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
+                .comboCancel((style) -> false);
+    }
 
     @SubscribeEvent
     public static void register(WeaponCapabilityPresetRegistryEvent event) {

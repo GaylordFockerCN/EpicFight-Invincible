@@ -1,5 +1,6 @@
 package com.p1nero.invincible;
 
+import com.p1nero.invincible.api.combo.ComboNodeManager;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
@@ -13,21 +14,26 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 
 @Mod(InvincibleMod.MOD_ID)
 public class InvincibleMod {
     public static final String MOD_ID = "invincible";
-
     public InvincibleMod(IEventBus modEventBus, ModContainer modContainer) {
         InvincibleItems.ITEMS.register(modEventBus);
         InvincibleConditions.CONDITIONS.register(modEventBus);
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
         InvincibleAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        InvincibleSkills.buildDatapackSkills();
+        InvincibleSkills.registerDatapackSkills();
         InvincibleSkills.REGISTRY.register(modEventBus);
         modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(this::commonSetup);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
         modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    private void commonSetup(final FMLCommonSetupEvent event) {
+        ComboNodeManager.getNodes().forEach(ComboNode::initConditions);
     }
 
     private void clientSetup(final FMLClientSetupEvent event){

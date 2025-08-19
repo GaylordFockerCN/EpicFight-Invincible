@@ -77,18 +77,24 @@ public class SkillJsonLoader {
                 }
 
                 if (combo.has("damage_multiplier")) {
-                    JsonObject valueModifier = combo.getAsJsonObject("damage_multiplier");
-                    float adder = 0, multiplier = 1.0F, setter = Float.NaN;
-                    if(valueModifier.has("adder")){
-                        adder = valueModifier.get("adder").getAsFloat();
+                    JsonObject valueModifierJson = combo.getAsJsonObject("damage_multiplier");
+                    float adder, multiplier, setter;
+                    ValueModifier valueModifier = null;
+                    if(valueModifierJson.has("adder")){
+                        adder = valueModifierJson.get("adder").getAsFloat();
+                        valueModifier = ValueModifier.adder(adder);
                     }
-                    if(valueModifier.has("multiplier")){
-                        multiplier = valueModifier.get("multiplier").getAsFloat();
+                    if(valueModifierJson.has("multiplier")){
+                        multiplier = valueModifierJson.get("multiplier").getAsFloat();
+                        valueModifier = ValueModifier.multiplier(multiplier);
                     }
-                    if(valueModifier.has("setter")){
-                        setter = valueModifier.get("setter").getAsFloat();
+                    if(valueModifierJson.has("setter")){
+                        setter = valueModifierJson.get("setter").getAsFloat();
+                        valueModifier = ValueModifier.setter(setter);
                     }
-                    child.setDamageMultiplier(new ValueModifier(adder, multiplier, setter));
+                    if(valueModifier != null) {
+                        child.setDamageMultiplier(valueModifier);
+                    }
                 }
 
                 if (combo.has("hurt_damage_multiplier")) {
@@ -136,8 +142,7 @@ public class SkillJsonLoader {
                         if(tag.getString("predicate").isEmpty()){
                             continue;
                         }
-                        Condition<? extends LivingEntityPatch<?>> predicate = MobPatchReloadListener.deserializeBehaviorPredicate(tag.getString("predicate"), tag);
-                        child.addCondition(predicate);
+                        child.addConditionProvider(() -> MobPatchReloadListener.deserializeBehaviorPredicate(tag.getString("predicate"), tag));
                     }
                 }
 

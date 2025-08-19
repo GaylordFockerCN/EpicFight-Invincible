@@ -1,0 +1,118 @@
+{
+  //注释无需删除
+  //注册的name，要跟json文件同名，到时候在武器里要填的就是invincible:name
+  "name": "demo2",
+  //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skill/${name}
+  "drawSkillIcon": true,
+  //连段数据
+  "combos": [
+    {
+      //按键编号，备选有KEY_1, KEY_2, KEY_3, KEY_4, KEY_1_2, KEY_1_3, KEY_1_4, KEY_2_3, KEY_2_4, KEY_3_4; KEY_1_2代表KEY_1和KEY_2同时按下
+      //A
+      "key": "KEY_1",
+      "condition_animations":[
+        {
+          "priority":2,
+          "impact_multiplier": 3.0,
+          "stun_type": "LONG",
+          "speed_multiplier":0.7,
+          "conditions":[
+            {
+              "predicate": "invincible:jumping"//跳跃状态下才能使用
+            }
+          ],
+          "animation": "epicfight:biped/skill/greatsword_slam"
+        },
+        {
+          "priority":1,
+          "impact_multiplier": 3.0,
+          "stun_type": "LONG",
+          "conditions":[
+            {
+              "predicate": "invincible:sprinting"//冲刺状态下才能使用
+            }
+          ],
+          "animation": "epicfight:biped/skill/tsunami_reinforced"
+        },
+        { //A
+          "priority":0,
+          "impact_multiplier": 1.0,
+          "stun_type": "LONG",
+          "animation": "epicfight:biped/combat/mob_sword_dual1", 
+          "time_command_list": [  //分身斩
+            {
+              "time": 0.3,
+              "command": "scoreboard players set @e[type=!minecraft:item,type=!minecraft:player,tag=!fs,distance=1..20,limit=1] gjs4 1",
+              "execute_at_target": false
+            }
+          ]
+        }
+      ],
+      "combos": [
+        {
+          //AA
+          "key": "KEY_1",
+          "impact_multiplier": 1.0,
+          "stun_type": "LONG",
+          "animation": "epicfight:biped/combat/mob_sword_dual2", 
+          "time_command_list": [  //二段分身激活
+            {
+              "time": 0.1,
+              "command": "scoreboard players set @s ycfs2 2",
+              "execute_at_target": false
+            },
+            {
+              "time": 0.2,
+              "command": "scoreboard players set @e[type=!minecraft:item,type=!minecraft:player,tag=!fs,distance=1..20,limit=1] ycfs4 1",
+              "execute_at_target": false
+            }
+          ], 
+          "combos": [
+            {
+              //AAA
+              "impact_multiplier": 0.5,
+              "stun_type": "LONG",
+              "key": "KEY_1",
+              "animation": "epicfight:biped/combat/mob_sword_dual3",
+              "time_command_list": [ //陆续分身
+                {
+                  "time": 0.1,
+                  "command": "scoreboard players set @s lxfs2 2",
+                  "execute_at_target": false
+                },
+                {
+                  "time": 0.2,
+                  "command": "scoreboard players set @e[type=!minecraft:item,type=!minecraft:player,tag=!fs,distance=1..20,limit=1] lxfs4 1",
+                  "execute_at_target": false
+                }
+              ],
+              "combos": [
+                {
+                  //AAAA
+                  "impact_multiplier": 0.5,
+                  "stun_type": "FALL",
+                  "key": "KEY_1",
+                  "animation": "epicfight:biped/skill/greatsword_slam"//在这里衔接普通攻击
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      //B
+      "key": "KEY_2",
+      "impact_multiplier": 7.0,
+      "stun_type": "LONG",
+      "animation": "epicfight:biped/combat/fist_dash"
+    },
+    {
+      //A+B
+      "key": "KEY_1_2",
+      "impact_multiplier": 3.0,
+      "stun_type": "NEUTRALIZE",
+      "animation": "epicfight:biped/skill/wrathful_lighting"
+    }
+  ]
+}

@@ -40,7 +40,7 @@ public class InvincibleSkills {
                     .setShouldDrawGui(true)
                     .build(key, ComboBasicAttack.class));
 
-    public static void buildDatapackSkills() {
+    public static void registerDatapackSkills() {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
         if(!Files.exists(invincibleCombos)){
             try {
@@ -61,7 +61,6 @@ public class InvincibleSkills {
                     JsonObject combo = Streams.parse(jsonReader).getAsJsonObject();
                     reader.close();
                     ComboBasicAttack.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
-                    String modId = combo.get("mod_id").getAsString();
                     String skillName = combo.get("name").getAsString();
                     REGISTRY.register(skillName, (key) -> {
                         ComboBasicAttack skill = skillBuilder.build(key, ComboBasicAttack.class);
@@ -76,12 +75,12 @@ public class InvincibleSkills {
                         return skill;
                     });
 
-                    LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
+                    LOGGER.info("LOAD ADDITIONAL SKILL >> {}", InvincibleMod.MOD_ID + ":" + skillName);
                 } catch (IOException | CommandSyntaxException e) {
                     throw new RuntimeException(e);
                 }
             });
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.error("error when loading combos", e);
             throw new RuntimeException(e);
         }

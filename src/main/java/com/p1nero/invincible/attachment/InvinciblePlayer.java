@@ -1,6 +1,7 @@
 package com.p1nero.invincible.attachment;
 
 import com.google.common.collect.ImmutableList;
+import com.p1nero.invincible.api.combo.ComboNodeManager;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.combo.ComboNode;
@@ -195,12 +196,19 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
     public CompoundTag saveNBTData(CompoundTag tag) {
         tag.putBoolean("notCharge", notCharge);
         tag.putFloat("playSpeed", playSpeedMultiplier);
+        if(currentNode != null) {
+            tag.putInt("currentNodeId", currentNode.getId());
+        }
         return tag;
     }
 
     public void loadNBTData(CompoundTag tag) {
         notCharge = tag.getBoolean("notCharge");
         playSpeedMultiplier = tag.getFloat("playSpeed");
+        int id = tag.getInt("currentNodeId");
+        if(id != 0) {
+            currentNode = ComboNodeManager.get(id);
+        }
     }
 
     /**

@@ -1,22 +1,27 @@
 package com.p1nero.invincible.api.combo;
 
+import com.mojang.datafixers.util.Pair;
+import com.p1nero.invincible.api.Side;
 import com.p1nero.invincible.api.events.*;
+import net.minecraft.nbt.CompoundTag;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
+import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class ComboNode {
+    private int id;
     @NotNull
     protected ComboNode root;
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
@@ -35,15 +40,30 @@ public class ComboNode {
     //自定义阶段
     protected int newPhase;
     protected int cooldown;
-    protected List<Condition> conditions = new ArrayList<>();
+    protected List<Pair<Condition, Side>> conditions = new ArrayList<>();
+    protected List<Supplier<Condition>> conditionProviders = new ArrayList<>();
     protected List<ComboNode> conditionAnimations = new ArrayList<>();
     protected final List<TimeStampedEvent> events = new ArrayList<>();
     protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
     protected final List<BiEvent> hitEvents = new ArrayList<>();
     protected final List<BiEvent> hurtEvents = new ArrayList<>();
+    protected final List<BiEvent> onBeginEvents = new ArrayList<>();
 
     protected ComboNode() {
         root = this;
+        ComboNodeManager.assignId(this);
+    }
+
+    public boolean isAssigned() {
+        return id != 0;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void assign(int id) {
+        this.id = id;
     }
 
     public ComboNode setArmorNegation(float armorNegation) {
@@ -174,6 +194,11 @@ public class ComboNode {
         return this;
     }
 
+    public ComboNode addBeginEvent(BiEvent event) {
+        onBeginEvents.add(event);
+        return this;
+    }
+
     public List<TimeStampedEvent> getTimeEvents() {
         return events;
     }
@@ -184,6 +209,10 @@ public class ComboNode {
 
     public List<BiEvent> getHurtEvents() {
         return hurtEvents;
+    }
+
+    public List<BiEvent> getOnBeginEvents() {
+        return onBeginEvents;
     }
 
     public List<BiEvent> getDodgeSuccessEvents() {
@@ -200,6 +229,10 @@ public class ComboNode {
 
     public ComboNode getRoot() {
         return root;
+    }
+
+    public Collection<ComboNode> getChildren(){
+        return this.children.values();
     }
 
     @Nullable
@@ -256,14 +289,46 @@ public class ComboNode {
         return conditions.isEmpty();
     }
 
+    /**
+     * 默认加在服务端
+     */
     public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition) {
-        this.conditions.add(condition);
+        this.conditions.add(Pair.of(condition, Side.SERVER));
+        return this;
+    }
+    public <T extends LivingEntityPatch<?>> ComboNode addClientCondition(@Nullable Condition<T> condition) {
+        this.conditions.add(Pair.of(condition, Side.CLIENT));
+        return this;
+    }
+    public <T extends LivingEntityPatch<?>> ComboNode addCondition(@Nullable Condition<T> condition, Side side) {
+        this.conditions.add(Pair.of(condition, side));
         return this;
     }
 
     @NotNull
-    public List<Condition> getConditions() {
-        return conditions;
+    public List<Condition> getConditions(Side... sides) {
+        return conditions.stream()
+                .filter(pair -> Arrays.stream(sides).anyMatch(side -> side == pair.getSecond()))
+                .map(Pair::getFirst)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 给数据包用，需延迟注册
+     */
+    public void addConditionProvider(Supplier<Condition> conditionProvider) {
+        this.conditionProviders.add(conditionProvider);
+    }
+
+    @SuppressWarnings("unchecked")
+    @ApiStatus.Internal
+    public void initConditions(){
+        for(Supplier<Condition> conditionSupplier : conditionProviders) {
+            Condition condition = conditionSupplier.get();
+            if(condition != null) {
+                this.addCondition(condition);
+            }
+        }
     }
 
     public ComboNode addConditionNode(ComboNode conditionAnimation) {
@@ -441,6 +506,11 @@ public class ComboNode {
         child.root = root;
         children.put(ComboTypes.KEY_3_4, child);
         return child;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return super.equals(obj) || (obj instanceof ComboNode comboNode && comboNode.id == this.id);
     }
 
     public enum ComboTypes implements ComboType {

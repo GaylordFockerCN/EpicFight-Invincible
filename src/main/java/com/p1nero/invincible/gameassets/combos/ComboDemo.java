@@ -44,6 +44,12 @@ public class ComboDemo {
                 serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
             }
         }));
+        aa.addBeginEvent(BiEvent.createServerEvent((playerPatch, entity) -> {
+            System.out.println("Hello Server!");
+        }));
+        aa.addBeginEvent(BiEvent.createClientEvent(((playerPatch, entity) -> {
+            System.out.println("hello Client!");
+        })));
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a
 
         ComboNode ab = ComboNode.createNode(Animations.LONGSWORD_AUTO2);
