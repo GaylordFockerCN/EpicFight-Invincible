@@ -12,6 +12,7 @@ import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.api.combo.ComboType;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
+import net.minecraft.resources.ResourceLocation;
 import org.spongepowered.asm.mixin.Unique;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
@@ -29,8 +30,13 @@ public class SkillJsonLoader {
 
     public static ComboBasicAttack.Builder loadSkill(JsonObject weapon) throws CommandSyntaxException {
         boolean drawSkillIcon = false;
+        ResourceLocation skillTextureLocation = null;
         if (weapon.has("drawSkillIcon")) {
             drawSkillIcon = weapon.get("drawSkillIcon").getAsBoolean();
+        }
+
+        if(weapon.has("skillTextureLocation")) {
+            skillTextureLocation = ResourceLocation.parse(weapon.get("skillTextureLocation").getAsString());
         }
 
         JsonArray combos = weapon.getAsJsonArray("combos");
@@ -48,6 +54,7 @@ public class SkillJsonLoader {
         return ComboBasicAttack.createComboBasicAttack(ComboBasicAttack::new)
                 .setShouldDrawGui(drawSkillIcon)
                 .setCombo(root)
+                .setSkillTextureLocation(skillTextureLocation)
                 .addToolTipOnItem(tipList);
     }
 

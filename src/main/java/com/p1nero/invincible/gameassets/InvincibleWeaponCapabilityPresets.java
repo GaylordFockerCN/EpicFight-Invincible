@@ -1,6 +1,7 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.capabilities.item.ComboWeaponCapability;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -24,28 +25,16 @@ public class InvincibleWeaponCapabilityPresets {
     //It's easy to create a new weapon type, just need to provide the innate skill. newStyleCombo should be set.
     //注册非常简单，newStyleCombo需要随便填一下，但是选择武器技能是必要的
     public static final Function<Item, WeaponCapability.Builder> DEMO = (item) ->
-            (WeaponCapability.Builder) WeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
+            ComboWeaponCapability.builder()
+                    .category(CapabilityItem.WeaponCategories.SWORD)
                     .styleProvider((entityPatch) -> CapabilityItem.Styles.COMMON)
                     .collider(ColliderPreset.SWORD)
                     .swingSound(EpicFightSounds.WHOOSH.get())
                     .hitSound(EpicFightSounds.BLADE_HIT.get())
                     .hitParticle(EpicFightParticles.HIT_BLADE.get())
                     .canBePlacedOffhand(false)
-                    .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
                     .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_DEMO.get())
                     .comboCancel((style) -> false);
-
-    public static WeaponCapability.Builder getDefaultBuilder() {
-        return WeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
-                .styleProvider((entityPatch) -> CapabilityItem.Styles.COMMON)
-                .collider(ColliderPreset.SWORD)
-                .swingSound(EpicFightSounds.WHOOSH.get())
-                .hitSound(EpicFightSounds.BLADE_HIT.get())
-                .hitParticle(EpicFightParticles.HIT_BLADE.get())
-                .canBePlacedOffhand(false)
-                .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
-                .comboCancel((style) -> false);
-    }
 
     @SubscribeEvent
     public static void register(WeaponCapabilityPresetRegistryEvent event) {

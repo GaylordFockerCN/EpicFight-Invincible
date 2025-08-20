@@ -2,6 +2,9 @@ package com.p1nero.invincible.skill;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.InvincibleFlags;
@@ -17,20 +20,28 @@ import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.api.combo.ComboType;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.Input;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.event.MovementInputUpdateEvent;
 import org.jetbrains.annotations.Nullable;
+import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.neoevent.playerpatch.*;
 import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.api.utils.math.Vec2f;
+import yesman.epicfight.api.utils.math.Vec2i;
+import yesman.epicfight.client.gui.BattleModeGui;
+import yesman.epicfight.config.ClientConfig;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillFeedback;
@@ -44,15 +55,12 @@ import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class ComboBasicAttack extends Skill {
 
     public static final Logger LOGGER = LogUtils.getLogger();
-    protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
-
     @OnlyIn(Dist.CLIENT)
     protected boolean isWalking;
     protected boolean shouldDrawGui;
@@ -63,6 +71,8 @@ public class ComboBasicAttack extends Skill {
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
+    @Nullable
+    protected ResourceLocation skillTextureLocation;
 
     public ComboBasicAttack(Builder builder) {
         super(builder);
@@ -74,6 +84,7 @@ public class ComboBasicAttack extends Skill {
         maxPressTime = builder.maxPressTime;
         maxReserveTime = builder.maxReserveTime;
         maxProtectTime = builder.maxProtectTime;
+        this.skillTextureLocation = builder.skillTextureLocation;
     }
 
     public static Builder createComboBasicAttack(Function<ComboBasicAttack.Builder, ComboBasicAttack> constructor) {
@@ -502,6 +513,152 @@ public class ComboBasicAttack extends Skill {
         return shouldDrawGui;
     }
 
+    private static final Vec2f[] CLOCK_POS = {
+            new Vec2f(0.5F, 0.5F),
+            new Vec2f(0.5F, 0.0F),
+            new Vec2f(0.0F, 0.0F),
+            new Vec2f(0.0F, 1.0F),
+            new Vec2f(1.0F, 1.0F),
+            new Vec2f(1.0F, 0.0F)
+    };
+
+    @Override
+    @OnlyIn(Dist.CLIENT)
+    public void drawOnGui(BattleModeGui gui, SkillContainer container, GuiGraphics guiGraphics, float x, float y, float partialTick) {
+        boolean creative = container.getExecutor().getOriginal().isCreative();
+        boolean fullstack = creative || container.isFull();
+        boolean canUse = !container.isDisabled() && container.getSkill().checkExecuteCondition(container);
+        float cooldownRatio = (fullstack || container.isActivated()) ? 1.0F : container.getResource(partialTick);
+        int vertexNum;
+        float iconSize = 32.0F;
+        float bottom = y + iconSize;
+        float right = x + iconSize;
+        float middle = x + iconSize * 0.5F;
+        float lastVertexX;
+        float lastVertexY;
+        float lastTexX;
+        float lastTexY;
+
+        if (cooldownRatio < 0.125F) {
+            vertexNum = 6;
+            lastTexX = cooldownRatio / 0.25F;
+            lastTexY = 0.0F;
+            lastVertexX = middle + iconSize * lastTexX;
+            lastVertexY = y;
+            lastTexX += 0.5F;
+        } else if (cooldownRatio < 0.375F) {
+            vertexNum = 5;
+            lastTexX = 1.0F;
+            lastTexY = (cooldownRatio - 0.125F) / 0.25F;
+            lastVertexX = right;
+            lastVertexY = y + iconSize * lastTexY;
+        } else if (cooldownRatio < 0.625F) {
+            vertexNum = 4;
+            lastTexX = (cooldownRatio - 0.375F) / 0.25F;
+            lastTexY = 1.0F;
+            lastVertexX = right - iconSize * lastTexX;
+            lastVertexY = bottom;
+            lastTexX = 1.0F - lastTexX;
+        } else if (cooldownRatio < 0.875F) {
+            vertexNum = 3;
+            lastTexX = 0.0F;
+            lastTexY = (cooldownRatio - 0.625F) / 0.25F;
+            lastVertexX = x;
+            lastVertexY = bottom - iconSize * lastTexY;
+            lastTexY = 1.0F - lastTexY;
+        } else {
+            vertexNum = 2;
+            lastTexX = (cooldownRatio - 0.875F) / 0.25F;
+            lastTexY = 0.0F;
+            lastVertexX = x + iconSize * lastTexX;
+            lastVertexY = y;
+        }
+
+        RenderSystem.enableBlend();
+        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.setShader(GameRenderer::getPositionTexShader);
+        RenderSystem.setShaderTexture(0, container.getSkill().getSkillTexture());
+
+        if (canUse) {
+            if (container.getStack() > 0) {
+                RenderSystem.setShaderColor(0.0F, 0.64F, 0.72F, 0.8F);
+            } else {
+                RenderSystem.setShaderColor(0.0F, 0.5F, 0.5F, 0.6F);
+            }
+        } else {
+            RenderSystem.setShaderColor(0.5F, 0.5F, 0.5F, 0.6F);
+        }
+
+        PoseStack poseStack = guiGraphics.pose();
+        Tesselator tessellator = Tesselator.getInstance();
+        BufferBuilder bufferbuilder = tessellator.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_TEX);
+
+        for (int j = 0; j < vertexNum; j++) {
+            bufferbuilder.addVertex(poseStack.last(), x + iconSize * CLOCK_POS[j].x, y + iconSize * CLOCK_POS[j].y, 0.0F).setUv(CLOCK_POS[j].x, CLOCK_POS[j].y);
+        }
+
+        bufferbuilder.addVertex(poseStack.last(), lastVertexX, lastVertexY, 0.0F).setUv(lastTexX, lastTexY);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+
+        if (canUse) {
+            RenderSystem.setShaderColor(0.08F, 0.79F, 0.95F, 1.0F);
+        } else {
+            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        }
+
+        GL11.glCullFace(GL11.GL_FRONT);
+        bufferbuilder = tessellator.begin(VertexFormat.Mode.TRIANGLE_FAN, DefaultVertexFormat.POSITION_TEX);
+
+        for (int j = 0; j < 2; j++) {
+            bufferbuilder.addVertex(poseStack.last(), x + iconSize * CLOCK_POS[j].x, y + iconSize * CLOCK_POS[j].y, 0.0F).setUv(CLOCK_POS[j].x, CLOCK_POS[j].y);
+        }
+
+        for (int j = CLOCK_POS.length - 1; j >= vertexNum; j--) {
+            bufferbuilder.addVertex(poseStack.last(), x + iconSize * CLOCK_POS[j].x, y + iconSize * CLOCK_POS[j].y, 0.0F).setUv(CLOCK_POS[j].x, CLOCK_POS[j].y);
+        }
+
+        bufferbuilder.addVertex(poseStack.last(), lastVertexX, lastVertexY, 0.0F).setUv(lastTexX, lastTexY);
+        BufferUploader.drawWithShader(bufferbuilder.buildOrThrow());
+
+        GL11.glCullFace(GL11.GL_BACK);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
+        if (container.isActivated() && (container.getSkill().getActivateType() == ActivateType.DURATION || container.getSkill().getActivateType() == ActivateType.DURATION_INFINITE)) {
+            String s = String.format("%.0f", container.getRemainDuration() / 20.0F);
+            int stringWidth = (gui.getFont().width(s) - 6) / 3;
+            guiGraphics.drawString(gui.getFont(), s, x + 13 - stringWidth, y + 13, 16777215, true);
+        } else if (!fullstack) {
+            String s = String.valueOf((int)(cooldownRatio * 100.0F));
+            int stringWidth = (gui.getFont().width(s) - 6) / 3;
+            guiGraphics.drawString(gui.getFont(), s, x + 13 - stringWidth, y + 13, 16777215, true);
+        }
+
+        if (container.getSkill().getMaxStack() > 1) {
+            String s = String.valueOf(container.getStack());
+            int stringWidth = (gui.getFont().width(s) - 6) / 3;
+            guiGraphics.drawString(gui.getFont(), s, x + 25 - stringWidth, y + 22, 16777215, true);
+        }
+
+        RenderSystem.disableBlend();
+
+        SkillDataManager manager = container.getDataManager();
+        if(!manager.hasData(InvincibleSkillDataKeys.COOLDOWN)){
+            return;
+        }
+        int cooldown = manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN);
+        if(cooldown > 0){
+            Vec2i pos = ClientConfig.getWeaponInnatePosition();
+            String s = String.format("%.1fs", cooldown / 20.0);
+            int stringWidth = (gui.getFont().width(s) - 6) / 3;
+            guiGraphics.drawString(gui.getFont(), s, pos.x - stringWidth, pos.y + 22, 16777215, true);
+        }
+    }
+
+    @Override
+    public ResourceLocation getSkillTexture() {
+        return skillTextureLocation != null ? skillTextureLocation : super.getSkillTexture();
+    }
+
     public static class Builder extends SkillBuilder<Builder> {
         protected ComboNode root;
 
@@ -512,6 +669,7 @@ public class ComboBasicAttack extends Skill {
 
         protected boolean shouldDrawGui;
         protected int maxPressTime, maxReserveTime, maxProtectTime;
+        protected ResourceLocation skillTextureLocation;
 
         public Builder(Function<Builder, ? extends ComboBasicAttack> constructor) {
             super(constructor);
@@ -572,6 +730,10 @@ public class ComboBasicAttack extends Skill {
             return this;
         }
 
+        public Builder setSkillTextureLocation(ResourceLocation skillTextureLocation) {
+            this.skillTextureLocation = skillTextureLocation;
+            return this;
+        }
     }
 
 }
