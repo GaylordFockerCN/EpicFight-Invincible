@@ -11,10 +11,11 @@ import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.damagesource.StunType;
 
 public class ComboDemo {
+    public static ComboNode basicAttack;
     public static ComboNode demo() {
         //我使用的是史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.create();
-        ComboNode basicAttack = ComboNode.createNode(Animations.SWORD_AUTO1)//1a
+        basicAttack = ComboNode.createNode(Animations.SWORD_AUTO1)//1a
                 .setPlaySpeed(0.5F)//修改播放速度
                 .setStunTypeModifier(StunType.KNOCKDOWN)//修改硬直类型
                 .setDamageMultiplier(ValueModifier.multiplier(0.5F))//修改伤害
@@ -30,7 +31,7 @@ public class ComboDemo {
                 })));
         ComboNode jumpAttack = ComboNode.createNode(Animations.SWORD_AIR_SLASH).setPriority(3).addCondition(new JumpCondition());//修改了原版的跳跃攻击机制，以此补偿
         ComboNode dashAttack = ComboNode.createNode(Animations.SWORD_DASH).setPriority(2).addCondition(new SprintingCondition());//修改了原版的冲刺攻击机制，以此补偿
-        ComboNode longPressAttack = ComboNode.createNode(Animations.SWORD_DASH).setPriority(4).addCondition(new PressedTimeCondition(20, Integer.MAX_VALUE));//长按的样例
+        ComboNode longPressAttack = ComboNode.createNode(Animations.SWORD_DASH).setPriority(4).addCondition(new PressedTimeCondition(20, Integer.MAX_VALUE));//长按的样例,请结合ChargeDemo
 
         ComboNode a = ComboNode.create();
         a.addConditionNode(basicAttack).addConditionNode(jumpAttack).addConditionNode(dashAttack).addConditionNode(longPressAttack);
@@ -53,7 +54,8 @@ public class ComboDemo {
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a
 
         ComboNode ab = ComboNode.createNode(Animations.LONGSWORD_AUTO2);
-        basicAttack.key2(ab);//1a后按key2可变招
+        ComboNode ab_ = ComboNode.create().addConditionNode(longPressAttack).addConditionNode(ab);
+        basicAttack.key2(ab_);//1a后按key2可变招
 
         ComboNode aaa = ComboNode.createNode(Animations.SWORD_AUTO3)//3a
                 .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;

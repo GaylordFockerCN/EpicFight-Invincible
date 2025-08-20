@@ -6,6 +6,7 @@ import com.google.gson.stream.JsonReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.skill.ChargeDemo;
 import com.p1nero.invincible.skill.data.SkillJsonLoader;
 import com.p1nero.invincible.gameassets.combos.ComboDemo;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -13,6 +14,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.Logger;
 import yesman.epicfight.registry.EpicFightRegistries;
 import yesman.epicfight.registry.entries.EpicFightConditions;
@@ -32,14 +34,15 @@ public class InvincibleSkills {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final DeferredRegister<Skill> REGISTRY = DeferredRegister.create(EpicFightRegistries.Keys.SKILL, InvincibleMod.MOD_ID);
     public static final DeferredHolder<Skill, ComboBasicAttack> COMBO_DEMO = REGISTRY.register("combo_attacks",
-            (key) -> ComboBasicAttack.createComboBasicAttack(ComboBasicAttack::new)
+            (key) -> ComboBasicAttack.createComboBasicAttack(ChargeDemo::new)
                     .setCombo(ComboDemo.demo())
                     .setMaxProtectTime(22)
                     .setMaxPressTime(20)
                     .setReserveTime(16)
                     .setShouldDrawGui(true)
-                    .build(key, ComboBasicAttack.class));
+                    .build(key, ChargeDemo.class));
 
+    @ApiStatus.Internal
     public static void registerDatapackSkills() {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
         if(!Files.exists(invincibleCombos)){

@@ -91,6 +91,10 @@ public class ComboBasicAttack extends Skill {
         return new Builder(constructor).setCategory(SkillCategories.WEAPON_INNATE).setActivateType(ActivateType.ONE_SHOT).setResource(Resource.NONE);
     }
 
+    public ComboNode getCurrentNode(SkillContainer container) {
+        return InvincibleAttachments.get(container.getExecutor().getOriginal()).getCurrentNode();
+    }
+
     @Override
     public boolean canExecute(SkillContainer container) {
         if (container.getExecutor().isLogicalClient()) {
@@ -116,7 +120,20 @@ public class ComboBasicAttack extends Skill {
             return;
         }
         ComboType type = ComboType.ENUM_MANAGER.get(args.getInt(InvincibleFlags.TYPE_ID));
-        this.executeOnServer(container, type, args.getInt(InvincibleFlags.PRESSED_TIME), args.getLong(InvincibleFlags.PRESSED_INTERVAL));
+        if(args.getBoolean(InvincibleFlags.ON_PRESS)) {
+            onPress(container, container.getServerExecutor(), type);
+        } else {
+            this.executeOnServer(container, type, args.getInt(InvincibleFlags.PRESSED_TIME), args.getLong(InvincibleFlags.PRESSED_INTERVAL));
+        }
+    }
+
+    /**
+     * 某个按键初次按下（按下时间长达1tick时触发）
+     * 你可以在这里根据ComboType判断按键并播放蓄力动画等
+     * 目前仅能发送单键
+     */
+    public void onPress(SkillContainer container, ServerPlayerPatch serverPlayerPatch, ComboType comboType) {
+
     }
 
     /**
@@ -450,11 +467,14 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(container.getExecutor().getOriginal());
+        SkillDataManager manager = container.getDataManager();
+//        if(manager.getDataValue(InvincibleSkillDataKeys.ANY_KEY_DOWN)) {
+//            container.getExecutor().resetActionTick();
+//        }
         if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(container, container.getServerExecutor(), root);
         }
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(container.getExecutor().getOriginal());
-        SkillDataManager manager = container.getDataManager();
         if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER)){
             manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER) - 1, 0));
         }
@@ -483,6 +503,9 @@ public class ComboBasicAttack extends Skill {
         }
     }
 
+    /**
+     * 你也可以重写它来实现自己的技能描述
+     */
     @Override
     public List<Component> getTooltipOnItem(ItemStack itemStack, CapabilityItem cap, PlayerPatch<?> playerpatch) {
         if(translationKeys.isEmpty()){

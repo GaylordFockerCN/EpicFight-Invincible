@@ -1,5 +1,7 @@
 package com.p1nero.invincible.client;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.InvincibleFlags;
@@ -21,6 +23,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.api.neoevent.playerpatch.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
@@ -42,9 +45,11 @@ public class InputManager {
     private static long lastInputTime;
     private static long inputInterval;
     private static SkillSlot reservedSkillSlot;
-    private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
+    private static final BiMap<ComboType, KeyMapping> TYPE_KEY_MAP = HashBiMap.create();
+    private static BiMap<KeyMapping, ComboType> KEY_TYPE_MAP = HashBiMap.create();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<Integer> INPUT_QUEUE = new ArrayDeque<>();
+    private static final List<CPSkillRequest> ON_PRESS_PACKETS = new ArrayList<>();
     private static LocalPlayerPatch localPlayerPatch;
     private static ComboNode currentNode;
 
@@ -69,6 +74,7 @@ public class InputManager {
     public static void register(ComboType type, KeyMapping keyMapping) {
         TYPE_KEY_MAP.put(type, keyMapping);
         KEY_STATE_CACHE.put(keyMapping.getKey().getValue(), 0);
+        KEY_TYPE_MAP = TYPE_KEY_MAP.inverse();
     }
 
     /**
@@ -116,11 +122,28 @@ public class InputManager {
             //判断asdw是否按下，用于Condition判断。
             if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
                 Options options = Minecraft.getInstance().options;
-                SkillDataManager manager = localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
+                SkillDataManager manager = getDataManager(localPlayerPatch);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.UP, options.keyUp);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.DOWN, options.keyDown);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.LEFT, options.keyLeft);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.RIGHT, options.keyRight);
+            }
+
+            //判断是否有任意按键按下（暂时无用）
+            AtomicBoolean flag = new AtomicBoolean(false);
+            KEY_STATE_CACHE.forEach((key, time) -> {
+                if(time != 0) {
+                    flag.set(true);
+                }
+            });
+            SkillDataManager manager = getDataManager(localPlayerPatch);
+            if(flag.get() != manager.getDataValue(InvincibleSkillDataKeys.ANY_KEY_DOWN)) {
+                manager.setDataSync(InvincibleSkillDataKeys.ANY_KEY_DOWN, flag.get());
+            }
+            //缓存的onPress包的处理
+            if(!localPlayerPatch.getEntityState().inaction()) {
+                ON_PRESS_PACKETS.forEach(EpicFightNetworkManager::sendToServer);
+                ON_PRESS_PACKETS.clear();
             }
         }
 
@@ -130,7 +153,10 @@ public class InputManager {
                 KEY_STATE_CACHE.put(keyId, 0);
             }
         }
+    }
 
+    public static SkillDataManager getDataManager(@NotNull LocalPlayerPatch localPlayerPatch) {
+        return localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
     }
 
     private static void checkDirectionKeyDown(SkillDataManager manager, DeferredHolder<SkillDataKey<?>, ? extends SkillDataKey<Boolean>> skillDataKey, KeyMapping key) {
@@ -161,6 +187,7 @@ public class InputManager {
                 for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
                     int keyId = keyMapping.getKey().getValue();
                     if (key == keyId) {
+                        handleOnPress(keyMapping);
                         if (!INPUT_QUEUE.contains(keyId)) {
                             INPUT_QUEUE.add(keyId);
                         }
@@ -173,6 +200,20 @@ public class InputManager {
                 tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
             }
         }
+    }
+
+    /**
+     * 发包给服务端执行onPress
+     */
+    private static void handleOnPress(KeyMapping keyMapping) {
+        ComboType type = KEY_TYPE_MAP.get(keyMapping);
+        CPSkillRequest packet = new CPSkillRequest(SkillSlots.WEAPON_INNATE, new CompoundTag());
+        if(type == null || packet.arguments() == null) {
+            return;
+        }
+        packet.arguments().putInt(InvincibleFlags.TYPE_ID, type.universalOrdinal());
+        packet.arguments().putBoolean(InvincibleFlags.ON_PRESS, true);
+        ON_PRESS_PACKETS.add(packet);
     }
 
     private static void handlePressing() {
