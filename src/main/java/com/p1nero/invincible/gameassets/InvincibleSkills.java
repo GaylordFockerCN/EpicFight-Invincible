@@ -45,6 +45,7 @@ public class InvincibleSkills {
         if(!Files.exists(invincibleCombos)){
             try {
                 Files.createDirectory(invincibleCombos);
+
                 return;
             } catch (IOException e){
                 LOGGER.error("Failed to create default file!", e);

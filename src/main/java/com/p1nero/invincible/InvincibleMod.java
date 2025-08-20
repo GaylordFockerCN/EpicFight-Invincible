@@ -33,7 +33,7 @@ public class InvincibleMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        ComboNodeManager.getNodes().forEach(ComboNode::initConditions);
+        ComboNodeManager.getNodes().forEach(ComboNode::initDatapackNode);
     }
 
     private void clientSetup(final FMLClientSetupEvent event){

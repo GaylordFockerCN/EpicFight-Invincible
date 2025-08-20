@@ -3,13 +3,11 @@ package com.p1nero.invincible.api.combo;
 import com.mojang.datafixers.util.Pair;
 import com.p1nero.invincible.api.Side;
 import com.p1nero.invincible.api.events.*;
-import net.minecraft.nbt.CompoundTag;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
-import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -27,6 +25,9 @@ public class ComboNode {
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
     @Nullable
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> animationAccessor;
+    @ApiStatus.Internal
+    @Nullable
+    private Supplier<AnimationManager.AnimationAccessor<? extends StaticAnimation>> animationAccessorSupplier;
     private int priority;
     protected float playSpeed, convertTime;
     private ValueModifier damageMultiplier = null;
@@ -41,6 +42,7 @@ public class ComboNode {
     protected int newPhase;
     protected int cooldown;
     protected List<Pair<Condition, Side>> conditions = new ArrayList<>();
+    @ApiStatus.Internal
     protected List<Supplier<Condition>> conditionProviders = new ArrayList<>();
     protected List<ComboNode> conditionAnimations = new ArrayList<>();
     protected final List<TimeStampedEvent> events = new ArrayList<>();
@@ -235,17 +237,20 @@ public class ComboNode {
         return this.children.values();
     }
 
-    @Nullable
-    public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationAccessor() {
-        return animationAccessor == null ? null : animationAccessor;
-    }
-
-    public void setAnimationProvider(@Nullable AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
+    public void setAnimationAccessor(@Nullable AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         this.animationAccessor = animation;
     }
 
+    /**
+     * 读配置文件用
+     */
+    @ApiStatus.Internal
+    public void setAnimationAccessorSupplier(Supplier<AnimationManager.AnimationAccessor<? extends StaticAnimation>> animationAccessorSupplier) {
+        this.animationAccessorSupplier = animationAccessorSupplier;
+    }
+
     @Nullable
-    public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationProvider() {
+    public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationAccessor() {
         return animationAccessor;
     }
 
@@ -322,12 +327,15 @@ public class ComboNode {
 
     @SuppressWarnings("unchecked")
     @ApiStatus.Internal
-    public void initConditions(){
+    public void initDatapackNode(){
         for(Supplier<Condition> conditionSupplier : conditionProviders) {
             Condition condition = conditionSupplier.get();
             if(condition != null) {
                 this.addCondition(condition);
             }
+        }
+        if(animationAccessorSupplier != null) {
+            this.setAnimationAccessor(animationAccessorSupplier.get());
         }
     }
 

@@ -19,7 +19,6 @@ import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.api.combo.ComboType;
 import net.minecraft.client.player.Input;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -139,7 +138,7 @@ public class ComboBasicAttack extends Skill {
         }
         //动画是空的就直接跳过，不是就播放
         if (current != null) {
-            if (current.getAnimationProvider() == null || !current.getConditionAnimations().isEmpty()) {
+            if (current.getAnimationAccessor() == null || !current.getConditionAnimations().isEmpty()) {
                 if (current.getConditionAnimations().isEmpty()) {
                     return;
                 }

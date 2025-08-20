@@ -16,8 +16,6 @@ import org.spongepowered.asm.mixin.Unique;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.data.reloader.MobPatchReloadListener;
 import yesman.epicfight.api.utils.math.ValueModifier;
-import yesman.epicfight.data.conditions.Condition;
-import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.ArrayList;
@@ -70,7 +68,7 @@ public class SkillJsonLoader {
                 deserializeCombos(child, conditionAnimationsListList);
             } else {
                 String animation = combo.get("animation").getAsString();
-                child.setAnimationProvider(AnimationManager.byKey(animation));
+                child.setAnimationAccessorSupplier(() -> AnimationManager.byKey(animation));
 
                 if (combo.has("speed_multiplier")) {
                     child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
