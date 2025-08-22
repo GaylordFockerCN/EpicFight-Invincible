@@ -230,7 +230,6 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
 
     @Override
     public void deserializeNBT(HolderLookup.@NotNull Provider provider, @NotNull CompoundTag compoundTag) {
-        notCharge = compoundTag.getBoolean("notCharge");
-        playSpeedMultiplier = compoundTag.getFloat("playSpeed");
+        loadNBTData(compoundTag);
     }
 }
