@@ -1,10 +1,9 @@
 package com.p1nero.invincible.conditions;
 
-import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import yesman.epicfight.data.conditions.Condition;
-import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.List;
@@ -44,7 +43,7 @@ public class PlayerPhaseCondition implements Condition<ServerPlayerPatch> {
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        int phase = InvincibleCapabilityProvider.get(serverPlayerPatch.getOriginal()).getPhase();
+        int phase = InvinciblePlayerCapabilityProvider.get(serverPlayerPatch.getOriginal()).getPhase();
         return phase >= min && phase <= max;
     }
 

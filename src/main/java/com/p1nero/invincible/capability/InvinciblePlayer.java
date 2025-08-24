@@ -215,12 +215,4 @@ public class InvinciblePlayer {
         currentNode = old.currentNode;
     }
 
-    public void tick() {
-//        cooldownMap.forEach(((item, integer) -> {
-//            if(integer > 0){
-//                cooldownMap.put(item, integer - 1);
-//            }
-//        }));
-    }
-
 }

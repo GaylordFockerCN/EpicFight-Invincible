@@ -1,6 +1,5 @@
 package com.p1nero.invincible.conditions;
 
-import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;

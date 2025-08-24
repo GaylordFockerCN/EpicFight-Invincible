@@ -6,7 +6,7 @@ import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
-import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -98,7 +98,7 @@ public class InputManager {
         if (localPlayerPatch == null) {
             localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         }
-        if (localPlayerPatch != null) {
+        if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
             if (reserveCounter > 0) {
                 --reserveCounter;
@@ -254,7 +254,7 @@ public class InputManager {
 
     public static SkillCastEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         SkillCastEvent event = new SkillCastEvent(executor, container, null);
-        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(executor.getOriginal());
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(executor.getOriginal());
         currentNode = invinciblePlayer.getCurrentNode();
         if (container.canUse(executor, event)) {
             for(CPSkillRequest packet : getAvailablePackets(container)){

@@ -12,7 +12,7 @@ import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.Config;
 import com.p1nero.invincible.api.events.BiEvent;
 import com.p1nero.invincible.api.events.Side;
-import com.p1nero.invincible.capability.InvincibleCapabilityProvider;
+import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayer;
 import com.p1nero.invincible.client.InputManager;
@@ -130,7 +130,7 @@ public class ComboBasicAttack extends Skill {
         if (debugMode) {
             LOGGER.debug("{} {} : pressed {} ticks. Interval: {} ms.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime, inputInterval);
         }
-        container.getExecutor().getOriginal().getCapability(InvincibleCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
+        container.getExecutor().getOriginal().getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode last = invinciblePlayer.getCurrentNode();
             boolean hasPressedTimeCondition = false;
             if (last == null) {
@@ -283,7 +283,7 @@ public class ComboBasicAttack extends Skill {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void executeOnClient(SkillContainer container, FriendlyByteBuf args) {
-        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecutor().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
         CompoundTag tag = args.readNbt();
         if (tag != null) {
             invinciblePlayer.loadNBTData(tag);
@@ -300,10 +300,10 @@ public class ComboBasicAttack extends Skill {
         //初始化连段
         resetCombo(container, container.getExecutor(), root);
 
-        InvincibleCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
+        InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN.get(), 0);
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-            ImmutableList<BiEvent> dodgeSuccessEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+            ImmutableList<BiEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
             if (dodgeSuccessEvents != null) {
                 dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
@@ -311,7 +311,7 @@ public class ComboBasicAttack extends Skill {
         }));
         //减伤和霸体的判断
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
-            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
                 epicFightDamageSource.setStunType(StunType.NONE);
             }
@@ -321,18 +321,18 @@ public class ComboBasicAttack extends Skill {
             }
         }));
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
-            ImmutableList<BiEvent> hurtEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+            ImmutableList<BiEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
             if (hurtEvents != null) {
                 hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
             }
-            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
                 event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
             }
         }));
         //调整攻击倍率，冲击，硬直类型等
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
-            InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (invinciblePlayer.getStunTypeModifier() != null) {
                 event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
             }
@@ -354,7 +354,7 @@ public class ComboBasicAttack extends Skill {
             if (capabilityItem == null || !(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
                 return;
             }
-            if (!InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
+            if (!InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
                 if (!container.isFull()) {
                     float value = container.getResource() + event.getAttackDamage();
                     if (value > 0.0F) {
@@ -362,7 +362,7 @@ public class ComboBasicAttack extends Skill {
                     }
                 }
             }
-            ImmutableList<BiEvent> hitEvents = InvincibleCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+            ImmutableList<BiEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if (hitEvents != null) {
                 hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
             }
@@ -423,7 +423,7 @@ public class ComboBasicAttack extends Skill {
         if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
             resetCombo(container, container.getServerExecutor(), root);
         }
-        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(container.getExecutor().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
         SkillDataManager manager = container.getDataManager();
         if (manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get())) {
             manager.setData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Math.max(manager.getDataValue(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get()) - 1, 0));
@@ -445,7 +445,7 @@ public class ComboBasicAttack extends Skill {
     }
 
     public void resetCombo(SkillContainer container, PlayerPatch<?> playerPatch, ComboNode root) {
-        InvinciblePlayer invinciblePlayer = InvincibleCapabilityProvider.get(playerPatch.getOriginal());
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(playerPatch.getOriginal());
         invinciblePlayer.setCurrentNode(root);
         invinciblePlayer.clear();
         if(!playerPatch.isLogicalClient()) {
