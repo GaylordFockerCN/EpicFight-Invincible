@@ -92,7 +92,7 @@ public class ComboBasicAttack extends Skill {
     }
 
     public ComboNode getCurrentNode(SkillContainer container) {
-        return InvincibleAttachments.get(container.getExecutor().getOriginal()).getCurrentNode();
+        return InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getCurrentNode();
     }
 
     @Override
@@ -148,7 +148,7 @@ public class ComboBasicAttack extends Skill {
         if (debugMode) {
             LOGGER.debug("{} {} : pressed {} ticks. Interval: {} ms.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime, inputInterval);
         }
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(container.getExecutor().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         ComboNode last = invinciblePlayer.getCurrentNode();
         boolean hasPressedTimeCondition = false;
         if(last == null){
@@ -243,7 +243,7 @@ public class ComboBasicAttack extends Skill {
 
     public static void syncNode(ComboNode node, ServerPlayer serverPlayer) {
         SkillContainer container = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class).getSkill(SkillSlots.WEAPON_INNATE);
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(serverPlayer);
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(serverPlayer);
         sendFeedback(node, container, invinciblePlayer);
     }
 
@@ -306,7 +306,7 @@ public class ComboBasicAttack extends Skill {
     public void executeOnClient(SkillContainer container, CompoundTag args) {
         if (args.contains(InvincibleFlags.INVINCIBLE_PLAYER_NBT)) {
             CompoundTag tag = args.getCompound(InvincibleFlags.INVINCIBLE_PLAYER_NBT);
-            InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(container.getExecutor().getOriginal());
+            InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
             invinciblePlayer.loadNBTData(tag);
             ComboNode current = invinciblePlayer.getCurrentNode();
             if(current != null) {
@@ -320,7 +320,7 @@ public class ComboBasicAttack extends Skill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDodgeSuccess(DodgeSuccessEvent event, SkillContainer container) {
-        ImmutableList<BiEvent> dodgeSuccessEvents = InvincibleAttachments.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+        ImmutableList<BiEvent> dodgeSuccessEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
         if(dodgeSuccessEvents != null){
             dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
         }
@@ -332,7 +332,7 @@ public class ComboBasicAttack extends Skill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventPre(TakeDamageEvent.Pre event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(event.getPlayerPatch().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal());
         if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
             epicFightDamageSource.setStunType(StunType.NONE);
         }
@@ -356,7 +356,7 @@ public class ComboBasicAttack extends Skill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventPost(TakeDamageEvent.Post event, SkillContainer container) {
-        ImmutableList<BiEvent> hurtEvents = InvincibleAttachments.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+        ImmutableList<BiEvent> hurtEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHurtEvents();
         if(hurtEvents != null){
             hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
         }
@@ -367,7 +367,7 @@ public class ComboBasicAttack extends Skill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDealDamageEventPre(DealDamageEvent.Pre event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(event.getPlayerPatch().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal());
         if (invinciblePlayer.getStunTypeModifier() != null) {
             event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
         }
@@ -387,7 +387,7 @@ public class ComboBasicAttack extends Skill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDealDamageEventPost(DealDamageEvent.Post event, SkillContainer container) {
-        if (!InvincibleAttachments.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
+        if (!InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).isNotCharge()) {
             PlayerPatch<?> playerPatch = event.getPlayerPatch();
             ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
             CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(mainHandItem);
@@ -401,7 +401,7 @@ public class ComboBasicAttack extends Skill {
                 }
             }
         }
-        ImmutableList<BiEvent> hitEvents = InvincibleAttachments.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+        ImmutableList<BiEvent> hitEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
         if(hitEvents != null){
             hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
         }
@@ -457,7 +457,7 @@ public class ComboBasicAttack extends Skill {
         //初始化连段
         resetCombo(container, container.getExecutor(), root);
 
-        InvincibleAttachments.get(container.getExecutor().getOriginal()).resetPhase();
+        InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN, 0);
     }
 
@@ -467,7 +467,7 @@ public class ComboBasicAttack extends Skill {
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(container.getExecutor().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         SkillDataManager manager = container.getDataManager();
 //        if(manager.getDataValue(InvincibleSkillDataKeys.ANY_KEY_DOWN)) {
 //            container.getExecutor().resetActionTick();
@@ -495,7 +495,7 @@ public class ComboBasicAttack extends Skill {
     }
 
     public void resetCombo(SkillContainer container, PlayerPatch<?> playerPatch, ComboNode root) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(playerPatch.getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(playerPatch.getOriginal());
         invinciblePlayer.setCurrentNode(root);
         invinciblePlayer.clear();
         if(!playerPatch.isLogicalClient()) {

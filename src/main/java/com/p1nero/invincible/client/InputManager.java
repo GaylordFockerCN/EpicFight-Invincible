@@ -294,7 +294,7 @@ public class InputManager {
 
     public static SkillCastEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         SkillCastEvent event = new SkillCastEvent(executor, container, new CompoundTag());
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(executor.getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(executor.getOriginal());
         currentNode = invinciblePlayer.getCurrentNode();
         if (container.canUse(executor, event)) {
             for(CPSkillRequest packet : getAvailablePackets(container)){

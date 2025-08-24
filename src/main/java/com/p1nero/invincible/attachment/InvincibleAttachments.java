@@ -1,6 +1,7 @@
 package com.p1nero.invincible.attachment;
 
 import com.p1nero.invincible.InvincibleMod;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -21,8 +22,16 @@ public class InvincibleAttachments {
             "invincible_player", () -> AttachmentType.builder(InvinciblePlayer::new).build()
     );
 
-    public static InvinciblePlayer get(Player player){
+    public static final Supplier<AttachmentType<InvincibleEntity>> INVINCIBLE_ENTITY = ATTACHMENT_TYPES.register(
+            "invincible_entity", () -> AttachmentType.builder(InvincibleEntity::new).build()
+    );
+
+    public static InvinciblePlayer getPlayer(Player player){
         return player.getData(INVINCIBLE_PLAYER);
+    }
+
+    public static InvincibleEntity getEntity(LivingEntity entity){
+        return entity.getData(INVINCIBLE_ENTITY);
     }
 
     @SubscribeEvent
@@ -34,8 +43,7 @@ public class InvincibleAttachments {
 
     @SubscribeEvent
     public static void onPlayerTick(PlayerTickEvent.Pre event){
-        get(event.getEntity()).tick();
+        getPlayer(event.getEntity()).tick();
     }
-
 
 }

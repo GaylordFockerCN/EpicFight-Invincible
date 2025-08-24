@@ -22,7 +22,7 @@ public abstract class StaticAnimationMixin extends DynamicAnimation {
     @Inject(method = "end", at = @At("HEAD"))
     private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
         if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack && !this.isLinkAnimation()){
-            InvinciblePlayer invinciblePlayer = InvincibleAttachments.get(playerPatch.getOriginal());
+            InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(playerPatch.getOriginal());
             invinciblePlayer.clear();
         }
     }

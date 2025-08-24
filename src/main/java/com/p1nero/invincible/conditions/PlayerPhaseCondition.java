@@ -43,7 +43,7 @@ public class PlayerPhaseCondition implements Condition<ServerPlayerPatch> {
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        int phase = InvincibleAttachments.get(serverPlayerPatch.getOriginal()).getPhase();
+        int phase = InvincibleAttachments.getPlayer(serverPlayerPatch.getOriginal()).getPhase();
         return phase >= min && phase <= max;
     }
 

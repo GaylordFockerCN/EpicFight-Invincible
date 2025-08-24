@@ -18,7 +18,7 @@ public class SetPlayerStateCommands {
                         .then(Commands.argument("value", IntegerArgumentType.integer())
                                 .executes((context) -> {
                                     if(context.getSource().getPlayer() != null){
-                                        InvincibleAttachments.get(context.getSource().getPlayer()).setPhase(IntegerArgumentType.getInteger(context, "value"));
+                                        InvincibleAttachments.getPlayer(context.getSource().getPlayer()).setPhase(IntegerArgumentType.getInteger(context, "value"));
                                     }
                                     return 0;
                                 })
@@ -27,7 +27,7 @@ public class SetPlayerStateCommands {
                 .then(Commands.literal("resetPhase").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
                         .executes((context) -> {
                             if(context.getSource().getPlayer() != null){
-                                InvincibleAttachments.get(context.getSource().getPlayer()).resetPhase();
+                                InvincibleAttachments.getPlayer(context.getSource().getPlayer()).resetPhase();
                             }
                             return 0;
                         })
