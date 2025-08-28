@@ -134,7 +134,8 @@ repositories {
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-    implementation fg.deobf("curse.maven:epic-fight-mod-405076:6893186")
+    implementation fg.deobf("curse.maven:epic-fight-mod-405076:6921772")
+    implementation fg.deobf("curse.maven:epicfight-resurrection-1151542:6931390")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.

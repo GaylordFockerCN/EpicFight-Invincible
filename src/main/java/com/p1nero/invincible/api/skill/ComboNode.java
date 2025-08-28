@@ -22,6 +22,7 @@ public class ComboNode {
     protected final Map<ComboType, ComboNode> children = new HashMap<>();
     @Nullable
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> animationAccessor;
+    protected String animationName = "";
     private int priority;
     protected float playSpeed, convertTime;
     private ValueModifier damageMultiplier = null;
@@ -231,16 +232,18 @@ public class ComboNode {
 
     @Nullable
     public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationAccessor() {
-        return animationAccessor == null ? null : animationAccessor;
+        if(animationAccessor == null) {
+            animationAccessor = AnimationManager.byKey(animationName);
+        }
+        return animationAccessor;
     }
 
     public void setAnimationProvider(@Nullable AnimationManager.AnimationAccessor<? extends StaticAnimation> animation) {
         this.animationAccessor = animation;
     }
 
-    @Nullable
-    public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationProvider() {
-        return animationAccessor;
+    public void setAnimationName(String animationName) {
+        this.animationName = animationName;
     }
 
     @Nullable

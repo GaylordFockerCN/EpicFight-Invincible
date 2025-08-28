@@ -5,7 +5,7 @@ import com.google.gson.internal.Streams;
 import com.google.gson.stream.JsonReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
-import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.data.ComboJsonLoader;
 import com.p1nero.invincible.data.SkillJsonLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -20,7 +20,7 @@ import java.util.stream.Stream;
 
 public class InvincibleSkillManager {
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static void buildDatapackSkills(SkillBuildEvent event) {
+    public static void buildAdditionalCombos(SkillBuildEvent event) {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
         if(!Files.exists(invincibleCombos)){
             try {
@@ -40,7 +40,7 @@ public class InvincibleSkillManager {
                     jsonReader.setLenient(true);
                     JsonObject combo = Streams.parse(jsonReader).getAsJsonObject();
                     reader.close();
-                    ComboBasicAttack.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
+                    ComboBasicAttack.Builder skillBuilder = ComboJsonLoader.loadCombos(combo);
                     String modId = combo.get("mod_id").getAsString();
                     String skillName = combo.get("name").getAsString();
                     SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(modId);
@@ -61,6 +61,51 @@ public class InvincibleSkillManager {
             });
         } catch (IOException e) {
             LOGGER.error("error when loading combos", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void buildAdditionalSkills(SkillBuildEvent event) {
+        Path invincibleSkills = FMLPaths.CONFIGDIR.get().resolve("invincible_skills");
+        if(!Files.exists(invincibleSkills)){
+            try {
+                Files.createDirectory(invincibleSkills);
+                return;
+            } catch (IOException e){
+                LOGGER.error("Failed to create default file!", e);
+            }
+        }
+        try (Stream<Path> subDirs = Files.list(invincibleSkills)) {
+            subDirs.filter(path -> path.getFileName().toString().toLowerCase().endsWith(".json")).forEach(comboFile -> {
+                try {
+                    InputStream inputStream = new FileInputStream(comboFile.toFile());
+                    BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+                    InputStreamReader reader = new InputStreamReader(bufferedInputStream, StandardCharsets.UTF_8);
+                    JsonReader jsonReader = new JsonReader(reader);
+                    jsonReader.setLenient(true);
+                    JsonObject combo = Streams.parse(jsonReader).getAsJsonObject();
+                    reader.close();
+                    SimpleCustomInnateSkill.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
+                    String modId = combo.get("mod_id").getAsString();
+                    String skillName = combo.get("name").getAsString();
+                    SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(modId);
+                    SimpleCustomInnateSkill skill = registryWorker.build(skillName, SimpleCustomInnateSkill::new, skillBuilder);
+                    CompoundTag params = new CompoundTag();
+                    if (combo.has("consumption")) {
+                        params.putFloat("consumption", combo.get("consumption").getAsFloat());
+                    }
+                    if (combo.has("max_stacks")) {
+                        params.putInt("max_stacks", combo.get("max_stacks").getAsInt());
+                    }
+                    skill.setParams(params);
+
+                    LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
+                } catch (IOException | CommandSyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (IOException e) {
+            LOGGER.error("error when loading custom skills", e);
             throw new RuntimeException(e);
         }
     }

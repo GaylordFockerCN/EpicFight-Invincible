@@ -25,7 +25,8 @@ public class InvincibleMod {
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
         InvincibleParticles.PARTICLES.register(modEventBus);
         modEventBus.addListener(this::clientSetup);
-        modEventBus.addListener(InvincibleSkillManager::buildDatapackSkills);
+        modEventBus.addListener(InvincibleSkillManager::buildAdditionalCombos);
+        modEventBus.addListener(InvincibleSkillManager::buildAdditionalSkills);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
         context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
     }

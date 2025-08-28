@@ -3,19 +3,22 @@
     请仔细阅读本文档，目前数据包注册的模板仅能在单人游戏使用！但代码注册的可以正常在多人游戏中使用
     或参阅 https://github.com/GaylordFockerCN/EpicFight-Invincible/blob/master/README.md
     注释无需删除，你自己写的连击模板也可以保留本文件名字随意命名，只要下面mod_id和name不重复即可
-    本文件为注册联机类型，本质上是通过数据包注册了一个名为 invincible:datapack_demo的技能。然后请将这个技能填在自定义武器模板数据包的innate_skills当中。
+    本文件为注册连击类型，本质上是通过数据包注册了一个名为 invincible:datapack_demo的技能。然后请将这个技能填在自定义武器模板数据包的innate_skills当中。
     自定义武器模板数据包中，值得注意的是，模板中的combos虽然没用但是不能没有，而且Style一定要对应上！
     注册的id，可以随便填，到时候在武器里要填的就是mod_id:name
   */
   //mod_id最好与数据包同名
   "mod_id": "invincible",
-  "name": "custom_weapon_demo",
+  "name": "custom_combo_demo",
   //下面这俩是技能参数，和skill_parameters里的内容一致。目前仅支持这俩。本模组自带的skill_parameters中的那个文件是给代码注册用的，数据包无需关心，只需填下面两个即可。
   "consumption": 5,
   "max_stacks": 2,
+  "reserveTime": 20,
   //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/weapon_innate/${name}
   "drawSkillIcon": true,
-  "translationKeys": [
+  "skillTextureLocation": "epicfight:textures/gui/skills/weapon_innate/battojutsu.png",//现在你可以自己指定技能图标路径
+  //按shift时显示
+  "descriptions": [
     "custom_weapon_demo.invincible.usage1", "让我们说§3§l中文", "custom_weapon_demo.invincible.usage3"
   ],
   //连段数据
