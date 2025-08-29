@@ -127,19 +127,19 @@ public class InputManager {
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.DOWN, options.keyDown);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.LEFT, options.keyLeft);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.RIGHT, options.keyRight);
+
+                //判断是否有任意按键按下（暂时无用）
+                AtomicBoolean flag = new AtomicBoolean(false);
+                KEY_STATE_CACHE.forEach((key, time) -> {
+                    if(time != 0) {
+                        flag.set(true);
+                    }
+                });
+                if(flag.get() != manager.getDataValue(InvincibleSkillDataKeys.ANY_KEY_DOWN)) {
+                    manager.setDataSync(InvincibleSkillDataKeys.ANY_KEY_DOWN, flag.get());
+                }
             }
 
-            //判断是否有任意按键按下（暂时无用）
-            AtomicBoolean flag = new AtomicBoolean(false);
-            KEY_STATE_CACHE.forEach((key, time) -> {
-                if(time != 0) {
-                    flag.set(true);
-                }
-            });
-            SkillDataManager manager = getDataManager(localPlayerPatch);
-            if(flag.get() != manager.getDataValue(InvincibleSkillDataKeys.ANY_KEY_DOWN)) {
-                manager.setDataSync(InvincibleSkillDataKeys.ANY_KEY_DOWN, flag.get());
-            }
             //缓存的onPress包的处理
             if(!localPlayerPatch.getEntityState().inaction()) {
                 ON_PRESS_PACKETS.forEach(EpicFightNetworkManager::sendToServer);
