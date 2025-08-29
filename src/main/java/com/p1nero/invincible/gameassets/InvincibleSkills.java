@@ -7,9 +7,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.skill.ChargeDemo;
-import com.p1nero.invincible.skill.data.SkillJsonLoader;
+import com.p1nero.invincible.skill.SimpleCustomInnateSkill;
+import com.p1nero.invincible.skill.data.ComboJsonLoader;
 import com.p1nero.invincible.gameassets.combos.ComboDemo;
 import com.p1nero.invincible.skill.ComboBasicAttack;
+import com.p1nero.invincible.skill.data.SkillJsonLoader;
 import net.minecraft.nbt.CompoundTag;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -43,7 +45,7 @@ public class InvincibleSkills {
                     .build(key, ChargeDemo.class));
 
     @ApiStatus.Internal
-    public static void registerDatapackSkills() {
+    public static void registerJsonCombos() {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
         if(!Files.exists(invincibleCombos)){
             try {
@@ -51,7 +53,7 @@ public class InvincibleSkills {
 
                 return;
             } catch (IOException e){
-                LOGGER.error("Failed to create default file!", e);
+                LOGGER.error("Failed to create invincible_combos folder!", e);
             }
         }
         try (Stream<Path> subDirs = Files.list(invincibleCombos)) {
@@ -64,7 +66,7 @@ public class InvincibleSkills {
                     jsonReader.setLenient(true);
                     JsonObject combo = Streams.parse(jsonReader).getAsJsonObject();
                     reader.close();
-                    ComboBasicAttack.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
+                    ComboBasicAttack.Builder skillBuilder = ComboJsonLoader.loadCombos(combo);
                     String skillName = combo.get("name").getAsString();
                     REGISTRY.register(skillName, (key) -> {
                         ComboBasicAttack skill = skillBuilder.build(key, ComboBasicAttack.class);
@@ -86,6 +88,54 @@ public class InvincibleSkills {
             });
         } catch (Exception e) {
             LOGGER.error("error when loading combos", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @ApiStatus.Internal
+    public static void registerJsonSkills() {
+        Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_skills");
+        if(!Files.exists(invincibleCombos)){
+            try {
+                Files.createDirectory(invincibleCombos);
+
+                return;
+            } catch (IOException e){
+                LOGGER.error("Failed to create invincible_skills folder!", e);
+            }
+        }
+        try (Stream<Path> subDirs = Files.list(invincibleCombos)) {
+            subDirs.filter(path -> path.getFileName().toString().toLowerCase().endsWith(".json")).forEach(comboFile -> {
+                try {
+                    InputStream inputStream = new FileInputStream(comboFile.toFile());
+                    BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+                    InputStreamReader reader = new InputStreamReader(bufferedInputStream, StandardCharsets.UTF_8);
+                    JsonReader jsonReader = new JsonReader(reader);
+                    jsonReader.setLenient(true);
+                    JsonObject combo = Streams.parse(jsonReader).getAsJsonObject();
+                    reader.close();
+                    SimpleCustomInnateSkill.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
+                    String skillName = combo.get("name").getAsString();
+                    REGISTRY.register(skillName, (key) -> {
+                        SimpleCustomInnateSkill skill = skillBuilder.build(key, SimpleCustomInnateSkill.class);
+                        CompoundTag params = new CompoundTag();
+                        if (combo.has("consumption")) {
+                            params.putFloat("consumption", combo.get("consumption").getAsFloat());
+                        }
+                        if (combo.has("max_stacks")) {
+                            params.putInt("max_stacks", combo.get("max_stacks").getAsInt());
+                        }
+                        skill.loadDatapackParameters(params);
+                        return skill;
+                    });
+
+                    LOGGER.info("LOAD ADDITIONAL SKILL >> {}", InvincibleMod.MOD_ID + ":" + skillName);
+                } catch (IOException | CommandSyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        } catch (Exception e) {
+            LOGGER.error("error when loading skills", e);
             throw new RuntimeException(e);
         }
     }

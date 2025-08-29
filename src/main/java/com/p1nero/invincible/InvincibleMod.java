@@ -24,7 +24,8 @@ public class InvincibleMod {
         InvincibleConditions.CONDITIONS.register(modEventBus);
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
         InvincibleAttachments.ATTACHMENT_TYPES.register(modEventBus);
-        InvincibleSkills.registerDatapackSkills();
+        InvincibleSkills.registerJsonCombos();
+        InvincibleSkills.registerJsonSkills();
         InvincibleSkills.REGISTRY.register(modEventBus);
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::commonSetup);

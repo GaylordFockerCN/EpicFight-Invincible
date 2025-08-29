@@ -1,0 +1,57 @@
+{
+	"category": "greatsword",
+	"hit_sound": "epicfight:entity.hit.blade",
+	"swing_sound": "epicfight:entity.weapon.whoosh_hard",
+	"styles": {
+		"default": "two_hand"
+	},
+	"offhand_item_compatible_predicate": [
+		{
+			"predicate": "epicfight:offhand_item_category",
+			"category": "greatsword"
+		}
+	],
+	"usable_in_offhand": false,
+	"collider": {
+		"number": 4,
+		"center": [
+			0.0,
+			0.0,
+			-1.0
+		],
+		"size": [
+			0.5,
+			0.8,
+			1.0
+		]
+	},
+	"combos": {
+		"two_hand": [
+			"epicfight:biped/combat/axe_auto1",
+			"epicfight:biped/combat/axe_auto2",
+			"epicfight:biped/skill/dancing_edge",
+			"epicfight:biped/combat/sword_dual_dash",
+			"epicfight:biped/skill/blade_rush_combo3"
+		],
+		"mount": [
+          "epicfight:biped/combat/sword_mount_attack"
+		]
+	},
+	"innate_skills": {
+		"two_hand": "invincible:custom_innate_skill"
+	},
+	"livingmotion_modifier": {
+		"two_hand": {
+			"block": "epicfight:biped/skill/guard_greatsword",
+			"kneel": "epicfight:biped/living/hold_greatsword",
+			"walk": "epicfight:biped/living/hold_greatsword",
+			"chase": "epicfight:biped/living/run",
+			"run": "epicfight:biped/living/hold_greatsword",
+			"sneak": "epicfight:biped/living/sneak",
+			"swim": "epicfight:biped/living/swim",
+			"float": "epicfight:biped/living/float",
+			"fall": "epicfight:biped/living/fall",
+			"mount": "epicfight:biped/living/hold_uchigatana_sheath"
+		}
+	}
+}

@@ -1,0 +1,50 @@
+{
+
+  //this is a custom innate skill demo. you can find all parameter in wiki. it's same as the combo.
+  "mod_id": "invincible",//mod id should always be invincible
+  "name": "custom_innate_skill",//different from other skill, also different from the skills in invincible_combos
+  "consumption": 20,//energy per stack
+  "max_stacks": 3,
+  "drawSkillIcon": true,
+  "skillTextureLocation": "epicfight:textures/gui/skills/weapon_innate/battojutsu.png",//now you can set the texture location yourself
+  //showing when press shift. you can use translation key here.
+  "descriptions": [
+    "custom_weapon_demo.invincible.usage1", "让我们说§3§l中文", "custom_weapon_demo.invincible.usage3"
+  ],
+  "animation": "epicfight:biped/skill/sweeping_edge",
+  "speed_multiplier": 1.2,
+  "convert_time": 0.15,
+  "damage_multiplier": {
+    //choose from "adder", "multiplier" and "setter"
+    "multiplier": 2.0
+  },
+  "hurt_damage_multiplier": 0.5,
+  "impact_multiplier": 9.0,
+  //choose from NONE，SHORT，LONG，HOLD，KNOCKDOWN，NEUTRALIZE and FALL。
+  "stun_type": "KNOCKDOWN",
+  "can_be_interrupt": false,
+  "time_command_list": [
+    {
+      "time": 0.12,
+      "command": "summon minecraft:cow",
+      "execute_at_target": false
+    },
+    {
+      "time": 0.22,
+      "command": "summon minecraft:bee",
+      "execute_at_target": false
+    }
+  ],
+  "hit_command_list": [
+    {
+      "command": "summon minecraft:cow",
+      "execute_at_target": false
+    }
+  ],
+  "hurt_command_list": [
+    {
+      "command": "summon minecraft:bee",
+      "execute_at_target": false
+    }
+  ]
+}

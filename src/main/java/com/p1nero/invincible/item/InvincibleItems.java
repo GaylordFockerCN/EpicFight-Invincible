@@ -10,6 +10,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 public class InvincibleItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(InvincibleMod.MOD_ID);
     public static final DeferredItem<Item> DEBUG = ITEMS.register("debug", () -> new SwordItem(Tiers.WOOD, new Item.Properties()));
-    public static final DeferredItem<Item> DATAPACK_DEBUG = ITEMS.register("custom_weapon_demo", () -> new SwordItem(Tiers.WOOD, new Item.Properties()));
+    public static final DeferredItem<Item> CUSTOM_COMBO_DEMO = ITEMS.register("custom_combo_demo", () -> new SwordItem(Tiers.WOOD, new Item.Properties()));
+    public static final DeferredItem<Item> CUSTOM_SKILL_DEMO = ITEMS.register("custom_skill_demo", () -> new SwordItem(Tiers.WOOD, new Item.Properties()));
 
 }

@@ -251,6 +251,9 @@ public class ComboNode {
 
     @Nullable
     public AnimationManager.AnimationAccessor<? extends StaticAnimation> getAnimationAccessor() {
+        if(animationAccessor == null && animationAccessorSupplier != null) {
+            animationAccessor = animationAccessorSupplier.get();
+        }
         return animationAccessor;
     }
 

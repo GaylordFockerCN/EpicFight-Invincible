@@ -14,7 +14,7 @@
   //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/weapon_innate/${name} 或如下放置
   "drawSkillIcon": true,
   "skillTextureLocation": "epicfight:textures/gui/skills/weapon_innate/battojutsu.png",
-  "translationKeys": [
+  "descriptions": [
     "custom_weapon_demo.invincible.usage1", "让我们说§3§l中文", "custom_weapon_demo.invincible.usage3"
   ],
   //连段数据
