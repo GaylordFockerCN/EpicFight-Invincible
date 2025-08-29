@@ -26,12 +26,12 @@
   "time_command_list": [
     {
       "time": 0.12,
-      "command": "summon minecraft:cow",
+      "command": "particle minecraft:flame ~ ~ ~ 0.5 0.5 0.5 0.1 50",
       "execute_at_target": false
     },
     {
       "time": 0.22,
-      "command": "summon minecraft:bee",
+      "command": "particle minecraft:soul_fire_flame ~ ~ ~ 0.5 0.5 0.5 0.1 50",
       "execute_at_target": false
     }
   ],

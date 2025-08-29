@@ -57,7 +57,7 @@ import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 import java.util.*;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ComboBasicAttack extends Skill {
+public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
 
     protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac114514");
 

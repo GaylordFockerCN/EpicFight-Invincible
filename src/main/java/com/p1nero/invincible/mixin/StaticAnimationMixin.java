@@ -2,7 +2,7 @@ package com.p1nero.invincible.mixin;
 
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
-import com.p1nero.invincible.skill.ComboBasicAttack;
+import com.p1nero.invincible.skill.AbstractInvincibleInnateSkill;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -21,7 +21,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 public abstract class StaticAnimationMixin extends DynamicAnimation {
     @Inject(method = "end", at = @At("HEAD"))
     private void invincible$onAnimationEnd(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd, CallbackInfo ci){
-        if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack && !this.isLinkAnimation()){
+        if(entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof AbstractInvincibleInnateSkill && !this.isLinkAnimation()){
             InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(playerPatch.getOriginal());
             invinciblePlayer.clear();
         }

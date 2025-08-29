@@ -45,15 +45,13 @@ import java.util.List;
 import java.util.UUID;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleCustomInnateSkill extends Skill {
+public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
 
     protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac191981");
 
     protected boolean shouldDrawGui;
     protected List<String> translationKeys;
     protected ResourceLocation skillTexture;
-    @Nullable
-    protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode node;
 
@@ -74,7 +72,10 @@ public class SimpleCustomInnateSkill extends Skill {
         if (container.getExecutor().isLogicalClient()) {
             return super.canExecute(container);
         } else {
-            if(container.getStack() == 0 && !container.getExecutor().getOriginal().isCreative()) {
+            if(container.getExecutor().getOriginal().isCreative()) {
+                return true;
+            }
+            if(container.getStack() == 0 && this.getMaxStack() != 0) {
                 return false;
             }
             ItemStack itemstack = container.getExecutor().getOriginal().getMainHandItem();
