@@ -50,7 +50,13 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
     @Override
     public void begin(LivingEntityPatch<?> entityPatch) {
         super.begin(entityPatch);
-        InvincibleEntities.getEntityCap(entityPatch.getOriginal()).clearMap();
+        InvincibleEntities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
+    }
+
+    @Override
+    public void end(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd) {
+        super.end(entityPatch, nextAnimation, isEnd);
+        InvincibleEntities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
     }
 
     /**

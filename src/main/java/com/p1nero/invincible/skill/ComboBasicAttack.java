@@ -349,7 +349,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                 event.getDamageSource().attachDamageModifier(invinciblePlayer.getDamageMultiplier());
             }
         }));
-        //自己写个充能用
+        //自己写个充能用，从物品判断防止切武器技能还在
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
             PlayerPatch<?> playerPatch = event.getPlayerPatch();
             ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();

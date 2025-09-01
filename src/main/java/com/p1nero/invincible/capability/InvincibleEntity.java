@@ -26,8 +26,10 @@ public class InvincibleEntity {
         return toReturn;
     }
 
-    public void clearMap(){
-        phaseListMap.clear();
+    public void removePhaseCache(AttackAnimation.Phase ...phases){
+        for(AttackAnimation.Phase phase : phases) {
+            phaseListMap.remove(phase);
+        }
     }
 
     public void saveNBTData(CompoundTag tag) {
