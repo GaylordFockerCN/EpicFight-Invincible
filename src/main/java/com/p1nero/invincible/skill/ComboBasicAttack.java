@@ -52,7 +52,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import yesman.epicfight.world.entity.eventlistener.*;
 
 import java.util.*;
 
@@ -297,6 +297,106 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         }
     }
 
+    protected void onDodgeSuccess(DodgeSuccessEvent event, SkillContainer container) {
+        ImmutableList<BiEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+        if (dodgeSuccessEvents != null) {
+            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+        }
+        container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get());
+    }
+
+    protected void onTakeDamageEventAttack(TakeDamageEvent.Attack event, SkillContainer container) {
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+        if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
+            epicFightDamageSource.setStunType(StunType.NONE);
+        }
+        //招架成功的判断，配合优先级-1使用
+        if (event.isParried()) {
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get());
+        }
+    }
+
+    protected void onTakeDamageEventHurt(TakeDamageEvent.Hurt event, SkillContainer container) {
+        ImmutableList<BiEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+        if (hurtEvents != null) {
+            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+        }
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+        if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
+            event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
+        }
+    }
+
+    protected void onDealDamageEventAttack(DealDamageEvent.Attack event, SkillContainer container) {
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
+        if (invinciblePlayer.getStunTypeModifier() != null) {
+            event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
+        }
+        if (invinciblePlayer.getImpactMultiplier() != 1.0F) {
+            event.getDamageSource().setBaseImpact(event.getDamageSource().getBaseImpact() * invinciblePlayer.getImpactMultiplier());
+        }
+        if (invinciblePlayer.getArmorNegation() != 0) {
+            event.getDamageSource().setBaseArmorNegation(invinciblePlayer.getArmorNegation());
+        }
+        if (invinciblePlayer.getDamageMultiplier() != null) {
+            event.getDamageSource().attachDamageModifier(invinciblePlayer.getDamageMultiplier());
+        }
+    }
+
+    protected void onDealDamageEventDamage(DealDamageEvent.Damage event, SkillContainer container) {
+        PlayerPatch<?> playerPatch = event.getPlayerPatch();
+        ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
+        CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(mainHandItem);
+        if (capabilityItem == null || !(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
+            return;
+        }
+        if (!InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
+            if (!container.isFull()) {
+                float value = container.getResource() + event.getAttackDamage();
+                if (value > 0.0F) {
+                    this.setConsumptionSynchronize(container, value);
+                }
+            }
+        }
+        ImmutableList<BiEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+        if (hitEvents != null) {
+            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
+        }
+    }
+
+    protected void onSkillCastEvent(SkillCastEvent event, SkillContainer container) {
+        //不影响默认的普攻
+        ItemStack mainHandItem = event.getPlayerPatch().getOriginal().getMainHandItem();
+        if (mainHandItem.isEmpty() || !mainHandItem.getCapability(EpicFightCapabilities.CAPABILITY_ITEM).isPresent()) {
+            return;
+        }
+        //不影响没技能但是有模板的武器
+        if (EpicFightCapabilities.getItemStackCapability(mainHandItem).getInnateSkill(event.getPlayerPatch(), mainHandItem) == null) {
+            return;
+        }
+        SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
+        if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
+            event.setCanceled(true);
+        }
+    }
+
+    protected void onClientInput(MovementInputEvent event, SkillContainer container) {
+        Input input = event.getMovementInput();
+        boolean isUp = input.up;
+        if (isUp && !isWalking) {
+            if (walkBegin != null) {
+                container.getExecutor().playAnimationSynchronized(walkBegin, 0.15F);
+            }
+            isWalking = true;
+        }
+        if (!isUp && isWalking) {
+            if (walkEnd != null) {
+                container.getExecutor().playAnimationSynchronized(walkEnd, 0.15F);
+            }
+            isWalking = false;
+        }
+    }
+
     @Override
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
@@ -306,102 +406,30 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN.get(), 0);
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-            ImmutableList<BiEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
-            if (dodgeSuccessEvents != null) {
-                dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
-            }
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get());
+            onDodgeSuccess(event, container);
         }));
         //减伤和霸体的判断
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
-            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
-            if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
-                epicFightDamageSource.setStunType(StunType.NONE);
-            }
-            //招架成功的判断，配合优先级-1使用
-            if (event.isParried()) {
-                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get());
-            }
+            onTakeDamageEventAttack(event, container);
         }));
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
-            ImmutableList<BiEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
-            if (hurtEvents != null) {
-                hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
-            }
-            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
-            if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
-                event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
-            }
+            onTakeDamageEventHurt(event, container);
         }));
         //调整攻击倍率，冲击，硬直类型等
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
-            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
-            if (invinciblePlayer.getStunTypeModifier() != null) {
-                event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
-            }
-            if (invinciblePlayer.getImpactMultiplier() != 1.0F) {
-                event.getDamageSource().setBaseImpact(event.getDamageSource().getBaseImpact() * invinciblePlayer.getImpactMultiplier());
-            }
-            if (invinciblePlayer.getArmorNegation() != 0) {
-                event.getDamageSource().setBaseArmorNegation(invinciblePlayer.getArmorNegation());
-            }
-            if (invinciblePlayer.getDamageMultiplier() != null) {
-                event.getDamageSource().attachDamageModifier(invinciblePlayer.getDamageMultiplier());
-            }
+            onDealDamageEventAttack(event, container);
         }));
         //自己写个充能用，从物品判断防止切武器技能还在
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_DAMAGE, EVENT_UUID, (event -> {
-            PlayerPatch<?> playerPatch = event.getPlayerPatch();
-            ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
-            CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(mainHandItem);
-            if (capabilityItem == null || !(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
-                return;
-            }
-            if (!InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
-                if (!container.isFull()) {
-                    float value = container.getResource() + event.getAttackDamage();
-                    if (value > 0.0F) {
-                        this.setConsumptionSynchronize(container, value);
-                    }
-                }
-            }
-            ImmutableList<BiEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
-            if (hitEvents != null) {
-                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
-            }
+            onDealDamageEventDamage(event, container);
         }));
         //取消原版的普攻和跳攻
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_CAST_EVENT, EVENT_UUID, (event -> {
-            //不影响默认的普攻
-            ItemStack mainHandItem = event.getPlayerPatch().getOriginal().getMainHandItem();
-            if (mainHandItem.isEmpty() || !mainHandItem.getCapability(EpicFightCapabilities.CAPABILITY_ITEM).isPresent()) {
-                return;
-            }
-            //不影响没技能但是有模板的武器
-            if (EpicFightCapabilities.getItemStackCapability(mainHandItem).getInnateSkill(event.getPlayerPatch(), mainHandItem) == null) {
-                return;
-            }
-            SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
-            if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
-                event.setCanceled(true);
-            }
+            onSkillCastEvent(event, container);
         }));
         //播放walk的过渡动画
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID, (event -> {
-            Input input = event.getMovementInput();
-            boolean isUp = input.up;
-            if (isUp && !isWalking) {
-                if (walkBegin != null) {
-                    container.getExecutor().playAnimationSynchronized(walkBegin, 0.15F);
-                }
-                isWalking = true;
-            }
-            if (!isUp && isWalking) {
-                if (walkEnd != null) {
-                    container.getExecutor().playAnimationSynchronized(walkEnd, 0.15F);
-                }
-                isWalking = false;
-            }
+            onClientInput(event, container);
         }));
     }
 
