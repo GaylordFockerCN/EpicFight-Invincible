@@ -30,7 +30,7 @@ public class ComboDemo {
                     }
                 })));
         ComboNode jumpAttack = ComboNode.createNode(Animations.SWORD_AIR_SLASH).setPriority(3).addCondition(new JumpCondition());//修改了原版的跳跃攻击机制，以此补偿
-        ComboNode dashAttack = ComboNode.createNode(Animations.SWORD_DASH).setPriority(2).addCondition(new SprintingCondition());//修改了原版的冲刺攻击机制，以此补偿
+        ComboNode dashAttack = ComboNode.createNode(Animations.SWORD_DASH).setNotCharge(true).setPriority(2).addCondition(new SprintingCondition());//修改了原版的冲刺攻击机制，以此补偿
         ComboNode longPressAttack = ComboNode.createNode(Animations.SWORD_DASH).setPriority(4).addCondition(new PressedTimeCondition(20, Integer.MAX_VALUE));//长按的样例,请结合ChargeDemo
 
         ComboNode a = ComboNode.create();

@@ -32,7 +32,7 @@ public class InvincibleWeaponCapabilityPresets {
                     .hitSound(EpicFightSounds.BLADE_HIT.get())
                     .hitParticle(EpicFightParticles.HIT_BLADE.get())
                     .canBePlacedOffhand(false)
-                    .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_DEMO.get())
+                    .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_ATTACKS.get())
                     .comboCancel((style) -> false);
 
     @SubscribeEvent

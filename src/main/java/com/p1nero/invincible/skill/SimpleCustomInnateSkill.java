@@ -48,7 +48,7 @@ import java.util.UUID;
 import java.util.function.Function;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class SimpleCustomInnateSkill extends Skill {
+public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
 
     protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac191981");
 

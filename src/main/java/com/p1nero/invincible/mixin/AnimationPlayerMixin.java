@@ -3,6 +3,7 @@ package com.p1nero.invincible.mixin;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.attachment.InvinciblePlayer;
+import com.p1nero.invincible.skill.AbstractInvincibleSkill;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -30,7 +31,7 @@ public abstract class AnimationPlayerMixin {
 
     @Redirect(method = "tick", at = @At(value = "INVOKE", target = "Lyesman/epicfight/api/animation/types/DynamicAnimation;getPlaySpeed(Lyesman/epicfight/world/capabilities/entitypatch/LivingEntityPatch;Lyesman/epicfight/api/animation/types/DynamicAnimation;)F"))
     private float invincible$onGetPlaySpeed(DynamicAnimation instance, LivingEntityPatch<?> entityPatch, DynamicAnimation animation) {
-        if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+        if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof AbstractInvincibleSkill) {
             InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(playerPatch.getOriginal());
             if (invinciblePlayer.getPlaySpeedMultiplier() != 0) {
                 return instance.getPlaySpeed(entityPatch, animation) * invinciblePlayer.getPlaySpeedMultiplier();

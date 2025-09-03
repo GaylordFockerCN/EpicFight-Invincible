@@ -25,8 +25,10 @@ public class InvincibleEntity {
         return toReturn;
     }
 
-    public void clearMap(){
-        phaseListMap.clear();
+    public void clearMap(AttackAnimation.Phase... phases){
+        for(AttackAnimation.Phase phase : phases) {
+            phaseListMap.remove(phase);
+        }
     }
 
 }

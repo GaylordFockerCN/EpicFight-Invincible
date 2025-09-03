@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 public class InvincibleSkills {
     public static final Logger LOGGER = LogUtils.getLogger();
     public static final DeferredRegister<Skill> REGISTRY = DeferredRegister.create(EpicFightRegistries.Keys.SKILL, InvincibleMod.MOD_ID);
-    public static final DeferredHolder<Skill, ComboBasicAttack> COMBO_DEMO = REGISTRY.register("combo_attacks",
+    public static final DeferredHolder<Skill, ComboBasicAttack> COMBO_ATTACKS = REGISTRY.register("combo_attacks",
             (key) -> ComboBasicAttack.createComboBasicAttack(ChargeDemo::new)
                     .setCombo(ComboDemo.demo())
                     .setMaxProtectTime(22)

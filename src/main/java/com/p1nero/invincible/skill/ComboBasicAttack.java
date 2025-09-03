@@ -58,7 +58,7 @@ import java.util.List;
 import java.util.function.Function;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ComboBasicAttack extends Skill {
+public class ComboBasicAttack extends AbstractInvincibleSkill {
 
     public static final Logger LOGGER = LogUtils.getLogger();
     @OnlyIn(Dist.CLIENT)

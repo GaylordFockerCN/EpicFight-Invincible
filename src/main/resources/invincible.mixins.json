@@ -8,6 +8,7 @@
   ],
   "mixins": [
     "AnimationPlayerMixin",
+    "EntityEventsMixin",
     "SkillContainerMixin",
     "StaticAnimationMixin"
   ],
