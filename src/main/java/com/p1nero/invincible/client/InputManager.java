@@ -38,7 +38,6 @@ public class InputManager {
     private static int reserveCounter;
     private static long lastInputTime;
     private static long inputInterval;
-    private static SkillSlot reservedSkillSlot;
     private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<Integer> INPUT_QUEUE = new ArrayDeque<>();
@@ -92,7 +91,7 @@ public class InputManager {
      */
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
+        if (event.phase == TickEvent.Phase.START) {
             return;
         }
         if (localPlayerPatch == null) {
@@ -102,7 +101,7 @@ public class InputManager {
             //缓存的按键的处理
             if (reserveCounter > 0) {
                 --reserveCounter;
-                if (tryRequestSkillExecute(reservedSkillSlot, false)) {
+                if (tryRequestSkillExecute(false)) {
                     clearReservedKeys();
                     clearKeyCache();
                 }
@@ -125,7 +124,7 @@ public class InputManager {
             }
         }
 
-        if (INPUT_QUEUE.size() > 2) {
+        while (INPUT_QUEUE.size() > 2) {
             Integer keyId = INPUT_QUEUE.poll();
             if (!INPUT_QUEUE.contains(keyId)) {
                 KEY_STATE_CACHE.put(keyId, 0);
@@ -171,7 +170,7 @@ public class InputManager {
                 }
             }
             if (action == InputConstants.RELEASE) {
-                tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
+                tryRequestSkillExecute(true);
             }
         }
     }
@@ -194,7 +193,7 @@ public class InputManager {
             }
         });
         if (shouldExecute.get()) {
-            tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
+            tryRequestSkillExecute(true);
         }
     }
 
@@ -203,11 +202,11 @@ public class InputManager {
      */
     public static void clearKeyCache() {
         KEY_STATE_CACHE.forEach(((keyId, aInt) -> KEY_STATE_CACHE.put(keyId, 0)));
+        INPUT_QUEUE.clear();
     }
 
     public static void clearReservedKeys() {
         reserveCounter = -1;
-        reservedSkillSlot = null;
     }
 
     /**
@@ -217,31 +216,24 @@ public class InputManager {
         InputManager.reserveCounter = reserveCounter;
     }
 
-    public static void setReserve(SkillSlot reserve) {
+    public static void setReserve() {
         InputManager.reserveCounter = Config.RESERVE_TICK.get();
         ComboBasicAttack comboBasicAttack = getComboBasicSkill();
         if (comboBasicAttack != null) {
             InputManager.reserveCounter = comboBasicAttack.getMaxReserveTime();
         }
-        InputManager.reservedSkillSlot = reserve;
-    }
-
-    /**
-     * 预存的技能栏
-     */
-    public static void setReservedSkillSlot(SkillSlot reservedSkillSlot) {
-        InputManager.reservedSkillSlot = reservedSkillSlot;
     }
 
     /**
      * 发起执行请求，并预存键位，战斗模式下才可以使用
      */
-    public static boolean tryRequestSkillExecute(SkillSlot slot, boolean shouldReserve) {
+    public static boolean tryRequestSkillExecute(boolean shouldReserve) {
+        SkillSlot slot = SkillSlots.WEAPON_INNATE;
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.getPlayerMode() == PlayerPatch.PlayerMode.EPICFIGHT) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserveKey()) {
                 if (shouldReserve) {
-                    setReserve(slot);
+                    setReserve();
                 }
                 return false;
             } else {
@@ -277,7 +269,7 @@ public class InputManager {
                 inputInterval = System.currentTimeMillis() - lastInputTime;
                 list.add(getExecutePacket(container.getSlot(), comboType, pressedTime, inputInterval));
                 if(!comboType.getSubTypes().isEmpty()) {
-                    return list;
+                    break;
                 }
             }
         }
