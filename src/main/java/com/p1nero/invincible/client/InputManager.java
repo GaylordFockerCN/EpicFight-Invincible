@@ -44,7 +44,6 @@ public class InputManager {
     private static int reserveCounter;
     private static long lastInputTime;
     private static long inputInterval;
-    private static SkillSlot reservedSkillSlot;
     private static final BiMap<ComboType, KeyMapping> TYPE_KEY_MAP = HashBiMap.create();
     private static BiMap<KeyMapping, ComboType> KEY_TYPE_MAP = HashBiMap.create();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
@@ -99,7 +98,7 @@ public class InputManager {
      * 同时给了按键输入一点小延迟，方便读取双键
      */
     @SubscribeEvent
-    public static void onClientTick(ClientTickEvent.Pre event) {
+    public static void onClientTick(ClientTickEvent.Post event) {
         if (localPlayerPatch == null) {
             localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         }
@@ -107,7 +106,7 @@ public class InputManager {
             //缓存的按键的处理
             if (reserveCounter > 0) {
                 --reserveCounter;
-                if (tryRequestSkillExecute(reservedSkillSlot, false)) {
+                if (tryRequestSkillExecute(false)) {
                     clearReservedKeys();
                     clearKeyCache();
                 }
@@ -147,7 +146,7 @@ public class InputManager {
             }
         }
 
-        if (INPUT_QUEUE.size() > 2) {
+        while (INPUT_QUEUE.size() > 2) {
             Integer keyId = INPUT_QUEUE.poll();
             if (!INPUT_QUEUE.contains(keyId)) {
                 KEY_STATE_CACHE.put(keyId, 0);
@@ -197,7 +196,7 @@ public class InputManager {
                 }
             }
             if (action == InputConstants.RELEASE) {
-                tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
+                tryRequestSkillExecute(true);
             }
         }
     }
@@ -234,7 +233,7 @@ public class InputManager {
             }
         });
         if (shouldExecute.get()) {
-            tryRequestSkillExecute(SkillSlots.WEAPON_INNATE, true);
+            tryRequestSkillExecute(true);
         }
     }
 
@@ -243,11 +242,11 @@ public class InputManager {
      */
     public static void clearKeyCache() {
         KEY_STATE_CACHE.forEach(((keyId, aInt) -> KEY_STATE_CACHE.put(keyId, 0)));
+        INPUT_QUEUE.clear();
     }
 
     public static void clearReservedKeys() {
         reserveCounter = -1;
-        reservedSkillSlot = null;
     }
 
     /**
@@ -263,20 +262,13 @@ public class InputManager {
         if (comboBasicAttack != null) {
             InputManager.reserveCounter = comboBasicAttack.getMaxReserveTime();
         }
-        InputManager.reservedSkillSlot = reserve;
-    }
-
-    /**
-     * 预存的技能栏
-     */
-    public static void setReservedSkillSlot(SkillSlot reservedSkillSlot) {
-        InputManager.reservedSkillSlot = reservedSkillSlot;
     }
 
     /**
      * 发起执行请求，并预存键位，战斗模式下才可以使用
      */
-    public static boolean tryRequestSkillExecute(SkillSlot slot, boolean shouldReserve) {
+    public static boolean tryRequestSkillExecute(boolean shouldReserve) {
+        SkillSlot slot = SkillSlots.WEAPON_INNATE;
         LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
         if (executor != null && executor.getPlayerMode() == PlayerPatch.PlayerMode.EPICFIGHT) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserveKey()) {
@@ -317,7 +309,7 @@ public class InputManager {
                 inputInterval = System.currentTimeMillis() - lastInputTime;
                 list.add(getExecutePacket(container.getSlot(), comboType, pressedTime, inputInterval));
                 if(!comboType.getSubTypes().isEmpty()) {
-                    return list;
+                    break;
                 }
             }
         }
