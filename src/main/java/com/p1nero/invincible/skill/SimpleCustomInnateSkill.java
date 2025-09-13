@@ -9,7 +9,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.p1nero.invincible.Config;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.capability.InvinciblePlayer;
@@ -25,10 +25,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import yesman.epicfight.api.animation.AnimationManager;
-import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.api.utils.math.Vec2f;
 import yesman.epicfight.client.gui.BattleModeGui;
@@ -100,8 +98,9 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         }
         float convertTime = node.getConvertTime();
         container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
         node.getOnBeginEvents().forEach(event -> {
-            event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget());
+            event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
         });
         initPlayer(container, InvinciblePlayerCapabilityProvider.get(container.getServerExecutor().getOriginal()), node);
         setStackSynchronize(container, container.getStack() - 1);
@@ -146,9 +145,10 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN.get(), 0);
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
-            ImmutableList<BiEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+            ImmutableList<BaseEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
             if (dodgeSuccessEvents != null) {
-                dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+                dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
             }
             container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get());
         }));
@@ -164,11 +164,12 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
             }
         }));
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
-            ImmutableList<BiEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+
+            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+            ImmutableList<BaseEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
             if (hurtEvents != null) {
-                hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+                hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
             }
-            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
             if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
                 event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
             }
@@ -205,9 +206,11 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
                     }
                 }
             }
-            ImmutableList<BiEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+
+            InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+            ImmutableList<BaseEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if (hitEvents != null) {
-                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
+                hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
             }
         }));
     }

@@ -2,6 +2,7 @@ package com.p1nero.invincible;
 
 import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.client.particles.InvincibleParticles;
+import com.p1nero.invincible.command.arguments.InvincibleCommandArgumentTypes;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
@@ -12,6 +13,7 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 
 @Mod(InvincibleMod.MOD_ID)
@@ -24,7 +26,9 @@ public class InvincibleMod {
         InvincibleConditions.CONDITIONS.register(modEventBus);
         InvincibleSkillDataKeys.DATA_KEYS.register(modEventBus);
         InvincibleParticles.PARTICLES.register(modEventBus);
+        InvincibleCommandArgumentTypes.COMMAND_ARGUMENT_TYPES.register(modEventBus);
         modEventBus.addListener(this::clientSetup);
+        modEventBus.addListener(this::commonSetup);
         modEventBus.addListener(InvincibleSkillManager::buildAdditionalCombos);
         modEventBus.addListener(InvincibleSkillManager::buildAdditionalSkills);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
@@ -33,6 +37,9 @@ public class InvincibleMod {
 
     private void clientSetup(final FMLClientSetupEvent event){
         InputManager.init();
+    }
+    private void commonSetup(final FMLCommonSetupEvent event){
+        event.enqueueWork(InvincibleCommandArgumentTypes::registerArgumentTypes);
     }
 
 }

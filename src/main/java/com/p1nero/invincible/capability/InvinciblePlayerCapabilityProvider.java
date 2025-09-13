@@ -12,6 +12,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID)
 public class InvinciblePlayerCapabilityProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
@@ -32,6 +33,10 @@ public class InvinciblePlayerCapabilityProvider implements ICapabilityProvider, 
 
     public static InvinciblePlayer get(Player player){
         return player.getCapability(INVINCIBLE_PLAYER).orElse(new InvinciblePlayer());
+    }
+
+    public static InvinciblePlayer get(PlayerPatch<?> playerPatch){
+        return get(playerPatch.getOriginal());
     }
 
     @Override

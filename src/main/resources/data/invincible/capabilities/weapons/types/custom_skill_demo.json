@@ -27,7 +27,7 @@
 	},
 	"combos": {
 		"two_hand": [
-			"epicfight:biped/combat/axe_auto1",
+			"epicfight:biped/skill/blade_rush_combo1",
 			"epicfight:biped/combat/axe_auto2",
 			"epicfight:biped/skill/dancing_edge",
 			"epicfight:biped/combat/sword_dual_dash",

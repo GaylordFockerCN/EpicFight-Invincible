@@ -10,7 +10,7 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.Config;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
@@ -215,7 +215,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                 }
                 container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
                 current.getOnBeginEvents().forEach(event -> {
-                    event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget());
+                    event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
                 });
                 initPlayer(container, invinciblePlayer, current);
                 //把玩家参数以及当前节点同步给客户端
@@ -292,15 +292,16 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             invinciblePlayer.loadNBTData(tag);
             ComboNode current = invinciblePlayer.getCurrentNode();
             if(current != null) {
-                invinciblePlayer.getCurrentNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget()));
+                invinciblePlayer.getCurrentNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
             }
         }
     }
 
     protected void onDodgeSuccess(DodgeSuccessEvent event, SkillContainer container) {
-        ImmutableList<BiEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+        ImmutableList<BaseEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
         if (dodgeSuccessEvents != null) {
-            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
         }
         container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get());
     }
@@ -317,11 +318,11 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     protected void onTakeDamageEventHurt(TakeDamageEvent.Hurt event, SkillContainer container) {
-        ImmutableList<BiEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+        ImmutableList<BaseEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
         if (hurtEvents != null) {
-            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
         }
-        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
         if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
             event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
         }
@@ -350,7 +351,8 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         if (capabilityItem == null || !(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
             return;
         }
-        if (!InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).isNotCharge()) {
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+        if (!invinciblePlayer.isNotCharge()) {
             if (!container.isFull()) {
                 float value = container.getResource() + event.getAttackDamage();
                 if (value > 0.0F) {
@@ -358,9 +360,9 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                 }
             }
         }
-        ImmutableList<BiEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+        ImmutableList<BaseEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
         if (hitEvents != null) {
-            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
+            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
         }
     }
 

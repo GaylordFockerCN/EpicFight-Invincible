@@ -1,12 +1,11 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.api.skill.ComboNode;
-import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -30,7 +29,7 @@ public class InvincibleDemoSkills {
         SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
         //我使用的是史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.create();
-        ComboNode basicAttack = ComboNode.createNode(Animations.SWORD_AUTO1)//1a
+        ComboNode basicAttack = ComboNode.createNode(Animations.BLADE_RUSH_COMBO1)//1a
                 .setPlaySpeed(1.1F)//修改播放速度
                 .setStunTypeModifier(StunType.KNOCKDOWN)//修改硬直类型
                 .setDamageMultiplier(ValueModifier.multiplier(0.5F))//修改伤害
@@ -39,7 +38,7 @@ public class InvincibleDemoSkills {
                 .setConvertTime(0.15F)
                 .setPriority(1)
                 //自定义事件
-                .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
+                .addTimeEvent(new TimeStampedEvent(0.12F, ((entityPatch, target, invinciblePlayer) -> {
                     if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                         serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
@@ -54,14 +53,14 @@ public class InvincibleDemoSkills {
         jumpAttack.key1(a);//闭环
 
         ComboNode aa = ComboNode.createNode(Animations.SWORD_AUTO2);//2a
-        aa.addHitEvent(new BiEvent((entityPatch, entity) -> {
+        aa.addHitEvent(new BaseEvent((entityPatch, entity, invinciblePlayer) -> {
             if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                 serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
             }
         }));
         //客户端事件测试
-        aa.addBeginEvent(BiEvent.createClientEvent((playerPatch, entity) -> System.out.println("hello Client")))
-                .addBeginEvent(BiEvent.createServerEvent((playerPatch, entity) -> System.out.println("hello")));
+        aa.addBeginEvent(BaseEvent.createClientEvent((playerPatch, entity, invinciblePlayer) -> System.out.println("hello Client")))
+                .addBeginEvent(BaseEvent.createServerEvent((playerPatch, entity, invinciblePlayer) -> System.out.println("hello")));
 
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a
 
@@ -69,7 +68,7 @@ public class InvincibleDemoSkills {
         basicAttack.key2(ab);//1a后按key2可变招
 
         ComboNode aaa = ComboNode.createNode(Animations.SWORD_AUTO3)//3a
-                .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;
+                .addTimeEvent(new TimeStampedEvent(0.23F, ((entityPatch, target, invinciblePlayer) -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;
         aa.key1(aaa);
         aaa.key1(a);//闭环，增加手感
 

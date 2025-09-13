@@ -10,6 +10,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.fml.common.Mod;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID)
 public class InvincibleEntityCapabilityProvider implements ICapabilityProvider, INBTSerializable<CompoundTag> {
@@ -30,6 +31,10 @@ public class InvincibleEntityCapabilityProvider implements ICapabilityProvider, 
 
     public static InvincibleEntity get(LivingEntity entity){
         return entity.getCapability(INVINCIBLE_ENTITY).orElse(new InvincibleEntity());
+    }
+
+    public static InvincibleEntity get(LivingEntityPatch<?> patch){
+        return get(patch.getOriginal());
     }
 
     @Override

@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.skill.SimpleCustomInnateSkill;
@@ -149,7 +149,7 @@ public class SkillJsonLoader {
                 JsonObject command = commandElement.getAsJsonObject();
                 String commandText = command.get("command").getAsString();
                 boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                node.addHitEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                node.addHitEvent(BaseEvent.createBiCommandEvent(commandText, executeAtTarget));
             }
         }
         if (combo.has("hurt_command_list")) {
@@ -158,7 +158,7 @@ public class SkillJsonLoader {
                 JsonObject command = commandElement.getAsJsonObject();
                 String commandText = command.get("command").getAsString();
                 boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                node.addHurtEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                node.addHurtEvent(BaseEvent.createBiCommandEvent(commandText, executeAtTarget));
             }
         }
         if (combo.has("dodge_success_command_list")) {
@@ -167,7 +167,7 @@ public class SkillJsonLoader {
                 JsonObject command = commandElement.getAsJsonObject();
                 String commandText = command.get("command").getAsString();
                 boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                node.addDodgeSuccessEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                node.addDodgeSuccessEvent(BaseEvent.createBiCommandEvent(commandText, executeAtTarget));
             }
         }
 

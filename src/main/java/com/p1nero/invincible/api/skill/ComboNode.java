@@ -39,10 +39,10 @@ public class ComboNode {
     protected List<Pair<Condition, Side>> conditions = new ArrayList<>();
     protected List<ComboNode> conditionAnimations = new ArrayList<>();
     protected final List<TimeStampedEvent> events = new ArrayList<>();
-    protected final List<BiEvent> dodgeSuccessEvents = new ArrayList<>();
-    protected final List<BiEvent> hitEvents = new ArrayList<>();
-    protected final List<BiEvent> hurtEvents = new ArrayList<>();
-    protected final List<BiEvent> onBeginEvents = new ArrayList<>();
+    protected final List<BaseEvent> dodgeSuccessEvents = new ArrayList<>();
+    protected final List<BaseEvent> hitEvents = new ArrayList<>();
+    protected final List<BaseEvent> hurtEvents = new ArrayList<>();
+    protected final List<BaseEvent> onBeginEvents = new ArrayList<>();
 
     protected ComboNode() {
         root = this;
@@ -174,22 +174,22 @@ public class ComboNode {
         return this;
     }
 
-    public ComboNode addDodgeSuccessEvent(BiEvent event) {
+    public ComboNode addDodgeSuccessEvent(BaseEvent event) {
         dodgeSuccessEvents.add(event);
         return this;
     }
 
-    public ComboNode addHurtEvent(BiEvent event) {
+    public ComboNode addHurtEvent(BaseEvent event) {
         hurtEvents.add(event);
         return this;
     }
 
-    public ComboNode addHitEvent(BiEvent event) {
+    public ComboNode addHitEvent(BaseEvent event) {
         hitEvents.add(event);
         return this;
     }
 
-    public ComboNode addBeginEvent(BiEvent event) {
+    public ComboNode addBeginEvent(BaseEvent event) {
         onBeginEvents.add(event);
         return this;
     }
@@ -198,19 +198,19 @@ public class ComboNode {
         return events;
     }
 
-    public List<BiEvent> getHitEvents() {
+    public List<BaseEvent> getHitEvents() {
         return hitEvents;
     }
 
-    public List<BiEvent> getHurtEvents() {
+    public List<BaseEvent> getHurtEvents() {
         return hurtEvents;
     }
 
-    public List<BiEvent> getDodgeSuccessEvents() {
+    public List<BaseEvent> getDodgeSuccessEvents() {
         return dodgeSuccessEvents;
     }
 
-    public List<BiEvent> getOnBeginEvents() {
+    public List<BaseEvent> getOnBeginEvents() {
         return onBeginEvents;
     }
 
