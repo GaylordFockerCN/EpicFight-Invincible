@@ -5,7 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.api.combo.ComboNode;
@@ -168,7 +168,7 @@ public class ComboJsonLoader {
                         JsonObject command = commandElement.getAsJsonObject();
                         String commandText = command.get("command").getAsString();
                         boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                        child.addHitEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                        child.addHitEvent(BaseEvent.createBiCommandEvent(commandText, executeAtTarget));
                     }
                 }
                 if (combo.has("hurt_command_list")) {
@@ -177,7 +177,7 @@ public class ComboJsonLoader {
                         JsonObject command = commandElement.getAsJsonObject();
                         String commandText = command.get("command").getAsString();
                         boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                        child.addHurtEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                        child.addHurtEvent(BaseEvent.createBiCommandEvent(commandText, executeAtTarget));
                     }
                 }
                 if (combo.has("dodge_success_command_list")) {
@@ -186,7 +186,7 @@ public class ComboJsonLoader {
                         JsonObject command = commandElement.getAsJsonObject();
                         String commandText = command.get("command").getAsString();
                         boolean executeAtTarget = command.get("execute_at_target").getAsBoolean();
-                        child.addDodgeSuccessEvent(BiEvent.createBiCommandEvent(commandText, executeAtTarget));
+                        child.addDodgeSuccessEvent(BaseEvent.createBiCommandEvent(commandText, executeAtTarget));
                     }
                 }
 

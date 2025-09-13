@@ -10,6 +10,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 import java.util.function.Supplier;
 
@@ -29,9 +31,16 @@ public class InvincibleAttachments {
     public static InvinciblePlayer getPlayer(Player player){
         return player.getData(INVINCIBLE_PLAYER);
     }
+    public static InvinciblePlayer getPlayer(PlayerPatch<?> playerPatch){
+        return getPlayer(playerPatch.getOriginal());
+    }
 
     public static InvincibleEntity getEntity(LivingEntity entity){
         return entity.getData(INVINCIBLE_ENTITY);
+    }
+
+    public static InvincibleEntity getEntity(LivingEntityPatch<?> entityPatch){
+        return getEntity(entityPatch.getOriginal());
     }
 
     @SubscribeEvent

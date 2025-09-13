@@ -1,6 +1,6 @@
 package com.p1nero.invincible.gameassets.combos;
 
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.conditions.*;
@@ -40,15 +40,15 @@ public class ComboDemo {
         jumpAttack.key1(a);//闭环
 
         ComboNode aa = ComboNode.createNode(Animations.SWORD_AUTO2);//2a
-        aa.addHitEvent(new BiEvent((entityPatch, entity) -> {
+        aa.addHitEvent(new BaseEvent((entityPatch, entity) -> {
             if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                 serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
             }
         }));
-        aa.addBeginEvent(BiEvent.createServerEvent((playerPatch, entity) -> {
+        aa.addBeginEvent(BaseEvent.createServerEvent((playerPatch, entity) -> {
             System.out.println("Hello Server!");
         }));
-        aa.addBeginEvent(BiEvent.createClientEvent(((playerPatch, entity) -> {
+        aa.addBeginEvent(BaseEvent.createClientEvent(((playerPatch, entity) -> {
             System.out.println("hello Client!");
         })));
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a

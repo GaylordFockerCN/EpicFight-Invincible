@@ -11,7 +11,7 @@ import com.p1nero.invincible.InvincibleFlags;
 import com.p1nero.invincible.api.Side;
 import com.p1nero.invincible.conditions.PressIntervalCondition;
 import com.p1nero.invincible.conditions.PressedTimeCondition;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.attachment.InvinciblePlayer;
@@ -229,7 +229,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
             }
             container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
             current.getOnBeginEvents().forEach(event -> {
-                event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget());
+                event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
             });
             initPlayer(container, invinciblePlayer, current);
             //把玩家参数以及当前节点同步给客户端
@@ -310,7 +310,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
             invinciblePlayer.loadNBTData(tag);
             ComboNode current = invinciblePlayer.getCurrentNode();
             if(current != null) {
-                invinciblePlayer.getCurrentNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget()));
+                invinciblePlayer.getCurrentNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
             }
         }
     }
@@ -320,9 +320,10 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDodgeSuccess(DodgeSuccessEvent event, SkillContainer container) {
-        ImmutableList<BiEvent> dodgeSuccessEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
+        ImmutableList<BaseEvent> dodgeSuccessEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
         if(dodgeSuccessEvents != null){
-            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
         }
         container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, Config.EFFECT_TICK.get());
     }
@@ -356,9 +357,10 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
      */
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventPost(TakeDamageEvent.Post event, SkillContainer container) {
-        ImmutableList<BiEvent> hurtEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHurtEvents();
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
+        ImmutableList<BaseEvent> hurtEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHurtEvents();
         if(hurtEvents != null){
-            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget()));
+            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
         }
     }
 
@@ -401,9 +403,10 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
                 }
             }
         }
-        ImmutableList<BiEvent> hitEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
+        ImmutableList<BaseEvent> hitEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
         if(hitEvents != null){
-            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget()));
+            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
         }
     }
 

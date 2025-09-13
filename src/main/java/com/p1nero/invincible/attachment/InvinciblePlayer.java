@@ -2,7 +2,7 @@ package com.p1nero.invincible.attachment;
 
 import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.api.combo.ComboNodeManager;
-import com.p1nero.invincible.api.events.BiEvent;
+import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.combo.ComboNode;
 import net.minecraft.core.HolderLookup;
@@ -23,11 +23,11 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
     private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
     private final Map<ItemStack, Integer> cooldownMap = new HashMap<>();
     @Nullable
-    private ImmutableList<BiEvent> dodgeSuccessEvents = null;
+    private ImmutableList<BaseEvent> dodgeSuccessEvents = null;
     @Nullable
-    private ImmutableList<BiEvent> hitSuccessEvents = null;
+    private ImmutableList<BaseEvent> hitSuccessEvents = null;
     @Nullable
-    private ImmutableList<BiEvent> hurtEvents = null;
+    private ImmutableList<BaseEvent> hurtEvents = null;
     private float playSpeedMultiplier;
     private ValueModifier damageMultiplier;
     private float armorNegation;
@@ -139,27 +139,27 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
         return timeStampedEvents;
     }
 
-    public @Nullable ImmutableList<BiEvent> getDodgeSuccessEvents() {
+    public @Nullable ImmutableList<BaseEvent> getDodgeSuccessEvents() {
         return dodgeSuccessEvents;
     }
 
-    public @Nullable ImmutableList<BiEvent> getHurtEvents() {
+    public @Nullable ImmutableList<BaseEvent> getHurtEvents() {
         return hurtEvents;
     }
 
-    public @Nullable ImmutableList<BiEvent> getHitSuccessEvents() {
+    public @Nullable ImmutableList<BaseEvent> getHitSuccessEvents() {
         return hitSuccessEvents;
     }
 
-    public void setDodgeSuccessEvents(@Nullable ImmutableList<BiEvent> dodgeSuccessEvents) {
+    public void setDodgeSuccessEvents(@Nullable ImmutableList<BaseEvent> dodgeSuccessEvents) {
         this.dodgeSuccessEvents = dodgeSuccessEvents;
     }
 
-    public void setHitSuccessEvents(@Nullable ImmutableList<BiEvent> hitSuccessEvents) {
+    public void setHitSuccessEvents(@Nullable ImmutableList<BaseEvent> hitSuccessEvents) {
         this.hitSuccessEvents = hitSuccessEvents;
     }
 
-    public void setHurtEvents(@Nullable ImmutableList<BiEvent> hurtEvents) {
+    public void setHurtEvents(@Nullable ImmutableList<BaseEvent> hurtEvents) {
         this.hurtEvents = hurtEvents;
     }
 

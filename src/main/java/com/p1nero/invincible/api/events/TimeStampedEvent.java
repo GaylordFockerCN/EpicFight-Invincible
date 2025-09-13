@@ -1,5 +1,6 @@
 package com.p1nero.invincible.api.events;
 
+import com.p1nero.invincible.attachment.InvincibleAttachments;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -9,7 +10,7 @@ import java.util.function.Consumer;
 
 public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     private final float time;
-    private final Consumer<PlayerPatch<?>> event;
+    private final BaseConsumer event;
     private boolean executed = false;
 
     public boolean isExecuted() {
@@ -19,20 +20,28 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
         executed = false;
     }
 
-    public TimeStampedEvent(float time, Consumer<PlayerPatch<?>> event) {
+    public TimeStampedEvent(float time, BaseConsumer event) {
         this.time = time;
         this.event = event;
     }
 
-    public void testAndExecute(PlayerPatch<?> entityPatch, float prevElapsed, float elapsed) {
-        if (this.time >= prevElapsed && this.time < elapsed && !entityPatch.isLogicalClient()) {
-            this.event.accept(entityPatch);
+    @Deprecated
+    public TimeStampedEvent(float time, Consumer<PlayerPatch<?>> event) {
+        this.time = time;
+        this.event = ((playerPatch, target, invinciblePlayer) -> {
+            event.accept(playerPatch);
+        });
+    }
+
+    public void testAndExecute(PlayerPatch<?> playerPatch, float prevElapsed, float elapsed) {
+        if (this.time >= prevElapsed && this.time < elapsed && !playerPatch.isLogicalClient()) {
+            this.event.accept(playerPatch, playerPatch.getTarget(), InvincibleAttachments.getPlayer(playerPatch.getOriginal()));
             executed = true;
         }
     }
 
     public static TimeStampedEvent createTimeCommandEvent(float time, String command, boolean isTarget) {
-        Consumer<PlayerPatch<?>> event = (entityPatch) -> {
+        BaseConsumer event = (entityPatch, target, invinciblePlayer) -> {
             Level server = entityPatch.getOriginal().level();
             CommandSourceStack css = entityPatch.getOriginal().createCommandSourceStack().withPermission(2).withSuppressedOutput();
             if (isTarget && entityPatch.getTarget() != null) {
