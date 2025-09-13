@@ -24,11 +24,11 @@ public class ComboDemo {
                 .setConvertTime(0.15F)
                 .setPriority(1)
                 //自定义事件
-                .addTimeEvent(new TimeStampedEvent(0.12F, (entityPatch -> {
-                    if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
+                .addTimeEvent(new TimeStampedEvent(0.12F, (playerPatch, target, invinciblePlayer) -> {
+                    if (playerPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                         serverPlayer.serverLevel().sendParticles(ParticleTypes.SOUL_FIRE_FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
                     }
-                })));
+                }));
         ComboNode jumpAttack = ComboNode.createNode(Animations.SWORD_AIR_SLASH).setPriority(3).addCondition(new JumpCondition());//修改了原版的跳跃攻击机制，以此补偿
         ComboNode dashAttack = ComboNode.createNode(Animations.SWORD_DASH).setNotCharge(true).setPriority(2).addCondition(new SprintingCondition());//修改了原版的冲刺攻击机制，以此补偿
         ComboNode longPressAttack = ComboNode.createNode(Animations.SWORD_DASH).setPriority(4).addCondition(new PressedTimeCondition(20, Integer.MAX_VALUE));//长按的样例,请结合ChargeDemo
@@ -40,15 +40,15 @@ public class ComboDemo {
         jumpAttack.key1(a);//闭环
 
         ComboNode aa = ComboNode.createNode(Animations.SWORD_AUTO2);//2a
-        aa.addHitEvent(new BaseEvent((entityPatch, entity) -> {
+        aa.addHitEvent(new BaseEvent((entityPatch, entity, invinciblePlayer) -> {
             if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                 serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
             }
         }));
-        aa.addBeginEvent(BaseEvent.createServerEvent((playerPatch, entity) -> {
+        aa.addBeginEvent(BaseEvent.createServerEvent((entityPatch, entity, invinciblePlayer) -> {
             System.out.println("Hello Server!");
         }));
-        aa.addBeginEvent(BaseEvent.createClientEvent(((playerPatch, entity) -> {
+        aa.addBeginEvent(BaseEvent.createClientEvent(((entityPatch, entity, invinciblePlayer) -> {
             System.out.println("hello Client!");
         })));
         basicAttack.key1(aa);//只有播放普攻后按key1才能接2a
@@ -58,7 +58,7 @@ public class ComboDemo {
         basicAttack.key2(ab_);//1a后按key2可变招
 
         ComboNode aaa = ComboNode.createNode(Animations.SWORD_AUTO3)//3a
-                .addTimeEvent(new TimeStampedEvent(0.23F, (entityPatch -> entityPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;
+                .addTimeEvent(new TimeStampedEvent(0.23F, ((playerPatch, target, invinciblePlayer) -> playerPatch.playAnimationSynchronized(Animations.BIPED_STEP_BACKWARD, 0.15F))));//打断动画，即一个按键触发两次动画，但第二次动画无法执行事件。;
         aa.key1(aaa);
         aaa.key1(a);//闭环，增加手感
 
