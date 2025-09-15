@@ -53,6 +53,16 @@ public class ScanAttackAnimation extends AttackAnimation {
     }
 
     @Override
+    protected Vec3 getCoordVector(LivingEntityPatch<?> entitypatch, AssetAccessor<? extends DynamicAnimation> dynamicAnimation) {
+        Vec3 vec3 = super.getCoordVector(entitypatch, dynamicAnimation);
+        if (entitypatch.shouldBlockMoving() && this.getProperty(AnimationProperty.ActionAnimationProperty.CANCELABLE_MOVE).orElse(false)) {
+            vec3 = vec3.scale(0.0F);
+        }
+
+        return vec3;
+    }
+
+    @Override
     protected void attackTick(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation) {
         AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(this.getAccessor());
         if(player == null) {
