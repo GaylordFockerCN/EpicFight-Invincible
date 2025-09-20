@@ -4,14 +4,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
-import com.p1nero.invincible.command.arguments.AllSkillArgument;
-import io.netty.buffer.Unpooled;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
-import net.minecraftforge.server.command.EnumArgument;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -109,19 +105,6 @@ public class SetPlayerStateCommands {
                         )
                 )
                 .then(Commands.argument("players", EntityArgument.players()).requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
-//                        .then(Commands.literal("execute")
-//                                .then(Commands.argument("skill", AllSkillArgument.skill())
-//                                    .then(Commands.argument("slot", EnumArgument.enumArgument(SkillSlots.class))
-//                                        .executes((context) -> {
-//                                            for(Player player : EntityArgument.getPlayers(context, "players")) {
-//                                                ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(player, ServerPlayerPatch.class);
-//                                                AllSkillArgument.getSkill(context, "skill").executeOnServer(serverPlayerPatch.getSkill(context.getArgument("slot", SkillSlots.class)), new FriendlyByteBuf(Unpooled.buffer()));
-//                                            }
-//                                            return 0;
-//                                        })
-//                                    )
-//                                )
-//                        )
                         .then(Commands.literal("setPlayerPhase").requires((commandSourceStack) -> commandSourceStack.hasPermission(2))
                                 .then(Commands.argument("value", IntegerArgumentType.integer())
                                         .executes((context) -> {

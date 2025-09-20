@@ -52,17 +52,22 @@ public class ComboJsonLoader {
             resourceLocation = ResourceLocation.parse(comboType.get("skillTextureLocation").getAsString());
         }
 
-        int reserveTime = 0;
-        if(comboType.has("reserveTime")) {
-            reserveTime = comboType.get("reserveTime").getAsInt();
-        }
-
-        return ComboBasicAttack.createComboBasicAttack()
+        ComboBasicAttack.Builder builder = ComboBasicAttack.createComboBasicAttack()
                 .setShouldDrawGui(drawSkillIcon)
                 .setCombo(root)
                 .addToolTipOnItem(tipList)
-                .setSkillTextureLocation(resourceLocation)
-                .setReserveTime(reserveTime);
+                .setSkillTextureLocation(resourceLocation);
+        if(comboType.has("maxProtectTime")) {
+            builder.setMaxProtectTime(comboType.get("MaxProtectTime").getAsInt());
+        }
+        if(comboType.has("maxPressTime")) {
+            builder.setMaxPressTime(comboType.get("maxPressTime").getAsInt());
+        }
+        if(comboType.has("reserveTime")) {
+            builder.setReserveTime(comboType.get("reserveTime").getAsInt());
+        }
+
+        return builder;
     }
 
     /**

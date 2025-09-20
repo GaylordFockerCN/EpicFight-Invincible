@@ -13,7 +13,13 @@
   //下面这俩是技能参数，和skill_parameters里的内容一致。目前仅支持这俩。本模组自带的skill_parameters中的那个文件是给代码注册用的，数据包无需关心，只需填下面两个即可。
   "consumption": 5,
   "max_stacks": 2,
-  "reserveTime": 20,
+  //长按保护时间。在新版本的无坚不摧当中，新加入了长按检测，因此发包改为抬手时发包。若长按时间超过长按保护时间，且本节点不存在长按检测条件时，将跳过节点的触发。
+  "maxProtectTime": 110,
+  //最长长按时间。超过此时间仍未松手，则直接发包。
+  "maxPressTime": 100,
+  //预存输入时间，仅客户端有效
+  //即在前一个动画未结束时，若提前按下按键，则会在这段时间内反复尝试请求执行。
+  "reserveTime": 8,
   //是否在屏幕上画技能图标。若为true则请将贴图放至assets/${mod_id}/textures/gui/skills/weapon_innate/${name}
   "drawSkillIcon": true,
   "skillTextureLocation": "epicfight:textures/gui/skills/weapon_innate/battojutsu.png",//现在你可以自己指定技能图标路径

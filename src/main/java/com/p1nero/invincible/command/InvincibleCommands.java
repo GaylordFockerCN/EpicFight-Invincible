@@ -14,5 +14,6 @@ public class InvincibleCommands {
         CommandDispatcher<CommandSourceStack> dispatcher = event.getDispatcher();
         SetPlayerStateCommands.register(dispatcher);
         EffectCommands.register(dispatcher);
+        ReloadCommands.register(dispatcher);
     }
 }

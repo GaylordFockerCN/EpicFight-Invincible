@@ -16,10 +16,13 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class InvincibleSkillManager {
     public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Set<String> MOD_ID_SET = new HashSet<>();
     public static void buildAdditionalCombos(SkillBuildEvent event) {
         Path invincibleCombos = FMLPaths.CONFIGDIR.get().resolve("invincible_combos");
         if(!Files.exists(invincibleCombos)){
@@ -53,7 +56,7 @@ public class InvincibleSkillManager {
                         params.putInt("max_stacks", combo.get("max_stacks").getAsInt());
                     }
                     skill.setParams(params);
-
+                    MOD_ID_SET.add(modId);
                     LOGGER.info("LOAD ADDITIONAL SKILL >> {}", modId + ":" + skillName);
                 } catch (IOException | CommandSyntaxException e) {
                     throw new RuntimeException(e);
