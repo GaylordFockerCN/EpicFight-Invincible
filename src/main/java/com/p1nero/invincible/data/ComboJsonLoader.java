@@ -58,7 +58,7 @@ public class ComboJsonLoader {
                 .addToolTipOnItem(tipList)
                 .setSkillTextureLocation(resourceLocation);
         if(comboType.has("maxProtectTime")) {
-            builder.setMaxProtectTime(comboType.get("MaxProtectTime").getAsInt());
+            builder.setMaxProtectTime(comboType.get("maxProtectTime").getAsInt());
         }
         if(comboType.has("maxPressTime")) {
             builder.setMaxPressTime(comboType.get("maxPressTime").getAsInt());
