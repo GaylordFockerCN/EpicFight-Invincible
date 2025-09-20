@@ -42,13 +42,10 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Function;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
-
-    protected static final UUID EVENT_UUID = UUID.fromString("d1d114cc-f11f-11ed-a05b-0242ac191981");
 
     protected boolean shouldDrawGui;
     protected List<String> translationKeys;

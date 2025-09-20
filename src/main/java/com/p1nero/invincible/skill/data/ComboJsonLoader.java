@@ -51,11 +51,23 @@ public class ComboJsonLoader {
             }
         }
 
-        return ComboBasicAttack.createComboBasicAttack(ComboBasicAttack::new)
+        ComboBasicAttack.Builder builder = ComboBasicAttack.createComboBasicAttack(ComboBasicAttack::new)
                 .setShouldDrawGui(drawSkillIcon)
                 .setCombo(root)
                 .setSkillTextureLocation(skillTextureLocation)
                 .addToolTipOnItem(tipList);
+
+        if(weapon.has("maxProtectTime")) {
+            builder.setMaxProtectTime(weapon.get("maxProtectTime").getAsInt());
+        }
+        if(weapon.has("maxPressTime")) {
+            builder.setMaxPressTime(weapon.get("maxPressTime").getAsInt());
+        }
+        if(weapon.has("reserveTime")) {
+            builder.setReserveTime(weapon.get("reserveTime").getAsInt());
+        }
+
+        return builder;
     }
 
     /**

@@ -4,7 +4,6 @@ import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.attachment.InvinciblePlayer;
 import com.p1nero.invincible.skill.AbstractInvincibleSkill;
-import com.p1nero.invincible.skill.ComboBasicAttack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -42,7 +41,7 @@ public abstract class AnimationPlayerMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void invincible$injectTick(LivingEntityPatch<?> entityPatch, CallbackInfo ci) {
-        if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+        if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof AbstractInvincibleSkill) {
 
             InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(serverPlayerPatch.getOriginal());
 

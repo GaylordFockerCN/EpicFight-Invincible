@@ -4,5 +4,6 @@
   "key.invincible.key3": "KEY3",
   "key.invincible.key4": "KEY4",
   "key.invincible.category": "Invincible Key",
-  "tips.invincible.charge": "Long Press KEY2 to charge."
+  "tips.invincible.charge": "Long Press KEY2 to charge.",
+  "commands.invincible.reload": "[Invincible Lib]: Skills Reloaded!"
 }

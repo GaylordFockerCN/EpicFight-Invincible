@@ -11,7 +11,7 @@
   "descriptions": [
     "custom_weapon_demo.invincible.usage1", "让我们说§3§l中文", "custom_weapon_demo.invincible.usage3"
   ],
-  "animation": "epicfight:biped/skill/sweeping_edge",
+  "animation": "epicfight:biped/combat/sword_auto2",
   "speed_multiplier": 1.2,
   "convert_time": 0.15,
   "damage_multiplier": {
@@ -26,12 +26,12 @@
   "time_command_list": [
     {
       "time": 0.12,
-      "command": "summon minecraft:cow",
+      "command": "summon minecraft:wolf",
       "execute_at_target": false
     },
     {
       "time": 0.22,
-      "command": "summon minecraft:bee",
+      "command": "summon minecraft:wolf",
       "execute_at_target": false
     }
   ],
