@@ -65,7 +65,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
     protected boolean isWalking;
     protected boolean shouldDrawGui;
     protected List<String> translationKeys;
-    protected int maxPressTime, maxReserveTime, maxProtectTime;
+    protected final int maxPressTime, maxReserveTime, maxProtectTime;
 
     @Nullable
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;

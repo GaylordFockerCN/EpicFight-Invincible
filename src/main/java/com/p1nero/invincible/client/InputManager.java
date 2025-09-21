@@ -49,7 +49,6 @@ public class InputManager {
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<Integer> INPUT_QUEUE = new ArrayDeque<>();
     private static final List<CPSkillRequest> ON_PRESS_PACKETS = new ArrayList<>();
-    private static LocalPlayerPatch localPlayerPatch;
     private static ComboNode currentNode;
 
     public static ComboNode getCurrentNode() {
@@ -85,6 +84,7 @@ public class InputManager {
 
     @Nullable
     public static ComboBasicAttack getComboBasicSkill() {
+        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch == null) {
             return null;
         } else if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
@@ -99,9 +99,8 @@ public class InputManager {
      */
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        if (localPlayerPatch == null) {
-            localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        }
+        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
+
         if (localPlayerPatch != null) {
             //缓存的按键的处理
             if (reserveCounter > 0) {
@@ -159,6 +158,7 @@ public class InputManager {
     }
 
     private static void checkDirectionKeyDown(SkillDataManager manager, DeferredHolder<SkillDataKey<?>, ? extends SkillDataKey<Boolean>> skillDataKey, KeyMapping key) {
+        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (manager.getDataValue(skillDataKey) != key.isDown() && localPlayerPatch != null) {
             manager.setDataSync(skillDataKey, key.isDown());
         }
@@ -364,6 +364,7 @@ public class InputManager {
             return false;
         }
         for(Condition condition : next.getConditions(Side.CLIENT, Side.LOCAL_CLIENT, Side.BOTH)) {
+            LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
             if(!condition.predicate(localPlayerPatch)){
                 return false;
             }
