@@ -73,7 +73,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
-    protected int maxPressTime, maxReserveTime, maxProtectTime;
+    protected final int maxPressTime, maxReserveTime, maxProtectTime;
 
     public ComboBasicAttack(Builder builder) {
         super(builder);

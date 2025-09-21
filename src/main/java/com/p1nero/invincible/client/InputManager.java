@@ -9,6 +9,7 @@ import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
+import com.p1nero.invincible.skill.AbstractInvincibleInnateSkill;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -41,7 +42,6 @@ public class InputManager {
     private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<Integer> INPUT_QUEUE = new ArrayDeque<>();
-    private static LocalPlayerPatch localPlayerPatch;
     private static ComboNode currentNode;
 
     public static ComboNode getCurrentNode() {
@@ -77,6 +77,7 @@ public class InputManager {
 
     @Nullable
     public static ComboBasicAttack getComboBasicSkill() {
+        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch == null) {
             return null;
         } else if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
@@ -91,12 +92,10 @@ public class InputManager {
      */
     @SubscribeEvent
     public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.START) {
+        if (event.phase == TickEvent.Phase.START || Minecraft.getInstance().player == null) {
             return;
         }
-        if (localPlayerPatch == null) {
-            localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-        }
+        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
             if (reserveCounter > 0) {
@@ -114,9 +113,10 @@ public class InputManager {
             }
 
             //判断asdw是否按下，用于Condition判断。
-            if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
+            SkillContainer container = localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE);
+            if (container.getSkill() instanceof AbstractInvincibleInnateSkill) {
                 Options options = Minecraft.getInstance().options;
-                SkillDataManager manager = localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getDataManager();
+                SkillDataManager manager = container.getDataManager();
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.UP.get(), options.keyUp);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.DOWN.get(), options.keyDown);
                 checkDirectionKeyDown(manager, InvincibleSkillDataKeys.LEFT.get(), options.keyLeft);
@@ -316,6 +316,7 @@ public class InputManager {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static boolean testClientConditions(ComboType comboType) {
+        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if(currentNode == null) {
             return false;
         }
