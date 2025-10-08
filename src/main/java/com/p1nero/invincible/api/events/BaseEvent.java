@@ -10,7 +10,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 import java.util.function.BiConsumer;
 
-public record BaseEvent(BaseConsumer event, Side side) {
+public record BaseEvent(BaseConsumer consumer, Side side) {
     public BaseEvent(BaseConsumer event) {
         this(event, Side.BOTH);
     }
@@ -81,7 +81,7 @@ public record BaseEvent(BaseConsumer event, Side side) {
 
     public void testAndExecute(PlayerPatch<?> entityPatch, Entity target, InvinciblePlayer invinciblePlayer) {
         if (side.test(entityPatch.getOriginal())) {
-            this.event.accept(entityPatch, target, invinciblePlayer);
+            this.consumer.accept(entityPatch, target, invinciblePlayer);
         }
     }
 }

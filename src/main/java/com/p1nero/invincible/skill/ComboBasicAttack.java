@@ -233,6 +233,9 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
             });
             initPlayer(container, invinciblePlayer, current);
             //把玩家参数以及当前节点同步给客户端
+            if(current.isRepeatNode()) {
+                next = current.getParentNode();
+            }
             invinciblePlayer.setCurrentNode(next);
             sendFeedback(next, container, invinciblePlayer);
         } else {
