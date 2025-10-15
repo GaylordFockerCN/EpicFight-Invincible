@@ -2,12 +2,9 @@ package com.p1nero.invincible.conditions;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.item.UseAnim;
 import yesman.epicfight.data.conditions.Condition;
-import yesman.epicfight.skill.SkillContainer;
-import yesman.epicfight.skill.SkillSlots;
+import yesman.epicfight.skill.guard.GuardSkill;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
-import yesman.epicfight.world.capabilities.item.CapabilityItem;
 
 import java.util.List;
 
@@ -29,9 +26,7 @@ public class BlockingCondition implements Condition<ServerPlayerPatch> {
 
     @Override
     public boolean predicate(ServerPlayerPatch serverPlayerPatch) {
-        SkillContainer guardSkill = serverPlayerPatch.getSkill(SkillSlots.GUARD);
-        CapabilityItem itemCapability = serverPlayerPatch.getHoldingItemCapability((serverPlayerPatch.getOriginal().getUsedItemHand()));
-        return itemCapability.getUseAnimation(serverPlayerPatch) == UseAnim.BLOCK && (serverPlayerPatch.getOriginal().isUsingItem() && guardSkill.getSkill() != null && guardSkill.getSkill().isExecutableState(serverPlayerPatch));
+        return serverPlayerPatch.getHoldingSkill() instanceof GuardSkill;
 
     }
 
