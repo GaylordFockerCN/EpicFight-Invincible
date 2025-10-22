@@ -31,5 +31,8 @@ public class InvincibleConditions {
     public static final RegistryObject<Supplier<Condition<?>>> RIGHT = CONDITIONS.register("right", () -> RightCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> PRESS_TIME_CONDITION = CONDITIONS.register("press_time_condition", () -> PressedTimeCondition::new);
     public static final RegistryObject<Supplier<Condition<?>>> PRESS_INTERVAL_CONDITION = CONDITIONS.register("press_interval_condition", () -> PressIntervalCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> IN_TARGET_POV = CONDITIONS.register("within_target_angle", () -> InTargetPovCondition::new);
+    public static final RegistryObject<Supplier<Condition<?>>> IN_TARGET_POV_HORIZONTAL = CONDITIONS.register("within_target_angle_horizontal", () -> InTargetPovCondition.InTargetPovHorizontal::new);
+    public static final RegistryObject<Supplier<Condition<?>>> VIEW_AND_TARGET_VIEW = CONDITIONS.register("view_and_target_view_within_angle", () -> PovTargetPovAngle::new);
 
 }

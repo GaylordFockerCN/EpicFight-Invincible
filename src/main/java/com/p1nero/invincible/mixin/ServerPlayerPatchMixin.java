@@ -11,7 +11,7 @@ import yesman.epicfight.world.entity.eventlistener.DealDamageEvent;
 
 @Mixin(ServerPlayerPatch.class)
 public class ServerPlayerPatchMixin {
-    @Inject(method = "lambda$onJoinWorld$2", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(method = "lambda$onJoinWorld$0", at = @At("HEAD"), cancellable = true, remap = false)
     private void invincible$onDealDamageEvent(DealDamageEvent.Damage dealDamageEvent, CallbackInfo ci) {
         if(dealDamageEvent.getPlayerPatch().getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
             ci.cancel();
