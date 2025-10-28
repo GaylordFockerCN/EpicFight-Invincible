@@ -9,12 +9,14 @@ import com.p1nero.invincible.gameassets.InvincibleSkills;
 import com.p1nero.invincible.item.InvincibleItems;
 import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.api.combo.ComboType;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import org.jetbrains.annotations.NotNull;
 
 @Mod(InvincibleMod.MOD_ID)
 public class InvincibleMod {
@@ -41,4 +43,7 @@ public class InvincibleMod {
         InputManager.init();
     }
 
+    public static @NotNull ResourceLocation rl(@NotNull String path) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    }
 }

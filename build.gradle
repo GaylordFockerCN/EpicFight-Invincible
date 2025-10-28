@@ -69,12 +69,25 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation "curse.maven:epic-fight-mod-405076:7106604-sources-7106644"
+    implementation "maven.modrinth:epic-fight:21.13.3.2"
+    // Change "compileOnly" to "implementation" for testing in-game.
+    compileOnly("dev.isxander:controlify:${project.controlify_version}") {
+        // Only need Controlify API, ignore the transitive dependencies (e.g, QuiltMC parsers)
+        transitive = false
+    }
 }
 
 repositories {
     maven { url = "https://cursemaven.com" }
     mavenLocal()
+    exclusiveContent {
+        forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
+        filter { includeGroup "maven.modrinth" }
+    }
+    exclusiveContent {
+        forRepository { maven { url "https://maven.isxander.dev/releases" } }
+        filter { includeGroup "dev.isxander" }
+    }
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
