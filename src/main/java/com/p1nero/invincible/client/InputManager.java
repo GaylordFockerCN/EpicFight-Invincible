@@ -1,7 +1,7 @@
 package com.p1nero.invincible.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import com.p1nero.invincible.Config;
+import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.api.skill.ComboNode;
@@ -178,7 +178,7 @@ public class InputManager {
     private static void handlePressing() {
         //没缓存时长按才算数
         AtomicBoolean shouldExecute = new AtomicBoolean(false);
-        int maxPressTick = Config.MAX_PRESS_TICK.get();
+        int maxPressTick = InvincibleConfig.MAX_PRESS_TICK.get();
         ComboBasicAttack comboBasicAttack = getComboBasicSkill();
         if (comboBasicAttack != null) {
             maxPressTick = comboBasicAttack.getMaxPressTime();
@@ -217,7 +217,7 @@ public class InputManager {
     }
 
     public static void setReserve() {
-        InputManager.reserveCounter = Config.RESERVE_TICK.get();
+        InputManager.reserveCounter = InvincibleConfig.RESERVE_TICK.get();
         ComboBasicAttack comboBasicAttack = getComboBasicSkill();
         if (comboBasicAttack != null) {
             InputManager.reserveCounter = comboBasicAttack.getMaxReserveTime();

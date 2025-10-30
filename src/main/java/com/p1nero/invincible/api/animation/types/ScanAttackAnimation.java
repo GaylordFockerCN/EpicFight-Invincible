@@ -1,4 +1,4 @@
-package com.p1nero.invincible.animations;
+package com.p1nero.invincible.api.animation.types;
 
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;

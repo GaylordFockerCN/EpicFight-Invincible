@@ -8,7 +8,7 @@ import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.p1nero.invincible.Config;
+import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.skill.ComboNode;
@@ -150,7 +150,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
             if (dodgeSuccessEvents != null) {
                 dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
             }
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), Config.EFFECT_TICK.get());
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER.get(), InvincibleConfig.EFFECT_TICK.get());
         }));
         //减伤和霸体的判断
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
@@ -160,7 +160,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
             }
             //招架成功的判断，配合优先级-1使用
             if (event.isParried()) {
-                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), Config.EFFECT_TICK.get());
+                container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER.get(), InvincibleConfig.EFFECT_TICK.get());
             }
         }));
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
@@ -231,7 +231,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
-        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
+        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > InvincibleConfig.RESET_TICK.get()) {
             resetCombo(container.getServerExecutor(), node);
         }
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());

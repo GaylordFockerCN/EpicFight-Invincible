@@ -17,7 +17,7 @@ import yesman.epicfight.skill.Skill;
 import yesman.epicfight.world.damagesource.StunType;
 
 /**
- * 注册技能，然后在{@link InvincibleWeaponCapabilityPresets}中使用
+ * 注册技能，然后在{@link InvincibleDemoWeaponCapabilityPresets}中使用
  * 预设的Condition可以参考 {@link yesman.epicfight.data.conditions.EpicFightConditions} 和 {@link InvincibleConditions}
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)

@@ -1,8 +1,8 @@
-package com.p1nero.invincible.animations;
+package com.p1nero.invincible.api.animation.types;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;
-import com.p1nero.invincible.capability.InvincibleEntities;
+import com.p1nero.invincible.capability.InvincibleCapabilities;
 import com.p1nero.invincible.capability.InvincibleEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.server.level.ServerLevel;
@@ -50,13 +50,13 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
     @Override
     public void begin(LivingEntityPatch<?> entityPatch) {
         super.begin(entityPatch);
-        InvincibleEntities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
+        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
     }
 
     @Override
     public void end(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd) {
         super.end(entityPatch, nextAnimation, isEnd);
-        InvincibleEntities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
+        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
     }
 
     /**
@@ -97,7 +97,7 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
             while (hitEntities.next()) {
                 Entity hit = hitEntities.getEntity();
                 LivingEntity trueEntity = this.getTrueEntity(hit);
-                InvincibleEntity invincibleEntity = InvincibleEntities.getEntityCap(entityPatch.getOriginal());
+                InvincibleEntity invincibleEntity = InvincibleCapabilities.getEntityCap(entityPatch.getOriginal());
                 if (trueEntity != null && trueEntity.isAlive() && !invincibleEntity.getCurrentlyHurtEntities(phase).contains(trueEntity) && !trueEntity.is(entityPatch.getOriginal())) {
                     if (hit instanceof LivingEntity || hit instanceof PartEntity) {
                         EpicFightDamageSource source = this.getEpicFightDamageSource(entityPatch, hit, phase);

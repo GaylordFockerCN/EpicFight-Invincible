@@ -9,9 +9,10 @@ import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import yesman.epicfight.world.capabilities.provider.EntityPatchProvider;
 
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID)
-public class InvincibleEntities {
+public class InvincibleCapabilities {
 
     public static InvincibleEntity getEntityCap(LivingEntity entity){
         return entity.getCapability(InvincibleEntityCapabilityProvider.INVINCIBLE_ENTITY).orElse(new InvincibleEntity());
@@ -23,7 +24,7 @@ public class InvincibleEntities {
 
     @SubscribeEvent
     public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof LivingEntity) {
+        if (event.getObject() instanceof LivingEntity living && EntityPatchProvider.getPatchedEntities().contains(living.getType())) {
             if(!event.getObject().getCapability(InvincibleEntityCapabilityProvider.INVINCIBLE_ENTITY).isPresent()){
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "invincible_entity"), new InvincibleEntityCapabilityProvider());
             }

@@ -32,12 +32,13 @@ public class InvincibleMod {
         modEventBus.addListener(InvincibleSkillManager::buildAdditionalCombos);
         modEventBus.addListener(InvincibleSkillManager::buildAdditionalSkills);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
-        context.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        context.registerConfig(ModConfig.Type.COMMON, InvincibleConfig.SPEC);
     }
 
     private void clientSetup(final FMLClientSetupEvent event){
         InputManager.init();
     }
+
     private void commonSetup(final FMLCommonSetupEvent event){
         event.enqueueWork(InvincibleCommandArgumentTypes::registerArgumentTypes);
     }

@@ -1,6 +1,7 @@
 package com.p1nero.invincible.gameassets;
 
 import com.p1nero.invincible.InvincibleMod;
+import com.p1nero.invincible.capability.item.ComboWeaponCapability;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -19,19 +20,18 @@ import java.util.function.Function;
  * 需要先注册技能，参考{@link InvincibleDemoSkills}
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class InvincibleWeaponCapabilityPresets {
+public class InvincibleDemoWeaponCapabilityPresets {
 
     //It's easy to create a new weapon type, just need to provide the innate skill. newStyleCombo should be set.
     //注册非常简单，newStyleCombo需要随便填一下，但是选择武器技能是必要的
     public static final Function<Item, CapabilityItem.Builder> DEMO = (item) ->
-            (CapabilityItem.Builder) WeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
+            (CapabilityItem.Builder) ComboWeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
                     .styleProvider((entityPatch) -> CapabilityItem.Styles.COMMON)
                     .collider(ColliderPreset.SWORD)
                     .swingSound(EpicFightSounds.WHOOSH.get())
                     .hitSound(EpicFightSounds.BLADE_HIT.get())
                     .hitParticle(EpicFightParticles.HIT_BLADE.get())
                     .canBePlacedOffhand(false)
-                    .newStyleCombo(CapabilityItem.Styles.COMMON, Animations.SWORD_AIR_SLASH)//随便设一个 fill it casually
                     .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleDemoSkills.COMBO_DEMO)
                     .comboCancel((style) -> false);
 
