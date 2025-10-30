@@ -5,7 +5,7 @@ import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import com.p1nero.invincible.Config;
+import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
@@ -156,7 +156,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
         if(dodgeSuccessEvents != null){
             dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
         }
-        container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, Config.EFFECT_TICK.get());
+        container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, InvincibleConfig.EFFECT_TICK.get());
     }
 
     /**
@@ -179,7 +179,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventIncome(TakeDamageEvent.Income event, SkillContainer container) {
         if(event.isParried()){
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER, Config.EFFECT_TICK.get());
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER, InvincibleConfig.EFFECT_TICK.get());
         }
     }
 
@@ -247,7 +247,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
-        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
+        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > InvincibleConfig.RESET_TICK.get()) {
             resetCombo(container.getServerExecutor(), node);
         }
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());

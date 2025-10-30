@@ -6,7 +6,7 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.mojang.logging.LogUtils;
-import com.p1nero.invincible.Config;
+import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.InvincibleFlags;
 import com.p1nero.invincible.api.Side;
 import com.p1nero.invincible.conditions.PressIntervalCondition;
@@ -328,7 +328,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
         if(dodgeSuccessEvents != null){
             dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
         }
-        container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, Config.EFFECT_TICK.get());
+        container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, InvincibleConfig.EFFECT_TICK.get());
     }
 
     /**
@@ -351,7 +351,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
     @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventIncome(TakeDamageEvent.Income event, SkillContainer container) {
         if(event.isParried()){
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER, Config.EFFECT_TICK.get());
+            container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER, InvincibleConfig.EFFECT_TICK.get());
         }
     }
 
@@ -478,7 +478,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
 //        if(manager.getDataValue(InvincibleSkillDataKeys.ANY_KEY_DOWN)) {
 //            container.getExecutor().resetActionTick();
 //        }
-        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > Config.RESET_TICK.get()) {
+        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > InvincibleConfig.RESET_TICK.get()) {
             resetCombo(container, container.getServerExecutor(), root);
         }
         if(manager.hasData(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER)){
@@ -525,15 +525,15 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
     }
 
     public int getMaxPressTime() {
-        return maxPressTime == 0 ? Config.MAX_PRESS_TICK.get() : maxPressTime;
+        return maxPressTime == 0 ? InvincibleConfig.MAX_PRESS_TICK.get() : maxPressTime;
     }
 
     public int getMaxProtectTime() {
-        return maxProtectTime == 0 ? Config.PRESS_PROTECT_TICK.get() : maxProtectTime;
+        return maxProtectTime == 0 ? InvincibleConfig.PRESS_PROTECT_TICK.get() : maxProtectTime;
     }
 
     public int getMaxReserveTime() {
-        return maxReserveTime == 0 ? Config.RESERVE_TICK.get() : maxReserveTime;
+        return maxReserveTime == 0 ? InvincibleConfig.RESERVE_TICK.get() : maxReserveTime;
     }
 
 

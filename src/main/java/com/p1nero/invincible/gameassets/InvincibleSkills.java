@@ -29,7 +29,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 
 /**
- * 注册技能，然后在{@link InvincibleWeaponCapabilityPresets}中使用
+ * 注册技能，然后在{@link InvincibleDemoWeaponCapabilityPresets}中使用
  * 预设的Condition可以参考 {@link EpicFightConditions} 和 {@link InvincibleConditions}
  */
 public class InvincibleSkills {

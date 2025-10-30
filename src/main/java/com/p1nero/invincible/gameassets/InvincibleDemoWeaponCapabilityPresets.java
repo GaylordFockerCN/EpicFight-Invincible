@@ -19,7 +19,7 @@ import java.util.function.Function;
  * 需要先注册技能，参考{@link InvincibleSkills}
  */
 @EventBusSubscriber(modid = InvincibleMod.MOD_ID)
-public class InvincibleWeaponCapabilityPresets {
+public class InvincibleDemoWeaponCapabilityPresets {
 
     //It's easy to create a new weapon type, just need to provide the innate skill. newStyleCombo should be set.
     //注册非常简单，newStyleCombo需要随便填一下，但是选择武器技能是必要的

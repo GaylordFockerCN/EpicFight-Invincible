@@ -7,8 +7,10 @@
     "ClientPacketListenerMixin"
   ],
   "mixins": [
+    "AnimationManagerAccessor",
     "AnimationPlayerMixin",
     "EntityEventsMixin",
+    "EpicFightModMixin",
     "SkillContainerMixin",
     "StaticAnimationMixin"
   ],
