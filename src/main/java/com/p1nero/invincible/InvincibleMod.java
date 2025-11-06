@@ -1,20 +1,22 @@
 package com.p1nero.invincible;
 
+import com.p1nero.invincible.api.skill.ComboNode;
+import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.client.particles.InvincibleParticles;
 import com.p1nero.invincible.command.arguments.InvincibleCommandArgumentTypes;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
-import com.p1nero.invincible.api.skill.ComboNode;
-import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.skill.InvincibleSkillManager;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import org.jetbrains.annotations.NotNull;
 
 @Mod(InvincibleMod.MOD_ID)
 public class InvincibleMod {
@@ -43,4 +45,7 @@ public class InvincibleMod {
         event.enqueueWork(InvincibleCommandArgumentTypes::registerArgumentTypes);
     }
 
+    public static @NotNull ResourceLocation rl(@NotNull String path) {
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    }
 }

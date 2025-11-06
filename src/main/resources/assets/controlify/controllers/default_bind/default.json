@@ -1,0 +1,10 @@
+{
+  "defaults": {
+    "invincible:primary_action": {
+      "axis": "controlify:axis/right_trigger"
+    },
+    "invincible:secondary_action": {
+      "axis": "controlify:axis/left_trigger"
+    }
+  }
+}
