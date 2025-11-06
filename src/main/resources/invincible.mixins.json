@@ -9,6 +9,7 @@
   "mixins": [
     "AnimationManagerAccessor",
     "AnimationPlayerMixin",
+    "EntityPatchProviderAccessor",
     "EpicFightModMixin",
     "ServerPlayerPatchMixin",
     "SkillContainerMixin",
