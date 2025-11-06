@@ -2,7 +2,6 @@ package com.p1nero.invincible.client;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.mojang.blaze3d.platform.InputConstants;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.Side;
@@ -17,7 +16,6 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;

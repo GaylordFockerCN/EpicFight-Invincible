@@ -1,0 +1,12 @@
+{
+  "key.invincible.key1": "主要动作",
+  "key.invincible.key2": "次要动作",
+  "key.invincible.key3": "特殊技能1",
+  "key.invincible.key4": "特殊技能2",
+  "key.invincible.key1.description": "通常执行主要攻击或核心战斗动作",
+  "key.invincible.key2.description": "常用于格挡、瞄准或次要战斗动作",
+  "key.invincible.key3.description": "在可用时触发特殊技能或辅助技能",
+  "key.invincible.key4.description": "若已配置则激活额外特殊技能或支援技能",
+  "key.invincible.category": "无坚不摧库操作设置",
+  "commands.invincible.reload": "[无坚不摧库]：技能已重载！"
+}
