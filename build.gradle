@@ -131,7 +131,13 @@ repositories {
     }
     exclusiveContent {
         forRepository { maven { url "https://echoellet.github.io/Controlify/" } }
+        forRepositories(fg.repository)
         filter { includeGroup "dev.echoellet" }
+    }
+    exclusiveContent {
+        forRepository { maven { name = "Modrinth"; url = "https://api.modrinth.com/maven" } }
+        forRepositories(fg.repository)
+        filter { includeGroup "maven.modrinth" }
     }
 }
 
@@ -140,11 +146,8 @@ dependencies {
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
     implementation fg.deobf("curse.maven:epic-fight-mod-405076:7129220-sources-7129223")
 
-    // Change "compileOnly" to "implementation" for testing in-game.
-    compileOnly("dev.echoellet:controlify-forgified:${project.controlify_version}") {
-        // Only need Controlify API, ignore the transitive dependencies (e.g, QuiltMC parsers)
-        transitive = false
-    }
+    implementation fg.deobf("dev.echoellet:controlify-forgified:${project.controlify_version}")
+    runtimeOnly fg.deobf("maven.modrinth:yacl:3.6.6+1.20.1-forge") // Required to run Controlify (transitive dependency)
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
