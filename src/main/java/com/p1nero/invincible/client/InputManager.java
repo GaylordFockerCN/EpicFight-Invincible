@@ -21,7 +21,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.api.neoevent.playerpatch.SkillCastEvent;
@@ -44,7 +43,7 @@ public class InputManager {
     private static int reserveCounter;
     private static long lastInputTime;
     private static long inputInterval;
-    private static final BiMap<ComboType, KeyMapping> TYPE_KEY_MAP = HashBiMap.create();
+    private static final BiMap<ComboType, @NotNull  KeyMapping> TYPE_KEY_MAP = HashBiMap.create();
     private static BiMap<KeyMapping, ComboType> KEY_TYPE_MAP = HashBiMap.create();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<Integer> INPUT_QUEUE = new ArrayDeque<>();
@@ -99,6 +98,8 @@ public class InputManager {
      */
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
+        onHandleInput();
+
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
 
         if (localPlayerPatch != null) {
@@ -164,39 +165,41 @@ public class InputManager {
         }
     }
 
-    @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton.Pre event) {
-        handleInput(event.getButton(), event.getAction());
-    }
-
-    @SubscribeEvent
-    public static void onKeyInput(InputEvent.Key event) {
-        handleInput(event.getKey(), event.getAction());
-    }
-
     /**
      * 按下时记录
      * 松手时发包
      */
-    private static void handleInput(int key, int action) {
+    private static void onHandleInput() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.screen != null || mc.isPaused()) return;
+
         LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
-                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-            if (action == InputConstants.PRESS) {
-                for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
-                    int keyId = keyMapping.getKey().getValue();
-                    if (key == keyId) {
-                        handleOnPress(keyMapping);
-                        if (!INPUT_QUEUE.contains(keyId)) {
-                            INPUT_QUEUE.add(keyId);
-                        }
-                        KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
-                        clearReservedKeys();
-                    }
+        if (playerPatch == null) return;
+
+        if (!(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack)) {
+            return;
+        }
+
+        for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+            final int keyId = keyMapping.getKey().getValue();
+
+            while (keyMapping.consumeClick()) {
+                if (INPUT_QUEUE.contains(keyId)) {
+                    continue;
                 }
+                handleOnPress(keyMapping);
+                INPUT_QUEUE.add(keyId);
+                KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
+                clearReservedKeys();
             }
-            if (action == InputConstants.RELEASE) {
+
+            final boolean isDown = keyMapping.isDown();
+            final boolean wasDownBefore = KEY_STATE_CACHE.getOrDefault(keyId, 0) > 0;
+            final boolean isJustReleased = !isDown && wasDownBefore;
+            if (isJustReleased) {
                 tryRequestSkillExecute(true);
+                INPUT_QUEUE.remove(keyId);
+                KEY_STATE_CACHE.put(keyId, 0);
             }
         }
     }
