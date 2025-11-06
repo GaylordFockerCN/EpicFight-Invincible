@@ -1,4 +1,4 @@
-package com.p1nero.invincible.api.animations;
+package com.p1nero.invincible.api.animation.types;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.datafixers.util.Pair;

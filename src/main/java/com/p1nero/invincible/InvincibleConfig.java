@@ -2,7 +2,7 @@ package com.p1nero.invincible;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-public class Config {
+public class InvincibleConfig {
     private static final ModConfigSpec.Builder BUILDER = new ModConfigSpec.Builder();
     public static final ModConfigSpec.IntValue EFFECT_TICK = BUILDER.comment("重置招架成功/闪避成功判定的时间", "即招架成功/闪避成功结束后多长时间后自动重置普攻连段。").defineInRange("effect_tick", 20, 0, Integer.MAX_VALUE);
     public static final ModConfigSpec.IntValue RESET_TICK = BUILDER.comment("重置连段时间", "即动作结束后多长时间后自动重置普攻连段。").defineInRange("reset_tick", 16, 0, Integer.MAX_VALUE);

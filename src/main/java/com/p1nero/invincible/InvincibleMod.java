@@ -32,7 +32,7 @@ public class InvincibleMod {
         modEventBus.addListener(this::clientSetup);
         modEventBus.addListener(this::commonSetup);
         ComboType.ENUM_MANAGER.registerEnumCls(InvincibleMod.MOD_ID, ComboNode.ComboTypes.class);
-        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+        modContainer.registerConfig(ModConfig.Type.COMMON, InvincibleConfig.SPEC);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {

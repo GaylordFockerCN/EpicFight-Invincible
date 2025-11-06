@@ -28,30 +28,31 @@ public class InvincibleAttachments {
             "invincible_entity", () -> AttachmentType.builder(InvincibleEntity::new).build()
     );
 
-    public static InvinciblePlayer getPlayer(Player player){
+    public static InvinciblePlayer getPlayer(Player player) {
         return player.getData(INVINCIBLE_PLAYER);
     }
-    public static InvinciblePlayer getPlayer(PlayerPatch<?> playerPatch){
+
+    public static InvinciblePlayer getPlayer(PlayerPatch<?> playerPatch) {
         return getPlayer(playerPatch.getOriginal());
     }
 
-    public static InvincibleEntity getEntity(LivingEntity entity){
+    public static InvincibleEntity getEntity(LivingEntity entity) {
         return entity.getData(INVINCIBLE_ENTITY);
     }
 
-    public static InvincibleEntity getEntity(LivingEntityPatch<?> entityPatch){
+    public static InvincibleEntity getEntity(LivingEntityPatch<?> entityPatch) {
         return getEntity(entityPatch.getOriginal());
     }
 
     @SubscribeEvent
     public static void onPlayerCloned(PlayerEvent.Clone event) {
         if (event.isWasDeath() && event.getOriginal().hasData(INVINCIBLE_PLAYER)) {
-            event.getEntity().getData(INVINCIBLE_PLAYER).copyFrom( event.getOriginal().getData(INVINCIBLE_PLAYER));
+            event.getEntity().getData(INVINCIBLE_PLAYER).copyFrom(event.getOriginal().getData(INVINCIBLE_PLAYER));
         }
     }
 
     @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Pre event){
+    public static void onPlayerTick(PlayerTickEvent.Pre event) {
         getPlayer(event.getEntity()).tick();
     }
 
