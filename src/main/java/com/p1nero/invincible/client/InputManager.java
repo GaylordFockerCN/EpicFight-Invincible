@@ -2,7 +2,6 @@ package com.p1nero.invincible.client;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import com.mojang.blaze3d.platform.InputConstants;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.InvincibleFlags;
 import com.p1nero.invincible.InvincibleMod;

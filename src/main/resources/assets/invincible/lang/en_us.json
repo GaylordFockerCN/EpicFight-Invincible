@@ -7,7 +7,7 @@
   "key.invincible.key2.description": "Commonly used for blocking, aiming, or secondary combat actions.",
   "key.invincible.key3.description": "Triggers a special ability or alternate skill when available.",
   "key.invincible.key4.description": "Activates an additional special or support ability if assigned.",
-  "key.invincible.category": "Invincible Actions",
+  "key.invincible.category": "Invincible Lib Actions",
   "tips.invincible.charge": "Long Press KEY2 to charge.",
   "commands.invincible.reload": "[Invincible Lib]: Skills Reloaded!"
 }
