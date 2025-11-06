@@ -1,13 +1,15 @@
 package com.p1nero.invincible.client;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
-import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.AbstractInvincibleInnateSkill;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -19,6 +21,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import org.jetbrains.annotations.NotNull;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
@@ -39,7 +42,7 @@ public class InputManager {
     private static int reserveCounter;
     private static long lastInputTime;
     private static long inputInterval;
-    private static final Map<ComboType, KeyMapping> TYPE_KEY_MAP = new HashMap<>();
+    private static final BiMap<ComboType, @NotNull KeyMapping> TYPE_KEY_MAP = HashBiMap.create();
     private static final Map<Integer, Integer> KEY_STATE_CACHE = new HashMap<>();
     private static final Queue<Integer> INPUT_QUEUE = new ArrayDeque<>();
     private static ComboNode currentNode;
@@ -95,6 +98,7 @@ public class InputManager {
         if (event.phase == TickEvent.Phase.START || Minecraft.getInstance().player == null) {
             return;
         }
+        onHandleInput();
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
@@ -139,38 +143,38 @@ public class InputManager {
         }
     }
 
-    @SubscribeEvent
-    public static void onMouseInput(InputEvent.MouseButton event) {
-        handleInput(event.getButton(), event.getAction());
-    }
-
-    @SubscribeEvent
-    public static void onKeyInput(InputEvent.Key event) {
-        handleInput(event.getKey(), event.getAction());
-    }
-
     /**
      * 按下时记录
      * 松手时发包
      */
-    private static void handleInput(int key, int action) {
+    private static void onHandleInput() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.screen != null || mc.isPaused()) return;
+
         LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
-                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-            if (action == InputConstants.PRESS) {
-                for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
-                    int keyId = keyMapping.getKey().getValue();
-                    if (key == keyId) {
-                        if (!INPUT_QUEUE.contains(keyId)) {
-                            INPUT_QUEUE.add(keyId);
-                        }
-                        KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
-                        clearReservedKeys();
-                    }
+        if (playerPatch == null) return;
+        if (!(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack)) {
+            return;
+        }
+        for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+            final int keyId = keyMapping.getKey().getValue();
+
+            while (keyMapping.consumeClick()) {
+                if (INPUT_QUEUE.contains(keyId)) {
+                    continue;
                 }
+                INPUT_QUEUE.add(keyId);
+                KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
+                clearReservedKeys();
             }
-            if (action == InputConstants.RELEASE) {
+
+            final boolean isDown = keyMapping.isDown();
+            final boolean wasDownBefore = KEY_STATE_CACHE.getOrDefault(keyId, 0) > 0;
+            final boolean isJustReleased = !isDown && wasDownBefore;
+            if (isJustReleased) {
                 tryRequestSkillExecute(true);
+                INPUT_QUEUE.remove(keyId);
+                KEY_STATE_CACHE.put(keyId, 0);
             }
         }
     }
