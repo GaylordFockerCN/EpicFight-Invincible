@@ -83,7 +83,7 @@ public class ControlifyCompat implements ControlifyEntrypoint {
     }
 
     private enum InvincibleRadialIcons {
-        COMBO_ATTACKS(InvincibleMod.rl("textures/gui/skills/weapon_innate/combo_attacks.png"));
+        COMBO_ATTACKS(InvincibleMod.rl("textures/gui/skills/weapon_innate/combo_demo.png"));
 
         private final @NotNull ResourceLocation id;
 
