@@ -95,6 +95,7 @@ public class InputManager {
         if (event.phase == TickEvent.Phase.START || Minecraft.getInstance().player == null) {
             return;
         }
+        handleKeyBinds();
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
@@ -139,17 +140,35 @@ public class InputManager {
         }
     }
 
-    // TODO: Refactor handleInput() to not depend on any "InputEvent"s to support controllers.
-    //  See the related issue: https://github.com/GaylordFockerCN/EpicFight-Invincible/issues/3
-
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
-        handleInput(event.getButton(), event.getAction());
+        onVanillaMouseOrKeyInput(event.getAction());
     }
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        handleInput(event.getKey(), event.getAction());
+        onVanillaMouseOrKeyInput(event.getAction());
+    }
+
+    private static void onVanillaMouseOrKeyInput(int action) {
+        if (action == InputConstants.RELEASE) {
+            handleRelease();
+        }
+    }
+
+    // TODO: handleRelease() is not called when using a controller,
+    //  this is mainly because Controlify key emulation does not work
+    //  "InputEvent"s, only vanilla KeyMapping.
+    //  The main reason why we use "InputEvent"s is that in Minecraft versions before 1.21.10,
+    //  "isDown()" method, (which is required to determine whether the key is down),
+    //  always returns "false" in MC 1.21.1 and 1.20.1 when there are
+    //  multiple keybinds bound to the same physical mouse button,
+    //  so the key release will be broken.
+
+    private static void handleRelease() {
+        if (shouldHandleInput()) {
+            tryRequestSkillExecute(true);
+        }
     }
 
     private static boolean shouldHandleInput() {
@@ -168,24 +187,19 @@ public class InputManager {
      * 按下时记录
      * 松手时发包
      */
-    private static void handleInput(int key, int action) {
+    private static void handleKeyBinds() {
         if (!shouldHandleInput()) {
             return;
         }
-        if (action == InputConstants.PRESS) {
-            for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
-                int keyId = keyMapping.getKey().getValue();
-                if (key == keyId) {
-                    if (!INPUT_QUEUE.contains(keyId)) {
-                        INPUT_QUEUE.add(keyId);
-                    }
-                    KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
-                    clearReservedKeys();
+        for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+            int keyId = keyMapping.getKey().getValue();
+            while (keyMapping.consumeClick()) {
+                if (!INPUT_QUEUE.contains(keyId)) {
+                    INPUT_QUEUE.add(keyId);
                 }
+                KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
+                clearReservedKeys();
             }
-        }
-        if (action == InputConstants.RELEASE) {
-            tryRequestSkillExecute(true);
         }
     }
 
