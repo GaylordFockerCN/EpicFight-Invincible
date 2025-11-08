@@ -157,24 +157,31 @@ public class InputManager {
      * 松手时发包
      */
     private static void handleInput(int key, int action) {
-        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
-                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-            if (action == InputConstants.PRESS) {
-                for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
-                    int keyId = keyMapping.getKey().getValue();
-                    if (key == keyId) {
-                        if (!INPUT_QUEUE.contains(keyId)) {
-                            INPUT_QUEUE.add(keyId);
-                        }
-                        KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
-                        clearReservedKeys();
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.screen != null || minecraft.isPaused()) {
+            return;
+        }
+        final LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        if (playerPatch == null) {
+            return;
+        }
+        if (!(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack)) {
+            return;
+        }
+        if (action == InputConstants.PRESS) {
+            for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+                int keyId = keyMapping.getKey().getValue();
+                if (key == keyId) {
+                    if (!INPUT_QUEUE.contains(keyId)) {
+                        INPUT_QUEUE.add(keyId);
                     }
+                    KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
+                    clearReservedKeys();
                 }
             }
-            if (action == InputConstants.RELEASE) {
-                tryRequestSkillExecute(true);
-            }
+        }
+        if (action == InputConstants.RELEASE) {
+            tryRequestSkillExecute(true);
         }
     }
 
