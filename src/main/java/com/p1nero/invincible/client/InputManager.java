@@ -152,20 +152,24 @@ public class InputManager {
         handleInput(event.getKey(), event.getAction());
     }
 
+    private static boolean shouldHandleInput() {
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.screen != null || minecraft.isPaused()) {
+            return false;
+        }
+        final LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        if (playerPatch == null) {
+            return false;
+        }
+        return playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack;
+    }
+
     /**
      * 按下时记录
      * 松手时发包
      */
     private static void handleInput(int key, int action) {
-        final Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.screen != null || minecraft.isPaused()) {
-            return;
-        }
-        final LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch == null) {
-            return;
-        }
-        if (!(playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack)) {
+        if (!shouldHandleInput()) {
             return;
         }
         if (action == InputConstants.PRESS) {
