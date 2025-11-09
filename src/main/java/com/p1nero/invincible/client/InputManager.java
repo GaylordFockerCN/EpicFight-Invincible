@@ -8,9 +8,13 @@ import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.compat.controlify.ControlifyCompat;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.AbstractInvincibleInnateSkill;
 import com.p1nero.invincible.skill.ComboBasicAttack;
+import dev.isxander.controlify.api.ControlifyApi;
+import dev.isxander.controlify.api.bind.InputBindingSupplier;
+import dev.isxander.controlify.controller.ControllerEntity;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -96,6 +100,7 @@ public class InputManager {
             return;
         }
         handleKeyBinds();
+        maybeHandleControlifyRelease();
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
@@ -156,14 +161,36 @@ public class InputManager {
         }
     }
 
-    // TODO: handleRelease() is not called when using a controller,
-    //  this is mainly because Controlify key emulation does not work
-    //  "InputEvent"s, only vanilla KeyMapping.
-    //  The main reason why we use "InputEvent"s is that in Minecraft versions before 1.21.10,
-    //  "isDown()" method, (which is required to determine whether the key is down),
-    //  always returns "false" in MC 1.21.1 and 1.20.1 when there are
-    //  multiple keybinds bound to the same physical mouse button,
-    //  so the key release will be broken.
+    // TODO: Ideally, we should call handleRelease() from one place and provide
+    //  standard handling for both controllers and mouse/keyboard without depending on "InputEvents"s
+    //  or Controlify APIs directly.
+    //  However, it's tricky since "KeyMapping#isDown" returns false whenever there are multiple keybinds
+    //  that are bound to the same physical mouse button.
+    //  As a workaround, we handle mouse/keyboard via "InputEvents"s, and Controlify via this method.
+    //  The keybind presses handling is shared for all inputs using handleKeyBinds()
+    //  This HACK can be eliminated in MC versions newer than 1.21.10
+    //  See related Epic Fight issue
+    //  (although that's a different issue, it's also because of this Minecraft bug):
+    //  https://github.com/Epic-Fight/epicfight/issues/2174
+    private static void maybeHandleControlifyRelease() {
+        if (!ControlifyCompat.isModInstalled()) {
+            return;
+        }
+        final Optional<ControllerEntity> maybeController = ControlifyApi.get().getCurrentController();
+        if (maybeController.isEmpty()) {
+            return;
+        }
+        final ControllerEntity controller = maybeController.get();
+        for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+            final InputBindingSupplier inputBindingSupplier = ControlifyCompat.getInputBindingFromKeyMapping(keyMapping);
+            if (inputBindingSupplier == null) {
+                continue;
+            }
+            if (inputBindingSupplier.on(controller).justReleased()) {
+                handleRelease();
+            }
+        }
+    }
 
     private static void handleRelease() {
         if (shouldHandleInput()) {
