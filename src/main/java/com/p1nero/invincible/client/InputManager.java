@@ -8,9 +8,13 @@ import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.compat.controlify.ControlifyCompat;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.AbstractInvincibleInnateSkill;
 import com.p1nero.invincible.skill.ComboBasicAttack;
+import dev.isxander.controlify.api.ControlifyApi;
+import dev.isxander.controlify.api.bind.InputBindingSupplier;
+import dev.isxander.controlify.controller.ControllerEntity;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
@@ -95,6 +99,8 @@ public class InputManager {
         if (event.phase == TickEvent.Phase.START || Minecraft.getInstance().player == null) {
             return;
         }
+        handleKeyBinds();
+        maybeHandleControlifyRelease();
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
         if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
@@ -139,41 +145,87 @@ public class InputManager {
         }
     }
 
-    // TODO: Refactor handleInput() to not depend on any "InputEvent"s to support controllers.
-    //  See the related issue: https://github.com/GaylordFockerCN/EpicFight-Invincible/issues/3
-
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton event) {
-        handleInput(event.getButton(), event.getAction());
+        onVanillaMouseOrKeyInput(event.getAction());
     }
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        handleInput(event.getKey(), event.getAction());
+        onVanillaMouseOrKeyInput(event.getAction());
+    }
+
+    private static void onVanillaMouseOrKeyInput(int action) {
+        if (action == InputConstants.RELEASE) {
+            handleRelease();
+        }
+    }
+
+    // TODO: Ideally, we should call handleRelease() from one place and provide
+    //  standard handling for both controllers and mouse/keyboard without depending on "InputEvents"s
+    //  or Controlify APIs directly.
+    //  However, it's tricky since "KeyMapping#isDown" returns false whenever there are multiple keybinds
+    //  that are bound to the same physical mouse button.
+    //  As a workaround, we handle mouse/keyboard via "InputEvents"s, and Controlify via this method.
+    //  The keybind presses handling is shared for all inputs using handleKeyBinds()
+    //  This HACK can be eliminated in MC versions newer than 1.21.10
+    //  See related Epic Fight issue
+    //  (although that's a different issue, it's also because of this Minecraft bug):
+    //  https://github.com/Epic-Fight/epicfight/issues/2174
+    private static void maybeHandleControlifyRelease() {
+        if (!ControlifyCompat.isModInstalled()) {
+            return;
+        }
+        final Optional<ControllerEntity> maybeController = ControlifyApi.get().getCurrentController();
+        if (maybeController.isEmpty()) {
+            return;
+        }
+        final ControllerEntity controller = maybeController.get();
+        for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+            final InputBindingSupplier inputBindingSupplier = ControlifyCompat.getInputBindingFromKeyMapping(keyMapping);
+            if (inputBindingSupplier == null) {
+                continue;
+            }
+            if (inputBindingSupplier.on(controller).justReleased()) {
+                handleRelease();
+            }
+        }
+    }
+
+    private static void handleRelease() {
+        if (shouldHandleInput()) {
+            tryRequestSkillExecute(true);
+        }
+    }
+
+    private static boolean shouldHandleInput() {
+        final Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.screen != null || minecraft.isPaused()) {
+            return false;
+        }
+        final LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        if (playerPatch == null) {
+            return false;
+        }
+        return playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack;
     }
 
     /**
      * 按下时记录
      * 松手时发包
      */
-    private static void handleInput(int key, int action) {
-        LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
-        if (playerPatch != null && Minecraft.getInstance().screen == null && !Minecraft.getInstance().isPaused()
-                && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack) {
-            if (action == InputConstants.PRESS) {
-                for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
-                    int keyId = keyMapping.getKey().getValue();
-                    if (key == keyId) {
-                        if (!INPUT_QUEUE.contains(keyId)) {
-                            INPUT_QUEUE.add(keyId);
-                        }
-                        KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
-                        clearReservedKeys();
-                    }
+    private static void handleKeyBinds() {
+        if (!shouldHandleInput()) {
+            return;
+        }
+        for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
+            int keyId = keyMapping.getKey().getValue();
+            while (keyMapping.consumeClick()) {
+                if (!INPUT_QUEUE.contains(keyId)) {
+                    INPUT_QUEUE.add(keyId);
                 }
-            }
-            if (action == InputConstants.RELEASE) {
-                tryRequestSkillExecute(true);
+                KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
+                clearReservedKeys();
             }
         }
     }
