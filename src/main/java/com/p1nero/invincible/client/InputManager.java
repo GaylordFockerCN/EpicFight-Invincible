@@ -30,6 +30,7 @@ import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.client.CPSkillRequest;
 import yesman.epicfight.skill.*;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.entity.eventlistener.SkillCastEvent;
 
@@ -81,7 +82,7 @@ public class InputManager {
 
     @Nullable
     public static ComboBasicAttack getComboBasicSkill() {
-        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
+        LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(Minecraft.getInstance().player, LocalPlayerPatch.class);
         if (localPlayerPatch == null) {
             return null;
         } else if (localPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
@@ -101,7 +102,7 @@ public class InputManager {
         }
         handleKeyBinds();
         maybeHandleControlifyRelease();
-        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
+        LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(Minecraft.getInstance().player, LocalPlayerPatch.class);
         if (localPlayerPatch != null && Minecraft.getInstance().getConnection() != null) {
             //缓存的按键的处理
             if (reserveCounter > 0) {
@@ -203,7 +204,7 @@ public class InputManager {
         if (minecraft.screen != null || minecraft.isPaused()) {
             return false;
         }
-        final LocalPlayerPatch playerPatch = ClientEngine.getInstance().getPlayerPatch();
+        final LocalPlayerPatch playerPatch = EpicFightCapabilities.getEntityPatch(Minecraft.getInstance().player, LocalPlayerPatch.class);
         if (playerPatch == null) {
             return false;
         }
@@ -284,7 +285,7 @@ public class InputManager {
      */
     public static boolean tryRequestSkillExecute(boolean shouldReserve) {
         SkillSlot slot = SkillSlots.WEAPON_INNATE;
-        LocalPlayerPatch executor = ClientEngine.getInstance().getPlayerPatch();
+        LocalPlayerPatch executor = EpicFightCapabilities.getEntityPatch(Minecraft.getInstance().player, LocalPlayerPatch.class);
         if (executor != null && executor.getPlayerMode() == PlayerPatch.PlayerMode.EPICFIGHT) {
             if (sendExecuteRequest(executor, executor.getSkill(slot)).shouldReserveKey()) {
                 if (shouldReserve) {
@@ -371,7 +372,7 @@ public class InputManager {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static boolean testClientConditions(ComboType comboType) {
-        LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
+        LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(Minecraft.getInstance().player, LocalPlayerPatch.class);
         if(currentNode == null) {
             return false;
         }
