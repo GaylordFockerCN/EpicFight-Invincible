@@ -17,20 +17,12 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.client.ClientEngine;
-import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
-import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public class ControlifyCompat implements ControlifyEntrypoint {
     private static InputBindingSupplier primaryAction;
     private static InputBindingSupplier secondaryAction;
     private static InputBindingSupplier specialAbility1;
     private static InputBindingSupplier specialAbility2;
-
-    private static boolean isModInstalled;
-
-    public static boolean isModInstalled() {
-        return isModInstalled;
-    }
 
     // Hack: Since some parts of Invincible Lib stores KeyMapping,
     // the KeyMapping is mapped to a Controlify input binding that can be used.
@@ -63,7 +55,7 @@ public class ControlifyCompat implements ControlifyEntrypoint {
 
     @Override
     public void onControlifyPreInit(PreInitContext context) {
-        isModInstalled = true;
+        ControlifyModAvailability.setIsModInstalled(true);
         final ControlifyBindApi registrar = ControlifyBindApi.get();
         registerCustomRadialIcons();
         registrar.registerBindContext(IN_GAME_EPIC_FIGHT_CONTEXT);
@@ -142,14 +134,7 @@ public class ControlifyCompat implements ControlifyEntrypoint {
             InvincibleMod.rl("epicfight_combat"),
             mc -> {
                 final boolean isInGame = mc.screen == null && mc.level != null && mc.player != null;
-                if (isInGame) {
-                    final LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(mc.player, LocalPlayerPatch.class);
-                    if (localPlayerPatch == null) {
-                        return false;
-                    }
-                    return localPlayerPatch.isEpicFightMode();
-                }
-                return false;
+                return isInGame && ClientEngine.getInstance().isBattleMode();
             }
     );
 
