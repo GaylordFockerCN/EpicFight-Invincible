@@ -6,9 +6,10 @@ import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
-import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
+import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.compat.controlify.ControlifyCompat;
+import com.p1nero.invincible.compat.controlify.ControlifyModAvailability;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.skill.AbstractInvincibleInnateSkill;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -174,7 +175,7 @@ public class InputManager {
     //  (although that's a different issue, it's also because of this Minecraft bug):
     //  https://github.com/Epic-Fight/epicfight/issues/2174
     private static void maybeHandleControlifyRelease() {
-        if (!ControlifyCompat.isModInstalled()) {
+        if (!ControlifyModAvailability.isModInstalled()) {
             return;
         }
         final Optional<ControllerEntity> maybeController = ControlifyApi.get().getCurrentController();
