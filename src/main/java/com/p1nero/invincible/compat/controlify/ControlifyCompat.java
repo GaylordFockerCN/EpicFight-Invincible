@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 
 public class ControlifyCompat implements ControlifyEntrypoint {
     private static InputBindingSupplier primaryAction;
@@ -141,11 +142,14 @@ public class ControlifyCompat implements ControlifyEntrypoint {
             InvincibleMod.rl("epicfight_combat"),
             mc -> {
                 final boolean isInGame = mc.screen == null && mc.level != null && mc.player != null;
-                final LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
-                if (localPlayerPatch == null) {
-                    return false;
+                if (isInGame) {
+                    final LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(mc.player, LocalPlayerPatch.class);
+                    if (localPlayerPatch == null) {
+                        return false;
+                    }
+                    return localPlayerPatch.isEpicFightMode();
                 }
-                return isInGame && localPlayerPatch.isEpicFightMode();
+                return false;
             }
     );
 
