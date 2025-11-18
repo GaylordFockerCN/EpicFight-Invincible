@@ -26,7 +26,11 @@ import yesman.epicfight.api.model.Armature;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.utils.HitEntityList;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
+import yesman.epicfight.world.entity.eventlistener.AttackPhaseEndEvent;
+import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+
 import java.util.*;
 
 public class MultiPhaseAttackAnimation extends AttackAnimation {
@@ -71,17 +75,27 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
      */
     @Override
     protected void attackTick(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation) {
-        super.attackTick(entityPatch, animation);
         AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(animation);
         float elapsedTime = player.getElapsedTime();
         float prevElapsedTime = player.getPrevElapsedTime();
         EntityState state = this.getState(entityPatch, elapsedTime);
         EntityState prevState = this.getState(entityPatch, prevElapsedTime);
         for(Phase phase : phases){
-            if(!isPhaseValid(entityPatch, phase)){
+            if(!isPhaseValid(entityPatch, phase) || elapsedTime < phase.antic){
+                continue;
+            }
+            if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
+                if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+                    serverPlayerPatch.getEventListener().triggerEvents(PlayerEventListener.EventType.ATTACK_PHASE_END_EVENT, new AttackPhaseEndEvent(serverPlayerPatch, this.getAccessor(), phase, this.getPhaseOrderByTime(elapsedTime)));
+                }
                 continue;
             }
             if (prevState.attacking() || state.attacking() || prevState.getLevel() < 2 && state.getLevel() > 2) {
+                if (elapsedTime > phase.antic && prevElapsedTime < phase.antic) {
+                    entityPatch.onStrike(this, phase.hand);
+                    entityPatch.playSound(this.getSwingSound(entityPatch, phase), 0.0F, 0.0F);
+                    entityPatch.removeHurtEntities();
+                }
                 this.hurtCollidingEntities(entityPatch, prevElapsedTime, elapsedTime, prevState, state, phase);
             }
         }
