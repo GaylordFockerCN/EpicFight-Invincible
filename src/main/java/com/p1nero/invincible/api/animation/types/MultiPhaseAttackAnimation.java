@@ -141,6 +141,9 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
             for(Iterator<JointColliderPair> iterator = Arrays.stream(phase.colliders).iterator(); iterator.hasNext(); collider.draw(poseStack, buffer, entityPatch, this, colliderInfo.getFirst(), prevElapsedTime, elapsedTime, partialTicks, this.getPlaySpeed(entityPatch, this))) {
                 colliderInfo = iterator.next();
                 collider = colliderInfo.getSecond();
+                if (collider == null) {
+                    collider = entityPatch.getColliderMatching(phase.hand);
+                }
             }
         }
     }
