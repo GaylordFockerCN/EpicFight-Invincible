@@ -102,7 +102,7 @@ public class InvincibleDemoSkills {
                 .createComboBasicAttack()
                 .setCombo(root)
                 .setMaxProtectTime(22)
-                .setMaxPressTime(20)
+                .setMaxPressTime(1)
                 .setReserveTime(16)
                 .setShouldDrawGui(true));
 
