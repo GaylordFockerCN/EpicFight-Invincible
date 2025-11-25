@@ -216,12 +216,12 @@ public class InputManager {
      * 松手时发包
      */
     private static void handleKeyBinds() {
-        if (!shouldHandleInput()) {
-            return;
-        }
         for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
             int keyId = keyMapping.getKey().getValue();
             while (keyMapping.consumeClick()) {
+                if (!shouldHandleInput()) {
+                    continue;
+                }
                 if (!INPUT_QUEUE.contains(keyId)) {
                     INPUT_QUEUE.add(keyId);
                 }
