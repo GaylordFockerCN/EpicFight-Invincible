@@ -240,7 +240,7 @@ publishMods {
 
     modLoaders.add("forge")
     type = STABLE
-    displayName = "invincible-lib" + getFullModVersion()
+    displayName = getFullModVersion()
     file = tasks.jar.archiveFile
     additionalFiles.from(sourcesJar)
 
