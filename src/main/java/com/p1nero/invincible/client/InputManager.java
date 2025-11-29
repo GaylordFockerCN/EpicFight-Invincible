@@ -22,6 +22,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Options;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -37,6 +38,7 @@ import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.client.CPSkillRequest;
 import yesman.epicfight.skill.*;
+import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 import javax.annotation.Nullable;
@@ -108,15 +110,11 @@ public class InputManager {
         maybeHandleControlifyRelease();
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
 
-        if (localPlayerPatch != null) {
+        if (localPlayerPatch != null && shouldHandleInput()) {
             //缓存的按键的处理
             if (reserveCounter > 0) {
                 --reserveCounter;
-                if (tryRequestSkillExecute(false)) {
-                    clearReservedKeys();
-                    clearKeyCache();
-                }
-                if (reserveCounter == 0) {
+                if (tryRequestSkillExecute(false) || reserveCounter == 0) {
                     clearReservedKeys();
                     clearKeyCache();
                 }
@@ -171,18 +169,19 @@ public class InputManager {
         }
     }
 
+
     @SubscribeEvent
     public static void onMouseInput(InputEvent.MouseButton.Pre event) {
-        onVanillaMouseOrKeyInput(event.getAction());
+        onVanillaMouseOrKeyInput(event.getAction(), event.getButton());
     }
 
     @SubscribeEvent
     public static void onKeyInput(InputEvent.Key event) {
-        onVanillaMouseOrKeyInput(event.getAction());
+        onVanillaMouseOrKeyInput(event.getAction(), event.getKey());
     }
 
-    private static void onVanillaMouseOrKeyInput(int action) {
-        if (action == InputConstants.RELEASE) {
+    private static void onVanillaMouseOrKeyInput(int action, int key) {
+        if (action == InputConstants.RELEASE && KEY_STATE_CACHE.containsKey(key)) {
             handleRelease();
         }
     }
@@ -235,7 +234,16 @@ public class InputManager {
         if (playerPatch == null) {
             return false;
         }
-        return playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack;
+        AtomicBoolean atomicBoolean = new AtomicBoolean(false);
+        ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
+        EpicFightCapabilities.getItemCapability(mainHandItem).ifPresent(capabilityItem -> {
+            atomicBoolean.set(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack);
+        });
+        if(!atomicBoolean.get()) {
+            clearKeyCache();
+            clearReservedKeys();
+        }
+        return atomicBoolean.get();
     }
 
     /**
@@ -253,7 +261,9 @@ public class InputManager {
                 if (!INPUT_QUEUE.contains(keyId)) {
                     INPUT_QUEUE.add(keyId);
                 }
-                KEY_STATE_CACHE.put(keyId, KEY_STATE_CACHE.getOrDefault(keyId, 0) + 1);
+                if(KEY_STATE_CACHE.getOrDefault(keyId, 0) <= 0) {
+                    KEY_STATE_CACHE.put(keyId, 1);
+                }
                 clearReservedKeys();
             }
         }

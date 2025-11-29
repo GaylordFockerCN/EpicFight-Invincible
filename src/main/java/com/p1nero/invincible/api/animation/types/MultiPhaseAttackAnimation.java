@@ -23,9 +23,12 @@ import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.collider.Collider;
 import yesman.epicfight.api.model.Armature;
+import yesman.epicfight.api.neoevent.playerpatch.AttackPhaseEndEvent;
+import yesman.epicfight.api.neoevent.playerpatch.PlayerPatchEvent;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.utils.HitEntityList;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
+import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import java.util.*;
 
@@ -71,17 +74,27 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
      */
     @Override
     protected void attackTick(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation) {
-        super.attackTick(entityPatch, animation);
         AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(animation);
         float elapsedTime = player.getElapsedTime();
         float prevElapsedTime = player.getPrevElapsedTime();
         EntityState state = this.getState(entityPatch, elapsedTime);
         EntityState prevState = this.getState(entityPatch, prevElapsedTime);
         for(Phase phase : phases){
-            if(!isPhaseValid(entityPatch, phase)){
+            if(!isPhaseValid(entityPatch, phase) || elapsedTime < phase.antic){
+                continue;
+            }
+            if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
+                if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+                    PlayerPatchEvent.postAndFireSkillListeners(new AttackPhaseEndEvent(serverPlayerPatch, this.getAccessor(), phase, this.getPhaseOrderByTime(elapsedTime)));
+                }
                 continue;
             }
             if (prevState.attacking() || state.attacking() || prevState.getLevel() < 2 && state.getLevel() > 2) {
+                if (elapsedTime > phase.antic && prevElapsedTime < phase.antic) {
+                    entityPatch.onStrike(this, phase.hand);
+                    entityPatch.playSound(this.getSwingSound(entityPatch, phase), 0.0F, 0.0F);
+                    entityPatch.removeHurtEntities();
+                }
                 this.hurtCollidingEntities(entityPatch, prevElapsedTime, elapsedTime, prevState, state, phase);
             }
         }
@@ -141,6 +154,9 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
             for(Iterator<JointColliderPair> iterator = Arrays.stream(phase.colliders).iterator(); iterator.hasNext(); collider.draw(poseStack, buffer, entityPatch, this, colliderInfo.getFirst(), prevElapsedTime, elapsedTime, partialTicks, this.getPlaySpeed(entityPatch, this))) {
                 colliderInfo = iterator.next();
                 collider = colliderInfo.getSecond();
+                if (collider == null) {
+                    collider = entityPatch.getColliderMatching(phase.hand);
+                }
             }
         }
     }

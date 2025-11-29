@@ -15,8 +15,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DuplicateAnimationRegistryEvent extends Event implements IModBusEvent {
-    private List<DuplicateAnimationBuilder> builders = new ArrayList<>();
-    private Set<String> namespaces = new HashSet<>();
+    private final List<DuplicateAnimationBuilder> builders = new ArrayList<>();
+    private final Set<String> namespaces = new HashSet<>();
 
     public void newBuilder(String namespace, Consumer<DuplicateAnimationBuilder> build) {
         if (this.namespaces.contains(namespace)) {
@@ -33,7 +33,7 @@ public class DuplicateAnimationRegistryEvent extends Event implements IModBusEve
 
     public record DuplicateAnimationBuilder(String namespace, Consumer<DuplicateAnimationBuilder> task) {
 
-        public <T extends StaticAnimation> AnimationManager.AnimationAccessor<T> nextAccessor(AnimationManager.AnimationAccessor<T> original, Function<AnimationManager.AnimationAccessor<T>, T> onLoad) {
+        public <T extends StaticAnimation> AnimationManager.AnimationAccessor<T> nextAccessor(AnimationManager.AnimationAccessor<?> original, Function<AnimationManager.AnimationAccessor<T>, T> onLoad) {
             ResourceLocation selfName = ResourceLocation.fromNamespaceAndPath(namespace, original.registryName().getPath());
             AnimationManager.AnimationAccessor<T> accessor = DuplicateAnimationAccessorImpl.create(original.registryName(), selfName, getInstance().getAnimations().size() + 1, true, onLoad);
 
