@@ -157,7 +157,7 @@ publishMods {
 
     modLoaders.add("neoforge")
     type = STABLE
-    displayName = "invincible-lib-" + getFullModVersion()
+    displayName = getFullModVersion()
     file = tasks.jar.archiveFile
     additionalFiles.from(sourcesJar)
 
