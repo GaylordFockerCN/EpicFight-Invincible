@@ -12,9 +12,11 @@ import dev.isxander.controlify.bindings.BindContext;
 import dev.isxander.controlify.bindings.RadialIcons;
 import dev.isxander.controlify.utils.render.Blit;
 import dev.isxander.controlify.utils.render.CGuiPose;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.client.ClientEngine;
 
 public class ControlifyCompat implements ControlifyEntrypoint {
@@ -22,6 +24,25 @@ public class ControlifyCompat implements ControlifyEntrypoint {
     private static InputBindingSupplier secondaryAction;
     private static InputBindingSupplier specialAbility1;
     private static InputBindingSupplier specialAbility2;
+
+    // Hack: Since some parts of Invincible Lib stores KeyMapping,
+    // the KeyMapping is mapped to a Controlify input binding that can be used.
+    // This HACK can be eliminated in MC versions newer than 1.21.10
+    public static @Nullable InputBindingSupplier getInputBindingFromKeyMapping(@NotNull KeyMapping keyMapping) {
+        if (keyMapping == InvincibleKeyMappings.KEY1) {
+            return primaryAction;
+        }
+        if (keyMapping == InvincibleKeyMappings.KEY2) {
+            return secondaryAction;
+        }
+        if (keyMapping == InvincibleKeyMappings.KEY3) {
+            return specialAbility1;
+        }
+        if (keyMapping == InvincibleKeyMappings.KEY4) {
+            return specialAbility2;
+        }
+        return null;
+    }
 
     @Override
     public void onControllersDiscovered(ControlifyApi controlify) {
@@ -35,6 +56,7 @@ public class ControlifyCompat implements ControlifyEntrypoint {
 
     @Override
     public void onControlifyPreInit(PreInitContext context) {
+        ControlifyModAvailability.setIsModInstalled(true);
         final ControlifyBindApi registrar = ControlifyBindApi.get();
         registerCustomRadialIcons();
         registrar.registerBindContext(IN_GAME_EPIC_FIGHT_CONTEXT);
