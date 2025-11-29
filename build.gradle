@@ -154,7 +154,6 @@ dependencies {
     implementation fg.deobf("curse.maven:mmmmmmmmmmmm-225738:6237015")
     implementation fg.deobf("curse.maven:selene-499980:6283242")
 
-    implementation fg.deobf("maven.modrinth:epic-fight:20.13.5-1.20.1")
     implementation fg.deobf("maven.modrinth:epic-fight:${project.epicfight_version}")
 
     compileOnly fg.deobf("dev.echoellet:controlify-forgified:${project.controlify_version}")
@@ -241,7 +240,7 @@ publishMods {
 
     modLoaders.add("forge")
     type = STABLE
-    displayName = getFullModVersion()
+    displayName = "invincible-lib" + getFullModVersion()
     file = tasks.jar.archiveFile
     additionalFiles.from(sourcesJar)
 
