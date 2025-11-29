@@ -75,7 +75,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
-    implementation "maven.modrinth:epic-fight:21.13.3.2"
+    implementation "maven.modrinth:epic-fight:${project.epicfight_version}"
     // Change "compileOnly" to "implementation" for testing in-game.
     compileOnly("dev.isxander:controlify:${project.controlify_version}") {
         // Only need Controlify API, ignore the transitive dependencies (e.g, QuiltMC parsers)
@@ -143,16 +143,17 @@ def getFullModVersion() {
 }
 
 publishMods {
-    def readme = project.file("RELEASE_NOTES.md")
-    def readmeContent = readme.text
+    def releaseNotesFile = project.file("RELEASE_NOTES.md")
+    def releaseNotesContent = releaseNotesFile.text
 
     changelog = """
-    **Tested against:**
-    - **NeoForge:** $neo_version
-    - **Minecraft:** $minecraft_version
-    
-    $readmeContent
-    """.stripIndent().trim()
+|**Tested against:**
+|- **NeoForge:** ${neo_version}
+|- **Minecraft:** ${minecraft_version}
+|- **Epic Fight:** ${epicfight_version}
+|
+|${releaseNotesContent}
+""".stripMargin().trim()
 
     modLoaders.add("neoforge")
     type = STABLE
