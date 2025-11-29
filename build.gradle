@@ -4,17 +4,23 @@ plugins {
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
     id 'org.spongepowered.mixin' version '0.7.+'
+    id("me.modmuss50.mod-publish-plugin") version "1.1.0"
 }
 
 version = mod_version
 group = mod_group_id
 
 base {
-    archivesName = mod_id + "-forge1.20.1"
+    archivesName = mod_id
+    version = getFullModVersion()
 }
 
 // Mojang ships Java 17 to end users in 1.18+, so your mod should target Java 17.
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+java {
+    withSourcesJar()
+
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 minecraft {
@@ -214,4 +220,43 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+def getFullModVersion() {
+    return "${mod_version}-mc${minecraft_version}-forge"
+}
+
+publishMods {
+    def releaseNotes = project.file("RELEASE_NOTES.md")
+    def releaseNotesText = releaseNotes.text
+
+    changelog = """
+    **Tested against:**
+    - **Forge:** $forge_version
+    - **Minecraft:** $minecraft_version
+    
+    $releaseNotesText
+    """.stripIndent().trim()
+
+    modLoaders.add("forge")
+    type = STABLE
+    displayName = getFullModVersion()
+    file = tasks.jar.archiveFile
+    additionalFiles.from(sourcesJar)
+
+    curseforge {
+        accessToken = System.getenv("CURSEFORGE_TOKEN")
+        projectId = "1184379"
+        minecraftVersions.add(minecraft_version)
+        projectSlug = "epic-fight-invincible"
+    }
+
+    modrinth {
+        accessToken = System.getenv("MODRINTH_TOKEN")
+        projectId = "cdaWrTra"
+        minecraftVersions.add(minecraft_version)
+
+        // Syncs the GitHub README with the Modrinth project description
+        // projectDescription = file("README.md").text
+    }
 }
