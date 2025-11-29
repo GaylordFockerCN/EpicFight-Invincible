@@ -227,16 +227,17 @@ def getFullModVersion() {
 }
 
 publishMods {
-    def releaseNotes = project.file("RELEASE_NOTES.md")
-    def releaseNotesText = releaseNotes.text
+    def releaseNotesFile = project.file("RELEASE_NOTES.md")
+    def releaseNotesContent = releaseNotesFile.text
 
     changelog = """
-    **Tested against:**
-    - **Forge:** $forge_version
-    - **Minecraft:** $minecraft_version
-    
-    $releaseNotesText
-    """.stripIndent().trim()
+|**Tested against:**
+|- **Forge:** ${forge_version}
+|- **Minecraft:** ${minecraft_version}
+|- **Epic Fight:** ${epicfight_version}
+|
+|${releaseNotesContent}
+""".stripMargin().trim()
 
     modLoaders.add("forge")
     type = STABLE
