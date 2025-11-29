@@ -166,12 +166,16 @@ publishMods {
         projectId = "1184379"
         minecraftVersions.add(minecraft_version)
         projectSlug = "epic-fight-invincible"
+
+        requires("epic-fight-mod")
     }
 
     modrinth {
         accessToken = System.getenv("MODRINTH_TOKEN")
         projectId = "cdaWrTra"
         minecraftVersions.add(minecraft_version)
+
+        requires("epic-fight")
 
         // Syncs the GitHub README with the Modrinth project description
         // projectDescription = file("README.md").text
