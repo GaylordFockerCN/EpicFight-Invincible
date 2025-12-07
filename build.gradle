@@ -75,6 +75,7 @@ sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 
 dependencies {
+//    implementation "curse.maven:epic-fight-mod-405076:7213644-sources-7213646"
     implementation "maven.modrinth:epic-fight:${project.epicfight_version}"
     // Change "compileOnly" to "implementation" for testing in-game.
     compileOnly("dev.isxander:controlify:${project.controlify_version}") {
