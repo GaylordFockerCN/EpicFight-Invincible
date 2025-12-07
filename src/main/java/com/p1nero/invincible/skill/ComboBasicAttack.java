@@ -429,7 +429,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
             return;
         }
         SkillCategory skillCategory = event.getSkillContainer().getSkill().getCategory();
-        if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger() || skillCategory.equals(SkillCategories.AIR_ATTACK)) {
+        if (skillCategory.equals(SkillCategories.BASIC_ATTACK) && !event.getPlayerPatch().getOriginal().isPassenger()) {
             event.setCanceled(true);
         }
     }
