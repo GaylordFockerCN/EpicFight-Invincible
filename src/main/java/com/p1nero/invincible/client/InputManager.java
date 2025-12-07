@@ -68,6 +68,7 @@ public class InputManager {
 
     /**
      * 自定义按键的注册
+     * 注：此注册会导致原先按键的consumeClick失效
      */
     public static void register(ComboType type, KeyMapping keyMapping) {
         TYPE_KEY_MAP.put(type, keyMapping);

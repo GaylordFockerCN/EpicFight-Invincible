@@ -134,7 +134,7 @@ public class ControlifyCompat implements ControlifyEntrypoint {
             InvincibleMod.rl("epicfight_combat"),
             mc -> {
                 final boolean isInGame = mc.screen == null && mc.level != null && mc.player != null;
-                return isInGame && ClientEngine.getInstance().isBattleMode();
+                return isInGame && ClientEngine.getInstance().isEpicFightMode();
             }
     );
 
