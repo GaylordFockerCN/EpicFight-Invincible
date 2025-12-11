@@ -11,6 +11,7 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.api.events.BaseEvent;
+import com.p1nero.invincible.api.events.HitEvent;
 import com.p1nero.invincible.api.events.Side;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
@@ -31,6 +32,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
@@ -38,6 +40,8 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import yesman.epicfight.api.animation.AnimationManager;
+import yesman.epicfight.api.animation.AnimationPlayer;
+import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.api.utils.math.Vec2f;
@@ -365,7 +369,16 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         }
         ImmutableList<BaseEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
         if (hitEvents != null) {
-            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
+            Entity target = event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget();
+            AnimationPlayer animationPlayer = playerPatch.getAnimator().getPlayerFor(null);
+            hitEvents.forEach(baseEvent -> {
+                if(animationPlayer != null && baseEvent instanceof HitEvent hitEvent && animationPlayer.getRealAnimation().get() instanceof AttackAnimation attackAnimation) {
+                    if(hitEvent.phaseIndex >= 0 && attackAnimation.getPhaseOrderByTime(animationPlayer.getElapsedTime()) != hitEvent.phaseIndex) {
+                        return;
+                    }
+                }
+                baseEvent.testAndExecute(event.getPlayerPatch(), target, invinciblePlayer);
+            });
         }
     }
 
