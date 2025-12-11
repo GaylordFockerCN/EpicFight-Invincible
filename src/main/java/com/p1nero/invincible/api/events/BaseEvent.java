@@ -10,7 +10,16 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 
 import java.util.function.BiConsumer;
 
-public record BaseEvent(BaseConsumer consumer, Side side) {
+public class BaseEvent {
+
+    public final BaseConsumer consumer;
+    public final Side side;
+
+    public BaseEvent(BaseConsumer consumer, Side side) {
+        this.consumer = consumer;
+        this.side = side;
+    }
+
     public BaseEvent(BaseConsumer event) {
         this(event, Side.BOTH);
     }

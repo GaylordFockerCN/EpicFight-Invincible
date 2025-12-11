@@ -9,6 +9,7 @@ import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.InvincibleFlags;
 import com.p1nero.invincible.api.Side;
+import com.p1nero.invincible.api.events.HitEvent;
 import com.p1nero.invincible.conditions.PressIntervalCondition;
 import com.p1nero.invincible.conditions.PressedTimeCondition;
 import com.p1nero.invincible.api.events.BaseEvent;
@@ -27,6 +28,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -35,6 +37,8 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import yesman.epicfight.api.animation.AnimationManager;
+import yesman.epicfight.api.animation.AnimationPlayer;
+import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.neoevent.playerpatch.*;
 import yesman.epicfight.api.utils.math.ValueModifier;
@@ -409,7 +413,16 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         ImmutableList<BaseEvent> hitEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
         if(hitEvents != null){
-            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
+            Entity target = event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget();
+            AnimationPlayer animationPlayer = event.getPlayerPatch().getAnimator().getPlayerFor(null);
+            hitEvents.forEach(baseEvent -> {
+                if(animationPlayer != null && baseEvent instanceof HitEvent hitEvent && animationPlayer.getRealAnimation().get() instanceof AttackAnimation attackAnimation) {
+                    if(hitEvent.phaseIndex >= 0 && attackAnimation.getPhaseOrderByTime(animationPlayer.getElapsedTime()) != hitEvent.phaseIndex) {
+                        return;
+                    }
+                }
+                baseEvent.testAndExecute(event.getPlayerPatch(), target, invinciblePlayer);
+            });
         }
     }
 

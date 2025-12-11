@@ -1,6 +1,7 @@
 package com.p1nero.invincible.gameassets.combos;
 
 import com.p1nero.invincible.api.events.BaseEvent;
+import com.p1nero.invincible.api.events.HitEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.conditions.*;
@@ -40,7 +41,7 @@ public class ComboDemo {
         jumpAttack.key1(a);//闭环
 
         ComboNode aa = ComboNode.createNode(Animations.SWORD_AUTO2);//2a
-        aa.addHitEvent(new BaseEvent((entityPatch, entity, invinciblePlayer) -> {
+        aa.addHitEvent(new HitEvent((entityPatch, entity, invinciblePlayer) -> {
             if (entityPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
                 serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
             }

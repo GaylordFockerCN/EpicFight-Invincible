@@ -181,7 +181,7 @@ public class InputManager {
     }
 
     private static void onVanillaMouseOrKeyInput(int action, int key) {
-        if (action == InputConstants.RELEASE && KEY_STATE_CACHE.containsKey(key)) {
+        if (action == InputConstants.RELEASE && INPUT_QUEUE.contains(key)) {
             handleRelease();
         }
     }

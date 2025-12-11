@@ -194,7 +194,7 @@ public class ComboNode {
     }
 
     public ComboNode addTimeEvent(BaseEvent event) {
-        events.add(new TimeStampedEvent(0.01F, event.consumer()));
+        events.add(new TimeStampedEvent(0.01F, event.consumer));
         return this;
     }
 
