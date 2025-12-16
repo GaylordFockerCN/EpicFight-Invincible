@@ -74,7 +74,7 @@ public class MultiPhaseDashAttackAnimation extends DashAttackAnimation {
         EntityState state = this.getState(entityPatch, elapsedTime);
         EntityState prevState = this.getState(entityPatch, prevElapsedTime);
         for(Phase phase : phases){
-            if(elapsedTime < phase.antic){
+            if(elapsedTime < phase.antic || elapsedTime > phase.contact){
                 continue;
             }
             if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
