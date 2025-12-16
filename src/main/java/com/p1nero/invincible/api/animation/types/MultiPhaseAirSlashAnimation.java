@@ -6,7 +6,6 @@ import com.p1nero.invincible.capability.InvincibleCapabilities;
 import com.p1nero.invincible.capability.InvincibleEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,7 +16,7 @@ import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.Joint;
 import yesman.epicfight.api.animation.property.AnimationProperty;
-import yesman.epicfight.api.animation.types.BasicAttackAnimation;
+import yesman.epicfight.api.animation.types.AirSlashAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.asset.AssetAccessor;
@@ -35,46 +34,33 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-public class BasicMultiPhaseAttackAnimation extends BasicAttackAnimation {
-
-
-    public BasicMultiPhaseAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+public class MultiPhaseAirSlashAnimation extends AirSlashAnimation {
+    public MultiPhaseAirSlashAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AirSlashAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public BasicMultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
-        super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
+    public MultiPhaseAirSlashAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, boolean directional, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AirSlashAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+        super(transitionTime, antic, preDelay, contact, recovery, directional, collider, colliderJoint, accessor, armature);
     }
 
-    public BasicMultiPhaseAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
-        super(transitionTime, antic, contact, recovery, hand, collider, colliderJoint, accessor, armature);
-    }
-
-    public BasicMultiPhaseAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseAirSlashAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends AirSlashAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, accessor, armature, phases);
     }
 
-    public BasicMultiPhaseAttackAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseAirSlashAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, path, armature, phases);
     }
 
     @Override
     public void begin(LivingEntityPatch<?> entityPatch) {
         super.begin(entityPatch);
-        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
+        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).resetAttackPhaseCache();
     }
 
     @Override
     public void end(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd) {
         super.end(entityPatch, nextAnimation, isEnd);
-        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).removePhaseCache(phases);
-    }
-
-    /**
-     * 检查phase是否合法
-     */
-    protected boolean isPhaseValid(LivingEntityPatch<?> entityPatch, Phase phase){
-        return true;
+        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).resetAttackPhaseCache();
     }
 
     /**
@@ -88,7 +74,7 @@ public class BasicMultiPhaseAttackAnimation extends BasicAttackAnimation {
         EntityState state = this.getState(entityPatch, elapsedTime);
         EntityState prevState = this.getState(entityPatch, prevElapsedTime);
         for(Phase phase : phases){
-            if(!isPhaseValid(entityPatch, phase) || elapsedTime < phase.antic){
+            if(elapsedTime < phase.antic){
                 continue;
             }
             if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
@@ -98,14 +84,19 @@ public class BasicMultiPhaseAttackAnimation extends BasicAttackAnimation {
                 continue;
             }
             if (prevState.attacking() || state.attacking() || prevState.getLevel() < 2 && state.getLevel() > 2) {
-                if (elapsedTime > phase.antic && prevElapsedTime < phase.antic) {
-                    entityPatch.onStrike(this, phase.hand);
-                    entityPatch.playSound(this.getSwingSound(entityPatch, phase), 0.0F, 0.0F);
-                    entityPatch.removeHurtEntities();
+                if (elapsedTime > phase.antic && !InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).isPhaseUsed(phase)) {
+                    onPhaseStart(entityPatch, animation, phase, elapsedTime);
+                    InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).setPhaseUsed(phase);
                 }
                 this.hurtCollidingEntities(entityPatch, prevElapsedTime, elapsedTime, prevState, state, phase);
             }
         }
+    }
+
+    protected void onPhaseStart(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation, Phase phase, float elapsedTime) {
+        entityPatch.onStrike(this, phase.hand);
+        entityPatch.playSound(this.getSwingSound(entityPatch, phase), 0.0F, 0.0F);
+        entityPatch.removeHurtEntities();
     }
 
     protected void hurtCollidingEntities(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state, Phase phase) {
@@ -154,9 +145,6 @@ public class BasicMultiPhaseAttackAnimation extends BasicAttackAnimation {
         float prevElapsedTime = animPlayer.getPrevElapsedTime();
         float elapsedTime = animPlayer.getElapsedTime();
         for(Phase phase : phases){
-            if(!isPhaseValid(entityPatch, phase)){
-                continue;
-            }
             Pair<Joint, Collider> colliderInfo;
             Collider collider;
             for(Iterator<JointColliderPair> iterator = Arrays.stream(phase.colliders).iterator(); iterator.hasNext(); collider.draw(poseStack, buffer, entityPatch, this, colliderInfo.getFirst(), prevElapsedTime, elapsedTime, partialTicks, this.getPlaySpeed(entityPatch, this))) {
@@ -168,5 +156,4 @@ public class BasicMultiPhaseAttackAnimation extends BasicAttackAnimation {
             }
         }
     }
-
 }

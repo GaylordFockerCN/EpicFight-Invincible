@@ -4,32 +4,42 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class InvincibleEntity {
-    private final Map<AttackAnimation.Phase, List<Entity>> phaseListMap = new HashMap<>();
+    private final Map<AttackAnimation.Phase, List<Entity>> phaseAttackTriedEntities = new HashMap<>();
 
-    public Map<AttackAnimation.Phase, List<Entity>> getPhaseListMap() {
-        return phaseListMap;
+    private final Set<AttackAnimation.Phase> usedPhases = new HashSet<>();
+
+    public Map<AttackAnimation.Phase, List<Entity>> getPhaseAttackTriedEntities() {
+        return phaseAttackTriedEntities;
+    }
+
+    public Set<AttackAnimation.Phase> getUsedPhases() {
+        return usedPhases;
     }
 
     public List<Entity> getCurrentlyHurtEntities(AttackAnimation.Phase phase){
-        List<Entity> toReturn = phaseListMap.get(phase);
+        List<Entity> toReturn = phaseAttackTriedEntities.get(phase);
         if(toReturn == null){
             List<Entity> newList = new ArrayList<>();
-            phaseListMap.put(phase, newList);
+            phaseAttackTriedEntities.put(phase, newList);
             return newList;
         }
         return toReturn;
     }
 
-    public void removePhaseCache(AttackAnimation.Phase ...phases){
-        for(AttackAnimation.Phase phase : phases) {
-            phaseListMap.remove(phase);
-        }
+    public void resetAttackPhaseCache(){
+        phaseAttackTriedEntities.clear();
+        usedPhases.clear();
+    }
+
+    public void setPhaseUsed(AttackAnimation.Phase phase) {
+        usedPhases.add(phase);
+    }
+
+    public boolean isPhaseUsed(AttackAnimation.Phase phase) {
+        return usedPhases.contains(phase);
     }
 
     public void saveNBTData(CompoundTag tag) {

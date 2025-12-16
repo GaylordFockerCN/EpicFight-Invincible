@@ -6,7 +6,6 @@ import com.p1nero.invincible.capability.InvincibleCapabilities;
 import com.p1nero.invincible.capability.InvincibleEntity;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.api.distmarker.Dist;
@@ -17,7 +16,7 @@ import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.Joint;
 import yesman.epicfight.api.animation.property.AnimationProperty;
-import yesman.epicfight.api.animation.types.AttackAnimation;
+import yesman.epicfight.api.animation.types.DashAttackAnimation;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.asset.AssetAccessor;
@@ -31,24 +30,25 @@ import yesman.epicfight.world.damagesource.EpicFightDamageSource;
 import yesman.epicfight.world.entity.eventlistener.AttackPhaseEndEvent;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
-public class MultiPhaseAttackAnimation extends AttackAnimation {
-
-    public MultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+public class MultiPhaseDashAttackAnimation extends DashAttackAnimation {
+    public MultiPhaseDashAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends DashAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
         super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
     }
 
-    public MultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
-        super(transitionTime, antic, preDelay, contact, recovery, hand, collider, colliderJoint, accessor, armature);
+    public MultiPhaseDashAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends DashAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, boolean directional) {
+        super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature, directional);
     }
 
-    public MultiPhaseAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
+    public MultiPhaseDashAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends DashAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
         super(transitionTime, accessor, armature, phases);
     }
 
-    public MultiPhaseAttackAnimation(float convertTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, String path, AssetAccessor<? extends Armature> armature) {
-        super(convertTime, antic, preDelay, contact, recovery, hand, collider, colliderJoint, path, armature);
+    public MultiPhaseDashAttackAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+        super(transitionTime, path, armature, phases);
     }
 
     @Override
@@ -84,7 +84,6 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
                 continue;
             }
             if (prevState.attacking() || state.attacking() || prevState.getLevel() < 2 && state.getLevel() > 2) {
-                //判断phase开始且还没用过，再进行
                 if (elapsedTime > phase.antic && !InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).isPhaseUsed(phase)) {
                     onPhaseStart(entityPatch, animation, phase, elapsedTime);
                     InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).setPhaseUsed(phase);
@@ -157,5 +156,4 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
             }
         }
     }
-
 }
