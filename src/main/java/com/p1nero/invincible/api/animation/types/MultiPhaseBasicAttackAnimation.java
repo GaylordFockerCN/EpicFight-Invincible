@@ -80,13 +80,13 @@ public class MultiPhaseBasicAttackAnimation extends BasicAttackAnimation{
         EntityState state = this.getState(entityPatch, elapsedTime);
         EntityState prevState = this.getState(entityPatch, prevElapsedTime);
         for(Phase phase : phases){
-            if(elapsedTime < phase.antic){
-                continue;
-            }
             if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
                 if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
                     serverPlayerPatch.getEventListener().triggerEvents(PlayerEventListener.EventType.ATTACK_PHASE_END_EVENT, new AttackPhaseEndEvent(serverPlayerPatch, this.getAccessor(), phase, this.getPhaseOrderByTime(elapsedTime)));
                 }
+                continue;
+            }
+            if(elapsedTime < phase.antic || elapsedTime > phase.contact){
                 continue;
             }
             if (prevState.attacking() || state.attacking() || prevState.getLevel() < 2 && state.getLevel() > 2) {
