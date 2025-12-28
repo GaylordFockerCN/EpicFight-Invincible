@@ -1,6 +1,5 @@
 package com.p1nero.invincible.api.events;
 
-import com.p1nero.invincible.capability.InvinciblePlayer;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 

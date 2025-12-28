@@ -290,6 +290,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             builder.add(event);
         }
         invinciblePlayer.setTimeStampedEvents(builder.build());
+        invinciblePlayer.setTimePeriodEvents(ImmutableList.copyOf(next.getTimePeriodEvents()));
         invinciblePlayer.setHurtEvents(ImmutableList.copyOf(next.getHurtEvents()));
         invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(next.getHitEvents()));
         invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(next.getDodgeSuccessEvents()));

@@ -3,6 +3,7 @@ package com.p1nero.invincible.gameassets;
 import com.p1nero.invincible.InvincibleMod;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.HitEvent;
+import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -82,7 +83,12 @@ public class InvincibleDemoSkills {
                 .addCondition(new StackCondition(1, 2))//检测Stack数量
                 .addCondition(new CooldownCondition(false))//检测是否处于冷却状态
                 .setNotCharge(true)//取消本次攻击的充能
-                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.0F, "invincible consumeStack 1", false));
+                .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.0F, "invincible consumeStack 1", false))
+                .addTimePeriodEvent(new TimePeriodEvent(0.0F, 1.0F, (playerPatch, target, invinciblePlayer) -> {
+                    if (playerPatch.getOriginal() instanceof ServerPlayer serverPlayer) {
+                        serverPlayer.serverLevel().sendParticles(ParticleTypes.FLAME, serverPlayer.getX(), serverPlayer.getY(), serverPlayer.getZ(), 10, 1, 1, 1, 1);
+                    }
+                }));
         skill.key1(a);
 
         ComboNode l = ComboNode.createNode(Animations.BIPED_STEP_LEFT).addCondition(new LeftCondition());
