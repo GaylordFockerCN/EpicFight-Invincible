@@ -120,7 +120,16 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node, int pressTime, long inputInterval) {
-        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        EpicFightCapabilities.getUnparameterizedEntityPatch(serverPlayer, ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+            executeNodeOnServer(serverPlayerPatch, node, pressTime, inputInterval);
+        });
+    }
+
+    public static void executeNodeOnServer(ServerPlayerPatch serverPlayerPatch, ComboNode node) {
+        executeNodeOnServer(serverPlayerPatch, node, 1, 0);
+    }
+
+    public static void executeNodeOnServer(ServerPlayerPatch serverPlayerPatch, ComboNode node, int pressTime, long inputInterval) {
         if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
             comboBasicAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressTime, inputInterval);
         }
@@ -131,7 +140,16 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressTime, long inputInterval) {
-        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        EpicFightCapabilities.getUnparameterizedEntityPatch(serverPlayer, ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+            executeOnServer(serverPlayerPatch, type, pressTime, inputInterval);
+        });
+    }
+
+    public static void executeOnServer(ServerPlayerPatch serverPlayerPatch, ComboType type) {
+        executeOnServer(serverPlayerPatch, type, 1, 0);
+    }
+
+    public static void executeOnServer(ServerPlayerPatch serverPlayerPatch, ComboType type, int pressTime, long inputInterval) {
         if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
             comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime, inputInterval);
         }
