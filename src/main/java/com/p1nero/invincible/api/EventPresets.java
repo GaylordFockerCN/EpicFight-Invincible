@@ -5,39 +5,39 @@ import com.p1nero.invincible.api.combo.ComboType;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import net.minecraft.core.Holder;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.skill.SkillSlot;
 import yesman.epicfight.skill.SkillSlots;
+import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 import java.util.function.Supplier;
 
 public interface EventPresets {
 
-    static BaseEvent tryExecute(ServerPlayer serverPlayer, ComboNode node) {
+    static BaseEvent tryExecute(ComboNode node) {
+        return tryExecute(node, 1, 0);
+    }
+
+    static BaseEvent tryExecute(ComboNode node, int pressedTime, long inputInterval) {
         return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
-            ComboBasicAttack.executeNodeOnServer(serverPlayer, node);
+            if(playerPatch instanceof ServerPlayerPatch serverPlayer) {
+                ComboBasicAttack.executeNodeOnServer(serverPlayer, node, pressedTime, inputInterval);
+            }
         }));
     }
 
-    static BaseEvent tryExecute(ServerPlayer serverPlayer, ComboNode node, int pressedTime, long inputInterval) {
-        return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
-            ComboBasicAttack.executeNodeOnServer(serverPlayer, node, pressedTime, inputInterval);
-        }));
+    static BaseEvent simulateInput(ComboType type) {
+        return simulateInput(type, 1, 0);
     }
 
-    static BaseEvent simulateInput(ServerPlayer serverPlayer, ComboType type) {
+    static BaseEvent simulateInput(ComboType type, int pressedTime, long inputInterval) {
         return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
-            ComboBasicAttack.executeOnServer(serverPlayer, type);
-        }));
-    }
-
-    static BaseEvent simulateInput(ServerPlayer serverPlayer, ComboType type, int pressedTime, long inputInterval) {
-        return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
-            ComboBasicAttack.executeOnServer(serverPlayer, type, pressedTime, inputInterval);
+            if(playerPatch instanceof ServerPlayerPatch serverPlayerPatch) {
+                ComboBasicAttack.executeOnServer(serverPlayerPatch, type, pressedTime, inputInterval);
+            }
         }));
     }
 

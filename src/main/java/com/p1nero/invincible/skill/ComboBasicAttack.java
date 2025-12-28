@@ -144,25 +144,43 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
         return container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
     }
 
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
-        executeOnServer(serverPlayer, type, 1, 0);
-    }
-
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressedTime, long inputInterval){
-        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
-        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
-            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressedTime, inputInterval);
-        }
-    }
-
-    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node){
+    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node) {
         executeNodeOnServer(serverPlayer, node, 1, 0);
     }
 
-    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node, int pressedTime, long inputInterval){
-        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
-        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
-            comboBasicAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressedTime, inputInterval);
+    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node, int pressTime, long inputInterval) {
+        EpicFightCapabilities.getUnparameterizedEntityPatch(serverPlayer, ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+            executeNodeOnServer(serverPlayerPatch, node, pressTime, inputInterval);
+        });
+    }
+
+    public static void executeNodeOnServer(ServerPlayerPatch serverPlayerPatch, ComboNode node) {
+        executeNodeOnServer(serverPlayerPatch, node, 1, 0);
+    }
+
+    public static void executeNodeOnServer(ServerPlayerPatch serverPlayerPatch, ComboNode node, int pressTime, long inputInterval) {
+        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+            comboBasicAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressTime, inputInterval);
+        }
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type) {
+        executeOnServer(serverPlayer, type, 1, 0);
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressTime, long inputInterval) {
+        EpicFightCapabilities.getUnparameterizedEntityPatch(serverPlayer, ServerPlayerPatch.class).ifPresent(serverPlayerPatch -> {
+            executeOnServer(serverPlayerPatch, type, pressTime, inputInterval);
+        });
+    }
+
+    public static void executeOnServer(ServerPlayerPatch serverPlayerPatch, ComboType type) {
+        executeOnServer(serverPlayerPatch, type, 1, 0);
+    }
+
+    public static void executeOnServer(ServerPlayerPatch serverPlayerPatch, ComboType type, int pressTime, long inputInterval) {
+        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime, inputInterval);
         }
     }
 
