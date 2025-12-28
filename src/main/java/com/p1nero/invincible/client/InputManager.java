@@ -106,7 +106,6 @@ public class InputManager {
      */
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
-        handleKeyBinds();
         maybeHandleControlifyRelease();
         LocalPlayerPatch localPlayerPatch = ClientEngine.getInstance().getPlayerPatch();
 
@@ -181,8 +180,14 @@ public class InputManager {
     }
 
     private static void onVanillaMouseOrKeyInput(int action, int key) {
+        if(!shouldHandleInput()) {
+            return;
+        }
         if (action == InputConstants.RELEASE && INPUT_QUEUE.contains(key)) {
             handleRelease();
+        }
+        if(action == InputConstants.PRESS) {
+            handlePress(key);
         }
     }
 
@@ -250,14 +255,11 @@ public class InputManager {
      * 按下时记录
      * 松手时发包
      */
-    private static void handleKeyBinds() {
+    private static void handlePress(int inputKey) {
         for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
             int keyId = keyMapping.getKey().getValue();
-            while (keyMapping.consumeClick()) {
-                if (!shouldHandleInput()) {
-                    continue;
-                }
-                handleOnPress(keyMapping);
+            if (keyMapping.getKey().getValue() == inputKey) {
+                executeOnPress(keyMapping);
                 if (!INPUT_QUEUE.contains(keyId)) {
                     INPUT_QUEUE.add(keyId);
                 }
@@ -272,7 +274,7 @@ public class InputManager {
     /**
      * 发包给服务端执行onPress
      */
-    private static void handleOnPress(KeyMapping keyMapping) {
+    private static void executeOnPress(KeyMapping keyMapping) {
         ComboType type = KEY_TYPE_MAP.get(keyMapping);
         CPSkillRequest packet = new CPSkillRequest(SkillSlots.WEAPON_INNATE, new CompoundTag());
         if(type == null || packet.arguments() == null) {

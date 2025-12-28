@@ -23,7 +23,8 @@ public enum Side {
             return this.predicate.test(entity);
         }
 
-        private Side(Predicate<Entity> predicate) {
+        Side(Predicate<Entity> predicate) {
             this.predicate = predicate;
         }
+
     }

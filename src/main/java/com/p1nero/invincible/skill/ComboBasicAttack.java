@@ -140,6 +140,32 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
 
     }
 
+    public boolean isDebugMode(SkillContainer container) {
+        return container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
+        executeOnServer(serverPlayer, type, 1, 0);
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressedTime, long inputInterval){
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
+            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressedTime, inputInterval);
+        }
+    }
+
+    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node){
+        executeNodeOnServer(serverPlayer, node, 1, 0);
+    }
+
+    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node, int pressedTime, long inputInterval){
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
+            comboBasicAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressedTime, inputInterval);
+        }
+    }
+
     /**
      * 方便额外调用
      * pressedTime不为0，防止和原版的技能键冲突。
@@ -148,18 +174,15 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
         if(pressedTime > getMaxProtectTime() || pressedTime == 0) {
             return;
         }
-        boolean debugMode = container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
-        if (debugMode) {
+        if (isDebugMode(container)) {
             LOGGER.debug("{} {} : pressed {} ticks. Interval: {} ms.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime, inputInterval);
         }
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         ComboNode last = invinciblePlayer.getCurrentNode();
-        boolean hasPressedTimeCondition = false;
         if(last == null){
             return;
         }
         ComboNode current = last.getNext(type);
-        ComboNode next = current;
         //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
         if(current == null){
             for(ComboType subType : type.getSubTypes()){
@@ -168,6 +191,14 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
                 }
             }
         }
+        executeNodeOnServer(container, current, pressedTime, inputInterval);
+    }
+
+    public void executeNodeOnServer(SkillContainer container, @Nullable ComboNode current, int pressedTime, long inputInterval) {
+        ComboNode next = current;
+        boolean hasPressedTimeCondition = false;
+        boolean debugMode = isDebugMode(container);
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         //动画是空的就直接跳过，不是就播放
         if (current != null) {
             if (current.getAnimationAccessor() == null || !current.getConditionAnimations().isEmpty()) {
@@ -205,7 +236,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
                 }
             } else {
                 //多个条件指向同一动画
-                for (Condition condition : current.getConditions()) {
+                for (Condition condition : current.getConditions(Side.BOTH, Side.SERVER)) {
                     if(condition instanceof PressedTimeCondition pressedTimeCondition) {
                         hasPressedTimeCondition = true;
                         if(pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
@@ -266,17 +297,6 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
         EpicFightNetworkManager.sendToPlayer(feedbackPacket, (ServerPlayer) container.getExecutor().getOriginal());
     }
 
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type){
-        executeOnServer(serverPlayer, type, 1, 0);
-    }
-
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressedTime, long inputInterval){
-        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
-        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack){
-            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressedTime, inputInterval);
-        }
-    }
-
     /**
      * 根据预存来初始化玩家信息
      */
@@ -288,6 +308,7 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
             builder.add(event);
         }
         invinciblePlayer.setTimeStampedEvents(builder.build());
+        invinciblePlayer.setTimePeriodEvents(ImmutableList.copyOf(next.getTimePeriodEvents()));
         invinciblePlayer.setHurtEvents(ImmutableList.copyOf(next.getHurtEvents()));
         invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(next.getHitEvents()));
         invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(next.getDodgeSuccessEvents()));

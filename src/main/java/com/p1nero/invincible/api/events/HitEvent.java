@@ -2,7 +2,7 @@ package com.p1nero.invincible.api.events;
 
 import com.p1nero.invincible.api.Side;
 
-public class HitEvent extends BaseEvent{
+public class HitEvent extends BaseEvent {
 
     public final int phaseIndex;
 

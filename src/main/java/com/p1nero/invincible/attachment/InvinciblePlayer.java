@@ -3,6 +3,7 @@ package com.p1nero.invincible.attachment;
 import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.api.combo.ComboNodeManager;
 import com.p1nero.invincible.api.events.BaseEvent;
+import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.combo.ComboNode;
 import net.minecraft.core.HolderLookup;
@@ -21,6 +22,7 @@ import java.util.Map;
 public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
     private ComboNode currentNode = null;
     private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
+    private ImmutableList<TimePeriodEvent> timePeriodEvents = null;
     private final Map<ItemStack, Integer> cooldownMap = new HashMap<>();
     @Nullable
     private ImmutableList<BaseEvent> dodgeSuccessEvents = null;
@@ -151,6 +153,10 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
         return hitSuccessEvents;
     }
 
+    public @Nullable ImmutableList<TimePeriodEvent> getTimePeriodEvents() {
+        return timePeriodEvents;
+    }
+
     public void setDodgeSuccessEvents(@Nullable ImmutableList<BaseEvent> dodgeSuccessEvents) {
         this.dodgeSuccessEvents = dodgeSuccessEvents;
     }
@@ -171,6 +177,10 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
         timeStampedEvents = null;
     }
 
+    public void setTimePeriodEvents(ImmutableList<TimePeriodEvent> timePeriodEvents) {
+        this.timePeriodEvents = timePeriodEvents;
+    }
+
     public ComboNode getCurrentNode() {
         return currentNode;
     }
@@ -188,6 +198,7 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
         canBeInterrupt = true;
         notCharge = false;
         timeStampedEvents = null;
+        timePeriodEvents = null;
         dodgeSuccessEvents = null;
         hitSuccessEvents = null;
         hurtEvents = null;

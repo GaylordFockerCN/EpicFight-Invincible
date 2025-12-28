@@ -1,5 +1,6 @@
 package com.p1nero.invincible.api.events;
 
+import com.p1nero.invincible.api.Side;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.world.level.Level;
@@ -12,10 +13,12 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     private final float time;
     private final BaseConsumer event;
     private boolean executed = false;
+    private final Side side;
 
     public boolean isExecuted() {
         return executed;
     }
+
     public void resetExecuted(){
         executed = false;
     }
@@ -23,6 +26,13 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     public TimeStampedEvent(float time, BaseConsumer event) {
         this.time = time;
         this.event = event;
+        this.side = Side.SERVER;
+    }
+
+    public TimeStampedEvent(float time, BaseConsumer event, Side side) {
+        this.time = time;
+        this.event = event;
+        this.side = side;
     }
 
     @Deprecated
@@ -31,10 +41,11 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
         this.event = ((playerPatch, target, invinciblePlayer) -> {
             event.accept(playerPatch);
         });
+        this.side = Side.SERVER;
     }
 
     public void testAndExecute(PlayerPatch<?> playerPatch, float prevElapsed, float elapsed) {
-        if (this.time >= prevElapsed && this.time < elapsed && !playerPatch.isLogicalClient()) {
+        if (this.time >= prevElapsed && this.time < elapsed && side.test(playerPatch.getOriginal())) {
             this.event.accept(playerPatch, playerPatch.getTarget(), InvincibleAttachments.getPlayer(playerPatch.getOriginal()));
             executed = true;
         }
