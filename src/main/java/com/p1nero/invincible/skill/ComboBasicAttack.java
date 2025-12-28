@@ -111,6 +111,32 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         return executor.getEntityState().canBasicAttack() && !executor.getOriginal().isSpectator();
     }
 
+    public boolean isDebugMode(SkillContainer container) {
+        return container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
+    }
+
+    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node) {
+        executeNodeOnServer(serverPlayer, node, 1, 0);
+    }
+
+    public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node, int pressTime, long inputInterval) {
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+            comboBasicAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressTime, inputInterval);
+        }
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type) {
+        executeOnServer(serverPlayer, type, 1, 0);
+    }
+
+    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressTime, long inputInterval) {
+        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
+        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime, inputInterval);
+        }
+    }
+
     /**
      * 处理客户端的输入信息
      * 处理输入位于{@link InputManager#getAvailablePackets(SkillContainer)}
@@ -133,18 +159,15 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         if (pressedTime > getMaxProtectTime()) {
             return;
         }
-        boolean debugMode = container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
-        if (debugMode) {
+        if (isDebugMode(container)) {
             LOGGER.debug("{} {} : pressed {} ticks. Interval: {} ms.", container.getExecutor().getOriginal().getMainHandItem().getDescriptionId(), type, pressedTime, inputInterval);
         }
         container.getExecutor().getOriginal().getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode last = invinciblePlayer.getCurrentNode();
-            boolean hasPressedTimeCondition = false;
             if (last == null) {
                 return;
             }
             ComboNode current = last.getNext(type);
-            ComboNode next = current;
             //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
             if (current == null) {
                 for (ComboType subType : type.getSubTypes()) {
@@ -153,90 +176,98 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                     }
                 }
             }
-            //动画是空的就直接跳过，不是就播放
-            if (current != null) {
-                if (current.getAnimationAccessor() == null || !current.getConditionAnimations().isEmpty()) {
-                    if (current.getConditionAnimations().isEmpty()) {
-                        return;
-                    }
-                    current.getConditionAnimations().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
-                    //多个条件指向不同动画，根据优先级来检测
-                    for (ComboNode conditionAnimation : current.getConditionAnimations()) {
-                        boolean canExecute = true;
-                        for (Condition condition : conditionAnimation.getConditions(Side.SERVER, Side.BOTH)) {
+            executeNodeOnServer(container, current, pressedTime, inputInterval);
+        });
+    }
 
-                            if (condition instanceof PressedTimeCondition pressedTimeCondition) {
-                                if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
-                                    canExecute = false;
-                                    break;
-                                }
-                            } else if (condition instanceof PressIntervalCondition pressIntervalCondition) {
-                                if (inputInterval < pressIntervalCondition.getMin() || inputInterval > pressIntervalCondition.getMax()) {
-                                    canExecute = false;
-                                    break;
-                                }
-                            } else if (!condition.predicate(container.getExecutor())) {
+    public void executeNodeOnServer(SkillContainer container, @Nullable ComboNode current, int pressedTime, long inputInterval) {
+        ComboNode next = current;
+        boolean hasPressedTimeCondition = false;
+        boolean debugMode = isDebugMode(container);
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+        //动画是空的就直接跳过，不是就播放
+        if (current != null) {
+            if (current.getAnimationAccessor() == null || !current.getConditionNodes().isEmpty()) {
+                if (current.getConditionNodes().isEmpty()) {
+                    return;
+                }
+                current.getConditionNodes().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
+                //多个条件指向不同动画，根据优先级来检测
+                for (ComboNode conditionAnimation : current.getConditionNodes()) {
+                    boolean canExecute = true;
+                    for (Condition condition : conditionAnimation.getConditions(Side.SERVER, Side.BOTH)) {
+
+                        if (condition instanceof PressedTimeCondition pressedTimeCondition) {
+                            if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
                                 canExecute = false;
                                 break;
                             }
-                        }
-                        if (canExecute) {
-                            current = conditionAnimation;
-                            //实现ConditionAnimations里接combos
-                            if (conditionAnimation.hasNext()) {
-                                next = conditionAnimation;
+                        } else if (condition instanceof PressIntervalCondition pressIntervalCondition) {
+                            if (inputInterval < pressIntervalCondition.getMin() || inputInterval > pressIntervalCondition.getMax()) {
+                                canExecute = false;
+                                break;
                             }
+                        } else if (!condition.predicate(container.getExecutor())) {
+                            canExecute = false;
                             break;
                         }
                     }
-                } else {
-                    //多个条件指向同一动画
-                    for (Condition condition : current.getConditions(Side.SERVER, Side.BOTH)) {
-                        if (condition instanceof PressedTimeCondition pressedTimeCondition) {
-                            hasPressedTimeCondition = true;
-                            if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
-                                return;
-                            }
-                        } else if (condition instanceof PressIntervalCondition pressIntervalCondition) {
-                            if (inputInterval < pressIntervalCondition.getMin() || inputInterval > pressIntervalCondition.getMax()) {
-                                return;
-                            }
-                        } else if (!condition.predicate(container.getExecutor())) {
+                    if (canExecute) {
+                        current = conditionAnimation;
+                        //实现ConditionAnimations里接combos
+                        if (conditionAnimation.hasNext()) {
+                            next = conditionAnimation;
+                        }
+                        break;
+                    }
+                }
+            } else {
+                //多个条件指向同一动画
+                for (Condition condition : current.getConditions(Side.SERVER, Side.BOTH)) {
+                    if (condition instanceof PressedTimeCondition pressedTimeCondition) {
+                        hasPressedTimeCondition = true;
+                        if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
                             return;
                         }
-                    }
-                    if (!hasPressedTimeCondition && pressedTime > 20) {
+                    } else if (condition instanceof PressIntervalCondition pressIntervalCondition) {
+                        if (inputInterval < pressIntervalCondition.getMin() || inputInterval > pressIntervalCondition.getMax()) {
+                            return;
+                        }
+                    } else if (!condition.predicate(container.getExecutor())) {
                         return;
                     }
                 }
-                AnimationManager.AnimationAccessor animationAccessor = current.getAnimationAccessor();
-                if (animationAccessor == null) {
+                if (!hasPressedTimeCondition && pressedTime > 20) {
                     return;
                 }
-                float convertTime = current.getConvertTime();
-                if (debugMode) {
-                    LOGGER.debug("animationAccessor: {}", animationAccessor);
-                }
-                container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
-                current.getOnBeginEvents().forEach(event -> {
-                    event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
-                });
-                initPlayer(container, invinciblePlayer, current);
-                //把玩家参数以及当前节点同步给客户端
-                if(current.isRepeatNode()) {
-                    next = current.getParentNode();
-                }
-                invinciblePlayer.setCurrentNode(next);
-                sendFeedback(next, container, invinciblePlayer);
+            }
+            AnimationManager.AnimationAccessor animationAccessor = current.getAnimationAccessor();
+            if (animationAccessor == null) {
                 return;
-            } else {
-                invinciblePlayer.setCurrentNode(root);
-                sendFeedback(root, container, invinciblePlayer);
             }
+            float convertTime = current.getConvertTime();
             if (debugMode) {
-                LOGGER.debug("Bad node, return.");
+                LOGGER.debug("animationAccessor: {}", animationAccessor);
             }
-        });
+            container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
+            current.getOnBeginEvents().forEach(event -> {
+                event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
+            });
+            initPlayer(container, invinciblePlayer, current);
+            //把玩家参数以及当前节点同步给客户端
+            if (current.isRepeatNode()) {
+                next = current.getParentNode();
+            }
+            invinciblePlayer.setCurrentNode(next);
+            sendFeedback(next, container, invinciblePlayer);
+            return;
+        } else {
+            invinciblePlayer.setCurrentNode(root);
+            sendFeedback(root, container, invinciblePlayer);
+        }
+        if (debugMode) {
+            LOGGER.debug("Bad node, return.");
+        }
     }
 
     public static void sendFeedback(ComboNode node, SkillContainer container, InvinciblePlayer invinciblePlayer) {
@@ -246,17 +277,6 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         SPSkillExecutionFeedback feedbackPacket = SPSkillExecutionFeedback.executed(container.getSlotId());
         feedbackPacket.getBuffer().writeNbt(invinciblePlayer.saveNBTData(new CompoundTag()));
         EpicFightNetworkManager.sendToPlayer(feedbackPacket, container.getServerExecutor().getOriginal());
-    }
-
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type) {
-        executeOnServer(serverPlayer, type, 1, 0);
-    }
-
-    public static void executeOnServer(ServerPlayer serverPlayer, ComboType type, int pressTime, long inputInterval) {
-        ServerPlayerPatch serverPlayerPatch = EpicFightCapabilities.getEntityPatch(serverPlayer, ServerPlayerPatch.class);
-        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
-            comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime, inputInterval);
-        }
     }
 
     /**
@@ -298,7 +318,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         if (tag != null) {
             invinciblePlayer.loadNBTData(tag);
             ComboNode current = invinciblePlayer.getCurrentNode();
-            if(current != null) {
+            if (current != null) {
                 invinciblePlayer.getCurrentNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
             }
         }
@@ -372,8 +392,8 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             Entity target = event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget();
             AnimationPlayer animationPlayer = playerPatch.getAnimator().getPlayerFor(null);
             hitEvents.forEach(baseEvent -> {
-                if(animationPlayer != null && baseEvent instanceof HitEvent hitEvent && animationPlayer.getRealAnimation().get() instanceof AttackAnimation attackAnimation) {
-                    if(hitEvent.phaseIndex >= 0 && attackAnimation.getPhaseOrderByTime(animationPlayer.getElapsedTime()) != hitEvent.phaseIndex) {
+                if (animationPlayer != null && baseEvent instanceof HitEvent hitEvent && animationPlayer.getRealAnimation().get() instanceof AttackAnimation attackAnimation) {
+                    if (hitEvent.phaseIndex >= 0 && attackAnimation.getPhaseOrderByTime(animationPlayer.getElapsedTime()) != hitEvent.phaseIndex) {
                         return;
                     }
                 }
@@ -497,7 +517,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(playerPatch.getOriginal());
         invinciblePlayer.setCurrentNode(root);
         invinciblePlayer.clear();
-        if(!playerPatch.isLogicalClient()) {
+        if (!playerPatch.isLogicalClient()) {
             sendFeedback(root, container, invinciblePlayer);
         }
     }
@@ -538,7 +558,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     @OnlyIn(Dist.CLIENT)
     public void drawOnGui(BattleModeGui gui, SkillContainer container, GuiGraphics guiGraphics, float x, float y, float partialTick) {
         guiGraphics.pose().pushPose();
-        guiGraphics.pose().translate(0, (float)gui.getSlidingProgression(), 0);
+        guiGraphics.pose().translate(0, (float) gui.getSlidingProgression(), 0);
 
         boolean creative = container.getExecutor().getOriginal().isCreative();
         boolean fullstack = creative || container.isFull();
@@ -645,7 +665,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             int stringWidth = (gui.getFont().width(s) - 6) / 3;
             guiGraphics.drawString(gui.getFont(), s, x + 13 - stringWidth, y + 13, 16777215, true);
         } else if (!fullstack) {
-            String s = String.valueOf((int)(cooldownRatio * 100.0F));
+            String s = String.valueOf((int) (cooldownRatio * 100.0F));
             int stringWidth = (gui.getFont().width(s) - 6) / 3;
             guiGraphics.drawString(gui.getFont(), s, x + 13 - stringWidth, y + 13, 16777215, true);
         }
@@ -659,11 +679,11 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         //画冷却
 
         SkillDataManager manager = container.getDataManager();
-        if(!manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())){
+        if (!manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())) {
             return;
         }
         int cooldown = manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get());
-        if(cooldown > 0){
+        if (cooldown > 0) {
             Font font = gui.getFont();
             String s = String.format("%.1fs", cooldown / 20.0);
             int stringWidth = (font.width(s) - 6) / 3;

@@ -1,6 +1,10 @@
 package com.p1nero.invincible.api;
 
 import com.p1nero.invincible.api.events.BaseEvent;
+import com.p1nero.invincible.api.skill.ComboNode;
+import com.p1nero.invincible.api.skill.ComboType;
+import com.p1nero.invincible.skill.ComboBasicAttack;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
@@ -11,6 +15,31 @@ import yesman.epicfight.skill.SkillSlots;
 import java.util.function.Supplier;
 
 public interface EventPresets {
+
+    static BaseEvent tryExecute(ServerPlayer serverPlayer, ComboNode node) {
+        return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
+            ComboBasicAttack.executeNodeOnServer(serverPlayer, node);
+        }));
+    }
+
+    static BaseEvent tryExecute(ServerPlayer serverPlayer, ComboNode node, int pressedTime, long inputInterval) {
+        return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
+            ComboBasicAttack.executeNodeOnServer(serverPlayer, node, pressedTime, inputInterval);
+        }));
+    }
+
+    static BaseEvent simulateInput(ServerPlayer serverPlayer, ComboType type) {
+        return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
+            ComboBasicAttack.executeOnServer(serverPlayer, type);
+        }));
+    }
+
+    static BaseEvent simulateInput(ServerPlayer serverPlayer, ComboType type, int pressedTime, long inputInterval) {
+        return BaseEvent.createServerEvent(((playerPatch, target, invinciblePlayer) -> {
+            ComboBasicAttack.executeOnServer(serverPlayer, type, pressedTime, inputInterval);
+        }));
+    }
+
     static BaseEvent consumeStamina(float consume) {
         return BaseEvent.createServerEvent(((playerPatch, entity, invinciblePlayer) -> {
             playerPatch.setStamina(playerPatch.getStamina() - consume);

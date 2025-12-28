@@ -2,6 +2,7 @@ package com.p1nero.invincible.capability;
 
 import com.google.common.collect.ImmutableList;
 import com.p1nero.invincible.api.events.BaseEvent;
+import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboNodeManager;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class InvinciblePlayer {
     private ComboNode currentNode = null;
     private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
+    private ImmutableList<TimePeriodEvent> timePeriodEvents = null;
     private final Map<ItemStack, Integer> cooldownMap = new HashMap<>();
     @Nullable
     private ImmutableList<BaseEvent> dodgeSuccessEvents = null;
@@ -148,6 +150,14 @@ public class InvinciblePlayer {
         return hitSuccessEvents;
     }
 
+    public @Nullable ImmutableList<TimePeriodEvent> getTimePeriodEvents() {
+        return timePeriodEvents;
+    }
+
+    public void setTimePeriodEvents(ImmutableList<TimePeriodEvent> timePeriodEvents) {
+        this.timePeriodEvents = timePeriodEvents;
+    }
+
     public void setDodgeSuccessEvents(@Nullable ImmutableList<BaseEvent> dodgeSuccessEvents) {
         this.dodgeSuccessEvents = dodgeSuccessEvents;
     }
@@ -184,6 +194,7 @@ public class InvinciblePlayer {
         stunTypeModifier = null;
         canBeInterrupt = true;
         notCharge = false;
+        timePeriodEvents = null;
         timeStampedEvents = null;
         dodgeSuccessEvents = null;
         hitSuccessEvents = null;

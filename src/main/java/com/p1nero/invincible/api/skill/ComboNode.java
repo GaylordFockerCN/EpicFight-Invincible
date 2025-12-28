@@ -41,8 +41,9 @@ public class ComboNode {
     protected int newPhase;
     protected int cooldown;
     protected List<Pair<Condition, Side>> conditions = new ArrayList<>();
-    protected List<ComboNode> conditionAnimations = new ArrayList<>();
-    protected final List<TimeStampedEvent> events = new ArrayList<>();
+    protected List<ComboNode> conditionNodes = new ArrayList<>();
+    protected final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
+    protected final List<TimePeriodEvent> timePeriodEvents = new ArrayList<>();
     protected final List<BaseEvent> dodgeSuccessEvents = new ArrayList<>();
     protected final List<BaseEvent> hitEvents = new ArrayList<>();
     protected final List<BaseEvent> hurtEvents = new ArrayList<>();
@@ -183,12 +184,12 @@ public class ComboNode {
     }
 
     public ComboNode addTimeEvent(TimeStampedEvent event) {
-        events.add(event);
+        timeStampedEvents.add(event);
         return this;
     }
 
     public ComboNode addTimeEvent(BaseEvent event) {
-        events.add(new TimeStampedEvent(0.01F, event.consumer));
+        timeStampedEvents.add(new TimeStampedEvent(0.01F, event.consumer));
         return this;
     }
 
@@ -212,8 +213,17 @@ public class ComboNode {
         return this;
     }
 
+    public ComboNode addTimePeriodEvent(TimePeriodEvent event) {
+        timePeriodEvents.add(event);
+        return this;
+    }
+
+    public List<TimePeriodEvent> getTimePeriodEvents() {
+        return timePeriodEvents;
+    }
+
     public List<TimeStampedEvent> getTimeEvents() {
-        return events;
+        return timeStampedEvents;
     }
 
     public List<BaseEvent> getHitEvents() {
@@ -306,6 +316,19 @@ public class ComboNode {
         return this;
     }
 
+    /**
+     * 为自己以及所有子节点添加子节点
+     */
+    public void addChildToSubtree(ComboType type, ComboNode child) {
+        if(this == child || this.children.containsValue(child)) {
+            return;
+        }
+        this.addChild(type, child);
+        this.children.forEach((comboType, node) ->
+                node.addChildToSubtree(type, child));
+        this.conditionNodes.forEach(node -> node.addChildToSubtree(type, child));
+    }
+
     public boolean hasConditionAnimations() {
         return conditions.isEmpty();
     }
@@ -329,18 +352,18 @@ public class ComboNode {
     @NotNull
     public List<Condition> getConditions(Side... sides) {
         return conditions.stream()
-                .filter(pair -> Arrays.stream(sides).anyMatch(side -> side == pair.getSecond()))
+                .filter(pair -> sides == null || sides.length == 0 || Arrays.stream(sides).anyMatch(side -> side == pair.getSecond()))
                 .map(Pair::getFirst)
                 .collect(Collectors.toList());
     }
 
     public ComboNode addConditionNode(ComboNode conditionAnimation) {
-        this.conditionAnimations.add(conditionAnimation);
+        this.conditionNodes.add(conditionAnimation);
         return this;
     }
 
-    public List<ComboNode> getConditionAnimations() {
-        return conditionAnimations;
+    public List<ComboNode> getConditionNodes() {
+        return conditionNodes;
     }
 
     public ComboNode key1(ComboNode child) {

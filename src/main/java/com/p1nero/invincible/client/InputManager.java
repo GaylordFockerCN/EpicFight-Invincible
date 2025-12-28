@@ -102,7 +102,6 @@ public class InputManager {
         if (event.phase == TickEvent.Phase.START || Minecraft.getInstance().player == null) {
             return;
         }
-        handleKeyBinds();
         maybeHandleControlifyRelease();
         LocalPlayerPatch localPlayerPatch = EpicFightCapabilities.getEntityPatch(Minecraft.getInstance().player, LocalPlayerPatch.class);
         if (localPlayerPatch != null && shouldHandleInput() && Minecraft.getInstance().getConnection() != null) {
@@ -155,8 +154,14 @@ public class InputManager {
     }
 
     private static void onVanillaMouseOrKeyInput(int action, int key) {
+        if(!shouldHandleInput()) {
+            return;
+        }
         if (action == InputConstants.RELEASE && INPUT_QUEUE.contains(key)) {
             handleRelease();
+        }
+        if(action == InputConstants.PRESS) {
+            handlePress(key);
         }
     }
 
@@ -222,13 +227,10 @@ public class InputManager {
      * 按下时记录
      * 松手时发包
      */
-    private static void handleKeyBinds() {
+    private static void handlePress(int inputKey) {
         for (KeyMapping keyMapping : TYPE_KEY_MAP.values()) {
             int keyId = keyMapping.getKey().getValue();
-            while (keyMapping.consumeClick()) {
-                if (!shouldHandleInput()) {
-                    continue;
-                }
+            if (keyMapping.getKey().getValue() == inputKey) {
                 if (!INPUT_QUEUE.contains(keyId)) {
                     INPUT_QUEUE.add(keyId);
                 }

@@ -1,5 +1,6 @@
 package com.p1nero.invincible.mixin;
 
+import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
 import com.p1nero.invincible.capability.InvinciblePlayer;
@@ -38,17 +39,21 @@ public abstract class AnimationPlayerMixin {
 
     @Inject(method = "tick", at = @At("HEAD"))
     private void invincible$injectTick(LivingEntityPatch<?> entityPatch, CallbackInfo ci){
-        if (entityPatch instanceof ServerPlayerPatch serverPlayerPatch && serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof AbstractInvincibleInnateSkill) {
-            serverPlayerPatch.getOriginal().getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
-                if(invinciblePlayer.getTimeEventList() == null){
+        if (entityPatch instanceof PlayerPatch<?> playerPatch && playerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof AbstractInvincibleInnateSkill) {
+            playerPatch.getOriginal().getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
+                if (!entityPatch.getOriginal().isAlive()) {
                     return;
                 }
-                for (TimeStampedEvent event : invinciblePlayer.getTimeEventList()) {
-                    if (!entityPatch.getOriginal().isAlive()) {
-                        break;
+                if(invinciblePlayer.getTimeEventList() != null){
+                    for (TimeStampedEvent event : invinciblePlayer.getTimeEventList()) {
+                        if(!event.isExecuted()) {
+                            event.testAndExecute(playerPatch, this.prevElapsedTime, this.elapsedTime);
+                        }
                     }
-                    if(!event.isExecuted()) {
-                        event.testAndExecute(serverPlayerPatch, this.prevElapsedTime, this.elapsedTime);
+                }
+                if (invinciblePlayer.getTimePeriodEvents() != null) {
+                    for (TimePeriodEvent event : invinciblePlayer.getTimePeriodEvents()) {
+                        event.testAndExecute(playerPatch, this.elapsedTime);
                     }
                 }
             });

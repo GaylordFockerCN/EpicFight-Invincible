@@ -84,12 +84,6 @@ public class InvincibleDemoSkills {
                 .setNotCharge(true)//取消本次攻击的充能
                 .addTimeEvent(TimeStampedEvent.createTimeCommandEvent(0.0F, "invincible consumeStack 1", false));
         skill.key1(a);
-        root.keyWeaponInnate(skill);//常态才可以放
-        a.keyWeaponInnate(skill);//随时可以按技能键释放技能
-        aa.keyWeaponInnate(skill);
-        aaa.keyWeaponInnate(skill);
-        ab.keyWeaponInnate(skill);
-        aab.keyWeaponInnate(skill);
 
         ComboNode l = ComboNode.createNode(Animations.BIPED_STEP_LEFT).addCondition(new LeftCondition());
         ComboNode r = ComboNode.createNode(Animations.BIPED_STEP_RIGHT).addCondition(new RightCondition());
@@ -98,6 +92,8 @@ public class InvincibleDemoSkills {
         ComboNode dodge = ComboNode.create().addConditionNode(l).addConditionNode(r).addConditionNode(f).addConditionNode(ba);
         basicAttack.key1_2(dodge);//双键触发
         dodge.key1(a);
+
+        root.addChildToSubtree(ComboNode.ComboTypes.WEAPON_INNATE, skill);//随时可以按技能键释放技能
 
         COMBO_DEMO = registryWorker.build("combo_demo", ComboBasicAttack::new, ComboBasicAttack
                 .createComboBasicAttack()
