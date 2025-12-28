@@ -77,7 +77,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
     protected ComboNode root;
-    protected final int maxPressTime, maxReserveTime, maxProtectTime;
+    protected final int maxPressTime, maxReserveTime, maxProtectTime, resetTime;
 
     public ComboBasicAttack(Builder builder) {
         super(builder);
@@ -90,6 +90,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         maxPressTime = builder.maxPressTime;
         maxReserveTime = builder.maxReserveTime;
         maxProtectTime = builder.maxProtectTime;
+        resetTime = builder.resetTime;
     }
 
     public static Builder createComboBasicAttack() {
@@ -458,7 +459,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
         //初始化连段
-        resetCombo(container, container.getExecutor(), root);
+        resetCombo(container);
 
         InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN.get(), 0);
@@ -508,8 +509,8 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
-        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > InvincibleConfig.RESET_TICK.get()) {
-            resetCombo(container, container.getServerExecutor(), root);
+        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > getResetTime()) {
+            resetCombo(container);
         }
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
         SkillDataManager manager = container.getDataManager();
@@ -532,12 +533,22 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         }
     }
 
-    public void resetCombo(SkillContainer container, PlayerPatch<?> playerPatch, ComboNode root) {
-        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(playerPatch.getOriginal());
-        invinciblePlayer.setCurrentNode(root);
+    public void resetCombo(SkillContainer container) {
+        setCurrentNodeSync(container, root);
+    }
+
+    public void setCurrentNodeSync(SkillContainer container, ComboNode comboNode) {
+        InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
+        invinciblePlayer.setCurrentNode(comboNode);
         invinciblePlayer.clear();
-        if (!playerPatch.isLogicalClient()) {
-            sendFeedback(root, container, invinciblePlayer);
+        if (!container.getExecutor().isLogicalClient()) {
+            sendFeedback(comboNode, container, invinciblePlayer);
+        }
+    }
+
+    public static void setCurrentNodeSync(ServerPlayerPatch serverPlayerPatch, ComboNode node) {
+        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+            comboBasicAttack.setCurrentNodeSync(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node);
         }
     }
 
@@ -724,11 +735,15 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         return maxReserveTime == 0 ? InvincibleConfig.RESERVE_TICK.get() : maxReserveTime;
     }
 
+    public int getResetTime() {
+        return resetTime == 0 ? InvincibleConfig.RESET_TICK.get() : resetTime;
+    }
+
     public static class Builder extends SkillBuilder<ComboBasicAttack> {
         protected ComboNode root;
 
         protected List<String> translationKeys = List.of();
-        protected int maxPressTime, maxReserveTime, maxProtectTime;
+        protected int maxPressTime, maxReserveTime, maxProtectTime, resetTime;
         @Nullable
         protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
 
@@ -750,6 +765,11 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
 
         public Builder setReserveTime(int maxReserveTime) {
             this.maxReserveTime = maxReserveTime;
+            return this;
+        }
+
+        public Builder setResetTime(int resetTime) {
+            this.resetTime = resetTime;
             return this;
         }
 
