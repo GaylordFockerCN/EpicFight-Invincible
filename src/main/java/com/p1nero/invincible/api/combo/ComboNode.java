@@ -47,7 +47,7 @@ public class ComboNode {
     protected List<Pair<Condition, Side>> conditions = new ArrayList<>();
     @ApiStatus.Internal
     protected List<Supplier<Condition>> conditionProviders = new ArrayList<>();
-    protected List<ComboNode> conditionAnimations = new ArrayList<>();
+    protected List<ComboNode> conditionNodes = new ArrayList<>();
     protected final List<TimeStampedEvent> timeStampedEvents = new ArrayList<>();
     protected final List<TimePeriodEvent> timePeriodEvents = new ArrayList<>();
     protected final List<BaseEvent> dodgeSuccessEvents = new ArrayList<>();
@@ -336,6 +336,8 @@ public class ComboNode {
         this.addChild(type, child);
         this.children.forEach((comboType, node) ->
                 node.addChildToSubtree(type, child));
+        this.conditionNodes.forEach((node) ->
+                node.addChildToSubtree(type, child));
     }
 
     public boolean hasConditionAnimations() {
@@ -374,12 +376,12 @@ public class ComboNode {
     }
 
     public ComboNode addConditionNode(ComboNode conditionAnimation) {
-        this.conditionAnimations.add(conditionAnimation);
+        this.conditionNodes.add(conditionAnimation);
         return this;
     }
 
-    public List<ComboNode> getConditionAnimations() {
-        return conditionAnimations;
+    public List<ComboNode> getConditionNodes() {
+        return conditionNodes;
     }
 
     public ComboNode key1(ComboNode child) {

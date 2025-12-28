@@ -201,13 +201,13 @@ public class ComboBasicAttack extends AbstractInvincibleSkill {
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         //动画是空的就直接跳过，不是就播放
         if (current != null) {
-            if (current.getAnimationAccessor() == null || !current.getConditionAnimations().isEmpty()) {
-                if (current.getConditionAnimations().isEmpty()) {
+            if (current.getAnimationAccessor() == null || !current.getConditionNodes().isEmpty()) {
+                if (current.getConditionNodes().isEmpty()) {
                     return;
                 }
-                current.getConditionAnimations().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
+                current.getConditionNodes().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
                 //多个条件指向不同动画，根据优先级来检测
-                for (ComboNode conditionAnimation : current.getConditionAnimations()) {
+                for (ComboNode conditionAnimation : current.getConditionNodes()) {
                     boolean canExecute = true;
                     for (Condition condition : conditionAnimation.getConditions(Side.BOTH, Side.SERVER)) {
                         if(condition instanceof PressedTimeCondition pressedTimeCondition) {
