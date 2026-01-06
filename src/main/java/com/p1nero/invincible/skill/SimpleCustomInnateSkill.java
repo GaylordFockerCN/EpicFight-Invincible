@@ -106,36 +106,6 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         setStackSynchronize(container, container.getStack() - 1);
     }
 
-    /**
-     * 根据预存来初始化玩家信息
-     */
-    private void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode node) {
-        invinciblePlayer.resetTimeEvents();
-        ImmutableList.Builder builder = ImmutableList.<TimeStampedEvent>builder();
-        for (TimeStampedEvent event : node.getTimeEvents()) {
-            event.resetExecuted();
-            builder.add(event);
-        }
-        invinciblePlayer.setTimeStampedEvents(builder.build());
-        invinciblePlayer.setHurtEvents(ImmutableList.copyOf(node.getHurtEvents()));
-        invinciblePlayer.setHitSuccessEvents(ImmutableList.copyOf(node.getHitEvents()));
-        invinciblePlayer.setDodgeSuccessEvents(ImmutableList.copyOf(node.getDodgeSuccessEvents()));
-        invinciblePlayer.setCanBeInterrupt(node.isCanBeInterrupt());
-        invinciblePlayer.setPlaySpeedMultiplier(node.getPlaySpeed());
-        invinciblePlayer.setNotCharge(node.isNotCharge());
-
-        if (node.getCooldown() > 0) {
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.COOLDOWN.get(), node.getCooldown());
-            invinciblePlayer.setItemCooldown(container.getExecutor().getOriginal().getMainHandItem(), node.getCooldown());
-        }
-
-        invinciblePlayer.setArmorNegation(node.getArmorNegation());
-        invinciblePlayer.setHurtDamageMultiplier(node.getHurtDamageMultiplier());
-        invinciblePlayer.setDamageMultiplier(node.getDamageMultiplier());
-        invinciblePlayer.setImpactMultiplier(node.getImpactMultiplier());
-        invinciblePlayer.setStunTypeModifier(node.getStunTypeModifier());
-    }
-
     @Override
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
@@ -146,7 +116,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN.get(), 0);
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.DODGE_SUCCESS_EVENT, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
-            ImmutableList<BaseEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+            List<BaseEvent> dodgeSuccessEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
             if (dodgeSuccessEvents != null) {
                 dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
             }
@@ -155,7 +125,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         //减伤和霸体的判断
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_ATTACK, EVENT_UUID, (event -> {
             InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal());
-            if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
+            if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.canBeInterrupt()) {
                 epicFightDamageSource.setStunType(StunType.NONE);
             }
             //招架成功的判断，配合优先级-1使用
@@ -166,7 +136,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID, (event -> {
 
             InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
-            ImmutableList<BaseEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
+            List<BaseEvent> hurtEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHurtEvents();
             if (hurtEvents != null) {
                 hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
             }
@@ -208,7 +178,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
             }
 
             InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
-            ImmutableList<BaseEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+            List<BaseEvent> hitEvents = InvinciblePlayerCapabilityProvider.get(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
             if (hitEvents != null) {
                 hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
             }
@@ -257,7 +227,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
 
     public void resetCombo(PlayerPatch<?> playerPatch, ComboNode root) {
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(playerPatch.getOriginal());
-        invinciblePlayer.setCurrentNode(root);
+        invinciblePlayer.setCurrentLogicNode(root);
         invinciblePlayer.clear();
     }
 

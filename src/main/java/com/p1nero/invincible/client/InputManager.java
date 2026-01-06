@@ -314,7 +314,7 @@ public class InputManager {
     public static SkillCastEvent sendExecuteRequest(LocalPlayerPatch executor, SkillContainer container) {
         SkillCastEvent event = new SkillCastEvent(executor, container, null);
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(executor.getOriginal());
-        currentNode = invinciblePlayer.getCurrentNode();
+        currentNode = invinciblePlayer.getCurrentLogicNode();
         if (container.canUse(executor, event)) {
             for(CPSkillRequest packet : getAvailablePackets(container)){
                 EpicFightNetworkManager.sendToServer(packet);

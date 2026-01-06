@@ -11,15 +11,7 @@ import java.util.function.Consumer;
 public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     private final float time;
     private final BaseConsumer event;
-    private boolean executed = false;
     private final Side side;
-
-    public boolean isExecuted() {
-        return executed;
-    }
-    public void resetExecuted(){
-        executed = false;
-    }
 
     public TimeStampedEvent(float time, BaseConsumer event) {
         this.time = time;
@@ -45,7 +37,6 @@ public class TimeStampedEvent implements Comparable<TimeStampedEvent> {
     public void testAndExecute(PlayerPatch<?> playerPatch, float prevElapsed, float elapsed) {
         if (this.time >= prevElapsed && this.time < elapsed && side.test(playerPatch.getOriginal())) {
             this.event.accept(playerPatch, playerPatch.getTarget(), InvinciblePlayerCapabilityProvider.get(playerPatch.getOriginal()));
-            executed = true;
         }
     }
 

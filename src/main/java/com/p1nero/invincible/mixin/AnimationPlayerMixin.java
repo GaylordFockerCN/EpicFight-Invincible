@@ -46,9 +46,7 @@ public abstract class AnimationPlayerMixin {
                 }
                 if(invinciblePlayer.getTimeEventList() != null){
                     for (TimeStampedEvent event : invinciblePlayer.getTimeEventList()) {
-                        if(!event.isExecuted()) {
-                            event.testAndExecute(playerPatch, this.prevElapsedTime, this.elapsedTime);
-                        }
+                        event.testAndExecute(playerPatch, this.prevElapsedTime, this.elapsedTime);
                     }
                 }
                 if (invinciblePlayer.getTimePeriodEvents() != null) {

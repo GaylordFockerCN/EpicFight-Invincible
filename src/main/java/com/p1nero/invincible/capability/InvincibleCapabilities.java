@@ -25,7 +25,7 @@ public class InvincibleCapabilities {
 
     @SubscribeEvent
     public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof LivingEntity living && EntityPatchProviderAccessor.getCapabilities().keySet().contains(living.getType())) {
+        if (event.getObject() instanceof LivingEntity living && EntityPatchProviderAccessor.getCapabilities().containsKey(living.getType())) {
             if(!event.getObject().getCapability(InvincibleEntityCapabilityProvider.INVINCIBLE_ENTITY).isPresent()){
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "invincible_entity"), new InvincibleEntityCapabilityProvider());
             }

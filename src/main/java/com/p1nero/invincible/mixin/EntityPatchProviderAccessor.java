@@ -1,5 +1,6 @@
 package com.p1nero.invincible.mixin;
 
+import com.google.common.collect.Maps;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,6 +17,6 @@ public interface EntityPatchProviderAccessor {
 
     @Accessor(value = "CAPABILITIES", remap = false)
     static Map<EntityType<?>, Function<Entity, Supplier<EntityPatch<?>>>> getCapabilities() {
-        return null;
+        return Maps.newHashMap();
     }
 }
