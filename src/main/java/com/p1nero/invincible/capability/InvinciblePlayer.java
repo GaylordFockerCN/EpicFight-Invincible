@@ -10,7 +10,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.world.damagesource.StunType;
+import yesman.epicfight.world.entity.eventlistener.DealDamageEvent;
 
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +66,14 @@ public class InvinciblePlayer {
 
     public boolean canBeInterrupt() {
         return currentDataNode.isCanBeInterrupt();
+    }
+
+    /**
+     * 外部调用请用 {@link com.p1nero.invincible.skill.ComboBasicAttack#shouldCharge(DealDamageEvent.Damage, SkillContainer, InvinciblePlayer)}
+     * @param notCharge
+     */
+    @Deprecated(forRemoval = true)
+    public void setNotCharge(boolean notCharge) {
     }
 
     public boolean isNotCharge() {
