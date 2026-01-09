@@ -32,7 +32,7 @@ public class InvinciblePlayerCapabilityProvider implements ICapabilityProvider, 
     }
 
     public static InvinciblePlayer get(Player player){
-        return player.getCapability(INVINCIBLE_PLAYER).orElse(new InvinciblePlayer());
+        return player.getCapability(INVINCIBLE_PLAYER).orElse(new InvinciblePlayer().err());
     }
 
     public static InvinciblePlayer get(PlayerPatch<?> playerPatch){

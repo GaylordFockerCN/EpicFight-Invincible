@@ -30,7 +30,7 @@ public class InvincibleEntityCapabilityProvider implements ICapabilityProvider, 
     }
 
     public static InvincibleEntity get(LivingEntity entity){
-        return entity.getCapability(INVINCIBLE_ENTITY).orElse(new InvincibleEntity());
+        return entity.getCapability(INVINCIBLE_ENTITY).orElse(new InvincibleEntity().err());
     }
 
     public static InvincibleEntity get(LivingEntityPatch<?> patch){

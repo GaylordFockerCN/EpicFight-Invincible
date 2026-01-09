@@ -16,16 +16,18 @@ import yesman.epicfight.world.capabilities.provider.EntityPatchProvider;
 public class InvincibleCapabilities {
 
     public static InvincibleEntity getEntityCap(LivingEntity entity){
-        return entity.getCapability(InvincibleEntityCapabilityProvider.INVINCIBLE_ENTITY).orElse(new InvincibleEntity());
+        return entity.getCapability(InvincibleEntityCapabilityProvider.INVINCIBLE_ENTITY).orElse(new InvincibleEntity().err());
     }
 
     public static InvinciblePlayer getPlayerCap(Player player){
-        return player.getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).orElse(new InvinciblePlayer());
+        return player.getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).orElse(new InvinciblePlayer().err());
     }
 
     @SubscribeEvent
     public static void attachEntityCapabilities(AttachCapabilitiesEvent<Entity> event) {
-        if (event.getObject() instanceof LivingEntity living && EntityPatchProviderAccessor.getCapabilities().containsKey(living.getType())) {
+        if (event.getObject() instanceof LivingEntity living
+                && (EntityPatchProviderAccessor.getCustomCapabilities().containsKey(living.getType())
+                || EntityPatchProviderAccessor.getCapabilities().containsKey(living.getType()))) {
             if(!event.getObject().getCapability(InvincibleEntityCapabilityProvider.INVINCIBLE_ENTITY).isPresent()){
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, "invincible_entity"), new InvincibleEntityCapabilityProvider());
             }

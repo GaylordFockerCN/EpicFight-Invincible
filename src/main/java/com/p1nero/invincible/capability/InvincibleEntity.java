@@ -1,12 +1,17 @@
 package com.p1nero.invincible.capability;
 
+import com.mojang.logging.LogUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
+import org.slf4j.Logger;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 
 import java.util.*;
 
 public class InvincibleEntity {
+
+    public static final Logger LOGGER = LogUtils.getLogger();
+
     private final Map<AttackAnimation.Phase, List<Entity>> phaseAttackTriedEntities = new HashMap<>();
 
     private final Set<AttackAnimation.Phase> usedPhases = new HashSet<>();
@@ -50,4 +55,10 @@ public class InvincibleEntity {
 
     public void tick() {
     }
+
+    public InvincibleEntity err() {
+        LOGGER.error("Error! Create a new InvincibleEntity!", new Exception());
+        return this;
+    }
+
 }

@@ -19,4 +19,10 @@ public interface EntityPatchProviderAccessor {
     static Map<EntityType<?>, Function<Entity, Supplier<EntityPatch<?>>>> getCapabilities() {
         return Maps.newHashMap();
     }
+
+
+    @Accessor(value = "CUSTOM_CAPABILITIES", remap = false)
+    static Map<EntityType<?>, Function<Entity, Supplier<EntityPatch<?>>>> getCustomCapabilities() {
+        return Maps.newHashMap();
+    }
 }
