@@ -33,6 +33,9 @@ import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 
 import java.util.*;
 
+/**
+ * 多phase动画，每个phase单独计算出伤，适合用于多碰撞箱且时间重叠的情况
+ */
 public class MultiPhaseAttackAnimation extends AttackAnimation {
 
     public MultiPhaseAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends AttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
@@ -51,6 +54,10 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
         super(convertTime, antic, preDelay, contact, recovery, hand, collider, colliderJoint, path, armature);
     }
 
+    public MultiPhaseAttackAnimation(float convertTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+        super(convertTime, path, armature, phases);
+    }
+
     @Override
     public void begin(LivingEntityPatch<?> entityPatch) {
         super.begin(entityPatch);
@@ -64,10 +71,13 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
     }
 
     /**
-     * 全部进行判断
+     * 对全部phase进行判断
      */
     @Override
     protected void attackTick(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation) {
+        if(animation.get().isLinkAnimation()) {
+            return;
+        }
         AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(animation);
         float elapsedTime = player.getElapsedTime();
         float prevElapsedTime = player.getPrevElapsedTime();

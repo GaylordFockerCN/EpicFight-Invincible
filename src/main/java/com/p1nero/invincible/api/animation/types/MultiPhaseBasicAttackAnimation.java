@@ -1,166 +1,158 @@
 package com.p1nero.invincible.api.animation.types;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.datafixers.util.Pair;
-import com.p1nero.invincible.capability.InvincibleCapabilities;
-import com.p1nero.invincible.capability.InvincibleEntity;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.server.level.ServerLevel;
+import java.util.Locale;
+import java.util.Optional;
+
+import javax.annotation.Nullable;
+
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import net.minecraftforge.entity.PartEntity;
-import org.jetbrains.annotations.Nullable;
-import yesman.epicfight.api.animation.AnimationManager;
-import yesman.epicfight.api.animation.AnimationPlayer;
+import yesman.epicfight.api.animation.AnimationManager.AnimationAccessor;
 import yesman.epicfight.api.animation.Joint;
-import yesman.epicfight.api.animation.property.AnimationProperty;
-import yesman.epicfight.api.animation.types.BasicAttackAnimation;
+import yesman.epicfight.api.animation.property.AnimationProperty.ActionAnimationProperty;
+import yesman.epicfight.api.animation.property.AnimationProperty.AttackAnimationProperty;
+import yesman.epicfight.api.animation.property.AnimationProperty.StaticAnimationProperty;
 import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.EntityState;
+import yesman.epicfight.api.animation.types.EntityState.StateFactor;
 import yesman.epicfight.api.asset.AssetAccessor;
+import yesman.epicfight.api.client.animation.Layer;
+import yesman.epicfight.api.client.animation.property.JointMaskEntry;
+import yesman.epicfight.api.client.input.PlayerInputState;
+import yesman.epicfight.api.client.input.InputManager;
 import yesman.epicfight.api.collider.Collider;
 import yesman.epicfight.api.model.Armature;
-import yesman.epicfight.api.utils.AttackResult;
-import yesman.epicfight.api.utils.HitEntityList;
+import yesman.epicfight.api.utils.datastruct.TypeFlexibleHashMap;
+import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;
+import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
-import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
-import yesman.epicfight.world.damagesource.EpicFightDamageSource;
-import yesman.epicfight.world.entity.eventlistener.AttackPhaseEndEvent;
-import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+public class MultiPhaseBasicAttackAnimation extends MultiPhaseAttackAnimation {
+	public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationAccessor<? extends MultiPhaseBasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+		this(transitionTime, antic, antic, contact, recovery, collider, colliderJoint, accessor, armature);
+	}
+	
+	public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationAccessor<? extends MultiPhaseBasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+		super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
+		
+		this.addProperty(ActionAnimationProperty.CANCELABLE_MOVE, true);
+		this.addProperty(ActionAnimationProperty.MOVE_VERTICAL, false);
+		this.addProperty(StaticAnimationProperty.POSE_MODIFIER, Animations.ReusableSources.COMBO_ATTACK_DIRECTION_MODIFIER);
+	}
+	
+	public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationAccessor<? extends MultiPhaseBasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
+		super(transitionTime, antic, antic, contact, recovery, hand, collider, colliderJoint, accessor, armature);
+		
+		this.addProperty(ActionAnimationProperty.CANCELABLE_MOVE, true);
+		this.addProperty(ActionAnimationProperty.MOVE_VERTICAL, false);
+		this.addProperty(StaticAnimationProperty.POSE_MODIFIER, Animations.ReusableSources.COMBO_ATTACK_DIRECTION_MODIFIER);
+	}
+	
+	public MultiPhaseBasicAttackAnimation(float transitionTime, AnimationAccessor<? extends MultiPhaseBasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
+		super(transitionTime, accessor, armature, phases);
+		
+		this.addProperty(ActionAnimationProperty.CANCELABLE_MOVE, true);
+		this.addProperty(ActionAnimationProperty.MOVE_VERTICAL, false);
+		this.addProperty(StaticAnimationProperty.POSE_MODIFIER, Animations.ReusableSources.COMBO_ATTACK_DIRECTION_MODIFIER);
+	}
+	
+	public MultiPhaseBasicAttackAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+		super(transitionTime, path, armature, phases);
+		
+		this.addProperty(ActionAnimationProperty.CANCELABLE_MOVE, true);
+		this.addProperty(ActionAnimationProperty.MOVE_VERTICAL, false);
+		this.addProperty(StaticAnimationProperty.POSE_MODIFIER, Animations.ReusableSources.COMBO_ATTACK_DIRECTION_MODIFIER);
+	}
+	
+	@Override
+	protected void bindPhaseState(Phase phase) {
+		float preDelay = phase.preDelay;
+		
+		this.stateSpectrumBlueprint
+			.newTimePair(phase.start, preDelay)
+			.addState(EntityState.PHASE_LEVEL, 1)
+			.newTimePair(phase.start, phase.contact)
+			.addState(EntityState.CAN_SKILL_EXECUTION, false)
+			.newTimePair(phase.start, phase.recovery)
+			.addState(EntityState.MOVEMENT_LOCKED, true)
+			.addState(EntityState.UPDATE_LIVING_MOTION, false)
+			.addState(EntityState.CAN_BASIC_ATTACK, false)
+			.newTimePair(phase.start, phase.end)
+			.addState(EntityState.INACTION, true)
+			.newTimePair(preDelay, phase.contact)
+			.addState(EntityState.ATTACKING, true)
+			.addState(EntityState.PHASE_LEVEL, 2)
+			.newTimePair(phase.contact, phase.end)
+			.addState(EntityState.PHASE_LEVEL, 3)
+			.addState(EntityState.TURNING_LOCKED, true);
+	}
+	
+	@Override
+	public void loadAnimation() {
+		super.loadAnimation();
+		
+		if (!this.properties.containsKey(AttackAnimationProperty.BASIS_ATTACK_SPEED)) {
+			float basisSpeed = Float.parseFloat(String.format(Locale.US, "%.2f", (1.0F / this.getTotalTime())));
+			this.addProperty(AttackAnimationProperty.BASIS_ATTACK_SPEED, basisSpeed);
+		}
+	}
+	
+	@Override
+	public TypeFlexibleHashMap<StateFactor<?>> getStatesMap(LivingEntityPatch<?> entitypatch, float time) {
+		TypeFlexibleHashMap<StateFactor<?>> stateMap = super.getStatesMap(entitypatch, time);
+		
+		if (!EpicFightGameRules.STIFF_COMBO_ATTACKS.getRuleValue(entitypatch.getOriginal().level())) {
+			stateMap.put(EntityState.MOVEMENT_LOCKED, (Object)false);
+			stateMap.put(EntityState.UPDATE_LIVING_MOTION, (Object)true);
+		}
+		
+		return stateMap;
+	}
+	
+	@Override
+	protected Vec3 getCoordVector(LivingEntityPatch<?> entitypatch, AssetAccessor<? extends DynamicAnimation> dynamicAnimation) {
+		Vec3 vec3 = super.getCoordVector(entitypatch, dynamicAnimation);
+		
+		if (entitypatch.shouldBlockMoving() && this.getProperty(ActionAnimationProperty.CANCELABLE_MOVE).orElse(false)) {
+			vec3 = vec3.scale(0.0F);
+		}
+		
+		return vec3;
+	}
+	
+	@Override
+	public Optional<JointMaskEntry> getJointMaskEntry(LivingEntityPatch<?> entitypatch, boolean useCurrentMotion) {
+		if (entitypatch.isLogicalClient()) {
+			if (entitypatch.getClientAnimator().getPriorityFor(this.getAccessor()) == Layer.Priority.HIGHEST) {
+				return Optional.of(JointMaskEntry.BASIC_ATTACK_MASK);
+			}
+		}
+		
+		return super.getJointMaskEntry(entitypatch, useCurrentMotion);
+	}
+	
+	@Override
+	public boolean isBasicAttackAnimation() {
+		return true;
+	}
+	
+	@Override
+	public boolean shouldPlayerMove(LocalPlayerPatch playerpatch) {
+		if (playerpatch.isLogicalClient()) {
+			if (!EpicFightGameRules.STIFF_COMBO_ATTACKS.getRuleValue(playerpatch.getOriginal().level())) {
+                return !isPlayerMoving(playerpatch);
+			}
+		}
+		
+		return true;
+	}
 
-public class MultiPhaseBasicAttackAnimation extends BasicAttackAnimation{
-
-    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
-        super(transitionTime, antic, contact, recovery, collider, colliderJoint, accessor, armature);
-    }
-
-    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float preDelay, float contact, float recovery, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
-        super(transitionTime, antic, preDelay, contact, recovery, collider, colliderJoint, accessor, armature);
-    }
-
-    public MultiPhaseBasicAttackAnimation(float transitionTime, float antic, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature) {
-        super(transitionTime, antic, contact, recovery, hand, collider, colliderJoint, accessor, armature);
-    }
-
-    public MultiPhaseBasicAttackAnimation(float transitionTime, AnimationManager.AnimationAccessor<? extends BasicAttackAnimation> accessor, AssetAccessor<? extends Armature> armature, Phase... phases) {
-        super(transitionTime, accessor, armature, phases);
-    }
-
-    public MultiPhaseBasicAttackAnimation(float transitionTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
-        super(transitionTime, path, armature, phases);
-    }
-
-    @Override
-    public void begin(LivingEntityPatch<?> entityPatch) {
-        super.begin(entityPatch);
-        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).resetAttackPhaseCache();
-    }
-
-    @Override
-    public void end(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> nextAnimation, boolean isEnd) {
-        super.end(entityPatch, nextAnimation, isEnd);
-        InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).resetAttackPhaseCache();
-    }
-
-    /**
-     * 全部进行判断
-     */
-    @Override
-    protected void attackTick(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation) {
-        AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(animation);
-        float elapsedTime = player.getElapsedTime();
-        float prevElapsedTime = player.getPrevElapsedTime();
-        EntityState state = this.getState(entityPatch, elapsedTime);
-        EntityState prevState = this.getState(entityPatch, prevElapsedTime);
-        for(Phase phase : phases){
-            if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
-                if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                    serverPlayerPatch.getEventListener().triggerEvents(PlayerEventListener.EventType.ATTACK_PHASE_END_EVENT, new AttackPhaseEndEvent(serverPlayerPatch, this.getAccessor(), phase, this.getPhaseOrderByTime(elapsedTime)));
-                }
-                continue;
-            }
-            if(elapsedTime < phase.antic || elapsedTime > phase.contact){
-                continue;
-            }
-            if (prevState.attacking() || state.attacking() || prevState.getLevel() < 2 && state.getLevel() > 2) {
-                if (elapsedTime > phase.antic && !InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).isPhaseUsed(phase)) {
-                    onPhaseStart(entityPatch, animation, phase, elapsedTime);
-                    InvincibleCapabilities.getEntityCap(entityPatch.getOriginal()).setPhaseUsed(phase);
-                }
-                this.hurtCollidingEntities(entityPatch, prevElapsedTime, elapsedTime, prevState, state, phase);
-            }
-        }
-    }
-
-    protected void onPhaseStart(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation, Phase phase, float elapsedTime) {
-        entityPatch.onStrike(this, phase.hand);
-        entityPatch.playSound(this.getSwingSound(entityPatch, phase), 0.0F, 0.0F);
-        entityPatch.removeHurtEntities();
-    }
-
-    protected void hurtCollidingEntities(LivingEntityPatch<?> entityPatch, float prevElapsedTime, float elapsedTime, EntityState prevState, EntityState state, Phase phase) {
-        float prevPoseTime = prevState.attacking() ? prevElapsedTime : phase.preDelay;
-        float poseTime = state.attacking() ? elapsedTime : phase.contact;
-        List<Entity> list = phase.getCollidingEntities(entityPatch, this, prevPoseTime, poseTime, this.getPlaySpeed(entityPatch, this));
-
-        if (!list.isEmpty()) {
-            HitEntityList hitEntities = new HitEntityList(entityPatch, list, phase.getProperty(AnimationProperty.AttackPhaseProperty.HIT_PRIORITY).orElse(HitEntityList.Priority.DISTANCE));
-            while (hitEntities.next()) {
-                Entity hit = hitEntities.getEntity();
-                LivingEntity trueEntity = this.getTrueEntity(hit);
-                InvincibleEntity invincibleEntity = InvincibleCapabilities.getEntityCap(entityPatch.getOriginal());
-                if (trueEntity != null && trueEntity.isAlive() && !invincibleEntity.getCurrentlyHurtEntities(phase).contains(trueEntity) && !trueEntity.is(entityPatch.getOriginal())) {
-                    if (hit instanceof LivingEntity || hit instanceof PartEntity) {
-                        EpicFightDamageSource source = this.getEpicFightDamageSource(entityPatch, hit, phase);
-                        int prevInvulTime = hit.invulnerableTime;
-                        hit.invulnerableTime = 0;
-
-                        AttackResult attackResult = entityPatch.attack(source, hit, phase.hand);
-                        hit.invulnerableTime = prevInvulTime;
-
-                        if (attackResult.resultType.dealtDamage()) {
-                            hit.level().playSound(null, hit.getX(), hit.getY(), hit.getZ(), this.getHitSound(entityPatch, phase), hit.getSoundSource(), 1.0F, 1.0F);
-                            this.spawnHitParticle((ServerLevel)hit.level(), entityPatch, hit, phase);
-                        }
-
-                        invincibleEntity.getCurrentlyHurtEntities(phase).add(trueEntity);
-
-                        if (attackResult.resultType.shouldCount()) {
-                            entityPatch.getCurrentlyAttackTriedEntities().add(trueEntity);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * 全部渲染
-     */
-    @Override
     @OnlyIn(Dist.CLIENT)
-    public void renderDebugging(PoseStack poseStack, MultiBufferSource buffer, LivingEntityPatch<?> entityPatch, float playbackTime, float partialTicks) {
-        AnimationPlayer animPlayer = entityPatch.getAnimator().getPlayerFor(this.getAccessor());
-        float prevElapsedTime = animPlayer.getPrevElapsedTime();
-        float elapsedTime = animPlayer.getElapsedTime();
-        for(Phase phase : phases){
-            Pair<Joint, Collider> colliderInfo;
-            Collider collider;
-            for(Iterator<JointColliderPair> iterator = Arrays.stream(phase.colliders).iterator(); iterator.hasNext(); collider.draw(poseStack, buffer, entityPatch, this, colliderInfo.getFirst(), prevElapsedTime, elapsedTime, partialTicks, this.getPlaySpeed(entityPatch, this))) {
-                colliderInfo = iterator.next();
-                collider = colliderInfo.getSecond();
-                if (collider == null) {
-                    collider = entityPatch.getColliderMatching(phase.hand);
-                }
-            }
-        }
+    private static boolean isPlayerMoving(LocalPlayerPatch localPlayerPatch) {
+        final PlayerInputState inputState = InputManager.getInputState(localPlayerPatch.getOriginal());
+        return inputState.forwardImpulse() != 0.0F || inputState.leftImpulse() != 0.0F;
     }
-
 }
