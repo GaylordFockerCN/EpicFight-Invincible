@@ -16,11 +16,9 @@ import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.skill.SkillSlots;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
-import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 @Mixin(value = AnimationPlayer.class, remap = false)
 public abstract class AnimationPlayerMixin {
-    @Shadow public abstract boolean isEnd();
 
     @Shadow protected float prevElapsedTime;
 

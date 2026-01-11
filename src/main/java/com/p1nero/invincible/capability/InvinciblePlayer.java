@@ -1,6 +1,5 @@
 package com.p1nero.invincible.capability;
 
-import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
@@ -9,7 +8,6 @@ import com.p1nero.invincible.api.skill.ComboNodeManager;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
-import org.slf4j.Logger;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.world.damagesource.StunType;
@@ -20,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 public class InvinciblePlayer {
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final InvinciblePlayer EMPTY = new InvinciblePlayer();
     //当前连段位置
     private ComboNode currentLogicNode = null;
     //当前数据
@@ -184,11 +182,6 @@ public class InvinciblePlayer {
      */
     public void copyFrom(InvinciblePlayer old) {
         currentLogicNode = old.currentLogicNode;
-    }
-
-    public InvinciblePlayer err() {
-        LOGGER.error("Error! Create a new InvinciblePlayer!", new Exception());
-        return this;
     }
 
 }
