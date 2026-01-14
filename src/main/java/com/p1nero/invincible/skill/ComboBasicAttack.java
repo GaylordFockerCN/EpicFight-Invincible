@@ -411,7 +411,8 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     protected void onSkillCastEvent(SkillCastEvent event, SkillContainer container) {
         //不影响默认的普攻
         ItemStack mainHandItem = event.getPlayerPatch().getOriginal().getMainHandItem();
-        if (mainHandItem.isEmpty() || !mainHandItem.getCapability(EpicFightCapabilities.CAPABILITY_ITEM).isPresent()) {
+        Optional<CapabilityItem> optionalCapabilityItem = EpicFightCapabilities.getItemCapability(mainHandItem);
+        if (optionalCapabilityItem.isEmpty() || optionalCapabilityItem.get().isEmpty()) {
             return;
         }
         //不影响没技能但是有模板的武器
