@@ -21,9 +21,9 @@ import yesman.epicfight.api.animation.types.DynamicAnimation;
 import yesman.epicfight.api.animation.types.EntityState;
 import yesman.epicfight.api.asset.AssetAccessor;
 import yesman.epicfight.api.collider.Collider;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.types.animation.AttackPhaseEndEvent;
 import yesman.epicfight.api.model.Armature;
-import yesman.epicfight.api.neoevent.playerpatch.AttackPhaseEndEvent;
-import yesman.epicfight.api.neoevent.playerpatch.PlayerPatchEvent;
 import yesman.epicfight.api.utils.AttackResult;
 import yesman.epicfight.api.utils.HitEntityList;
 import yesman.epicfight.world.capabilities.entitypatch.LivingEntityPatch;
@@ -76,7 +76,7 @@ public class MultiPhaseDashAttackAnimation extends DashAttackAnimation {
         for(Phase phase : phases){
             if (elapsedTime > phase.end && prevElapsedTime < phase.end) {
                 if(entityPatch instanceof ServerPlayerPatch serverPlayerPatch) {
-                    PlayerPatchEvent.postAndFireSkillListeners(new AttackPhaseEndEvent(serverPlayerPatch, this.getAccessor(), phase, this.getPhaseOrderByTime(elapsedTime)));
+                    EpicFightEventHooks.Animation.ATTACK_PHASE_END.postWithListener(new AttackPhaseEndEvent(serverPlayerPatch, this.getAccessor(), phase, this.getPhaseOrderByTime(elapsedTime), false), serverPlayerPatch.getEventListener());
                 }
                 continue;
             }

@@ -30,7 +30,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.NotNull;
-import yesman.epicfight.api.neoevent.playerpatch.SkillCastEvent;
+import yesman.epicfight.api.event.types.player.SkillCastEvent;
 import yesman.epicfight.client.ClientEngine;
 import yesman.epicfight.client.input.EpicFightKeyMappings;
 import yesman.epicfight.client.world.capabilites.entitypatch.player.LocalPlayerPatch;

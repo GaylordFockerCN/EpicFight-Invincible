@@ -25,9 +25,11 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
-import yesman.epicfight.api.neoevent.playerpatch.DealDamageEvent;
-import yesman.epicfight.api.neoevent.playerpatch.DodgeSuccessEvent;
-import yesman.epicfight.api.neoevent.playerpatch.TakeDamageEvent;
+import yesman.epicfight.api.event.EntityEventListener;
+import yesman.epicfight.api.event.EpicFightEventHooks;
+import yesman.epicfight.api.event.types.entity.DealDamageEvent;
+import yesman.epicfight.api.event.types.entity.DodgeEvent;
+import yesman.epicfight.api.event.types.entity.TakeDamageEvent;
 import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.api.utils.math.Vec2f;
 import yesman.epicfight.api.utils.math.Vec2i;
@@ -136,25 +138,42 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     }
 
     @Override
-    public void onInitiate(SkillContainer container) {
-        super.onInitiate(container);
-        //初始化连段
+    public void onInitiate(SkillContainer container, EntityEventListener eventListener) {
+        super.onInitiate(container, eventListener);
         resetCombo(container.getExecutor(), node);
 
         InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).resetPhase();
         container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN, 0);
+
+        eventListener.registerEvent(EpicFightEventHooks.Entity.ON_DODGE, event -> {
+            onDodgeSuccess(event, container);
+        }, this);
+        eventListener.registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_PRE, event -> {
+            onHurtEventPre(event, container);
+        }, this);
+        eventListener.registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_INCOME, event -> {
+            onHurtEventIncome(event, container);
+        }, this);
+        eventListener.registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_POST, event -> {
+            onHurtEventPost(event, container);
+        }, this);
+        eventListener.registerEvent(EpicFightEventHooks.Entity.DELIVER_DAMAGE_PRE, event -> {
+            onDealDamageEventPre(event, container);
+        }, this);
+        eventListener.registerEvent(EpicFightEventHooks.Entity.DELIVER_DAMAGE_POST, event -> {
+            onDealDamageEventPost(event, container);
+        }, this);
     }
 
 
     /**
      * 闪避成功事件的处理，以及闪避条件
      */
-    @SkillEvent(side = SkillEvent.Side.SERVER)
-    public void onDodgeSuccess(DodgeSuccessEvent event, SkillContainer container) {
+    public void onDodgeSuccess(DodgeEvent event, SkillContainer container) {
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        ImmutableList<BaseEvent> dodgeSuccessEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getDodgeSuccessEvents();
+        ImmutableList<BaseEvent> dodgeSuccessEvents = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getDodgeSuccessEvents();
         if(dodgeSuccessEvents != null){
-            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
+            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
         }
         container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, InvincibleConfig.EFFECT_TICK.get());
     }
@@ -162,9 +181,8 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     /**
      * 减伤和霸体的判断
      */
-    @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventPre(TakeDamageEvent.Pre event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.isCanBeInterrupt()) {
             epicFightDamageSource.setStunType(StunType.NONE);
         }
@@ -176,7 +194,6 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     /**
      * 招架成功的判断
      */
-    @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventIncome(TakeDamageEvent.Income event, SkillContainer container) {
         if(event.isParried()){
             container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER, InvincibleConfig.EFFECT_TICK.get());
@@ -186,21 +203,19 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     /**
      * 抛出受伤事件
      */
-    @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onHurtEventPost(TakeDamageEvent.Post event, SkillContainer container) {
-        ImmutableList<BaseEvent> hurtEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHurtEvents();
+        ImmutableList<BaseEvent> hurtEvents = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getHurtEvents();
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         if(hurtEvents != null){
-            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(event.getPlayerPatch(), event.getPlayerPatch().getTarget(), invinciblePlayer));
+            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
         }
     }
 
     /**
      * 调整攻击倍率，冲击，硬直类型等
      */
-    @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDealDamageEventPre(DealDamageEvent.Pre event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal());
+        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
         if (invinciblePlayer.getStunTypeModifier() != null) {
             event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
         }
@@ -218,26 +233,25 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
     /**
      * 自己的充能
      */
-    @SkillEvent(side = SkillEvent.Side.SERVER)
     public void onDealDamageEventPost(DealDamageEvent.Post event, SkillContainer container) {
-        if (!InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).isNotCharge()) {
-            PlayerPatch<?> playerPatch = event.getPlayerPatch();
+        if (!InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).isNotCharge()) {
+            PlayerPatch<?> playerPatch = container.getExecutor();
             ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
             CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(mainHandItem);
             if(capabilityItem == null || !(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
                 return;
             }
             if (!container.isFull()) {
-                float value = container.getResource() + event.getNeoForgeEvent().getNewDamage();
+                float value = container.getResource() + event.getModifiedDamage();
                 if (value > 0.0F) {
                     this.setConsumptionSynchronize(container, value);
                 }
             }
         }
         InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        ImmutableList<BaseEvent> hitEvents = InvincibleAttachments.getPlayer(event.getPlayerPatch().getOriginal()).getHitSuccessEvents();
+        ImmutableList<BaseEvent> hitEvents = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getHitSuccessEvents();
         if(hitEvents != null){
-            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(event.getPlayerPatch(), event.getTarget() == null ? event.getPlayerPatch().getTarget() : event.getTarget(), invinciblePlayer));
+            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(container.getExecutor(), event.getTarget(), invinciblePlayer));
         }
     }
 

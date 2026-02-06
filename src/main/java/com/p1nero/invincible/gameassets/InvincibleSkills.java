@@ -42,7 +42,7 @@ public class InvincibleSkills {
                     .setMaxPressTime(20)
                     .setReserveTime(16)
                     .setShouldDrawGui(true)
-                    .build(key, ChargeDemo.class));
+                    .build(key));
 
     @ApiStatus.Internal
     public static void registerJsonCombos() {
@@ -69,7 +69,7 @@ public class InvincibleSkills {
                     ComboBasicAttack.Builder skillBuilder = ComboJsonLoader.loadCombos(combo);
                     String skillName = combo.get("name").getAsString();
                     REGISTRY.register(skillName, (key) -> {
-                        ComboBasicAttack skill = skillBuilder.build(key, ComboBasicAttack.class);
+                        ComboBasicAttack skill = skillBuilder.build(key);
                         CompoundTag params = new CompoundTag();
                         if (combo.has("consumption")) {
                             params.putFloat("consumption", combo.get("consumption").getAsFloat());
@@ -117,7 +117,7 @@ public class InvincibleSkills {
                     SimpleCustomInnateSkill.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
                     String skillName = combo.get("name").getAsString();
                     REGISTRY.register(skillName, (key) -> {
-                        SimpleCustomInnateSkill skill = skillBuilder.build(key, SimpleCustomInnateSkill.class);
+                        SimpleCustomInnateSkill skill = skillBuilder.build(key);
                         CompoundTag params = new CompoundTag();
                         if (combo.has("consumption")) {
                             params.putFloat("consumption", combo.get("consumption").getAsFloat());

@@ -4,6 +4,7 @@ import com.p1nero.invincible.api.combo.ComboNodeManager;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.client.InputManager;
 import com.p1nero.invincible.gameassets.InvincibleConditions;
+import com.p1nero.invincible.gameassets.InvincibleDemoWeaponCapabilityPresets;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.gameassets.InvincibleSkills;
 import com.p1nero.invincible.item.InvincibleItems;
@@ -36,7 +37,10 @@ public class InvincibleMod {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        ComboNodeManager.getNodes().forEach(ComboNode::initDatapackNode);
+        event.enqueueWork(InvincibleDemoWeaponCapabilityPresets::registerMovesets);
+        event.enqueueWork(() -> {
+            ComboNodeManager.getNodes().forEach(ComboNode::initDatapackNode);
+        });
     }
 
     private void clientSetup(final FMLClientSetupEvent event){

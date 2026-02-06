@@ -78,7 +78,7 @@ public class ReloadCommands {
                     ComboBasicAttack.Builder skillBuilder = ComboJsonLoader.loadCombos(combo);
                     String skillName = combo.get("name").getAsString();
                     ResourceLocation key = ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, skillName);
-                    ComboBasicAttack skill = skillBuilder.build(key, ComboBasicAttack.class);
+                    ComboBasicAttack skill = skillBuilder.build(key);
                     CompoundTag params = new CompoundTag();
                     if (combo.has("consumption")) {
                         params.putFloat("consumption", combo.get("consumption").getAsFloat());
@@ -124,7 +124,7 @@ public class ReloadCommands {
                     SimpleCustomInnateSkill.Builder skillBuilder = SkillJsonLoader.loadSkill(combo);
                     String skillName = combo.get("name").getAsString();
                     ResourceLocation key = ResourceLocation.fromNamespaceAndPath(InvincibleMod.MOD_ID, skillName);
-                    SimpleCustomInnateSkill skill = skillBuilder.build(key, SimpleCustomInnateSkill.class);
+                    SimpleCustomInnateSkill skill = skillBuilder.build(key);
                     CompoundTag params = new CompoundTag();
                     if (combo.has("consumption")) {
                         params.putFloat("consumption", combo.get("consumption").getAsFloat());
