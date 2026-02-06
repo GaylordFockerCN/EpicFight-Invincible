@@ -51,9 +51,4 @@ public class InvincibleAttachments {
         }
     }
 
-    @SubscribeEvent
-    public static void onPlayerTick(PlayerTickEvent.Pre event) {
-        getPlayer(event.getEntity()).tick();
-    }
-
 }

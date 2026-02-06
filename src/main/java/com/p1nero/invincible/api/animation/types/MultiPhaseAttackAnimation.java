@@ -46,6 +46,10 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
         super(transitionTime, accessor, armature, phases);
     }
 
+    public MultiPhaseAttackAnimation(float convertTime, String path, AssetAccessor<? extends Armature> armature, Phase... phases) {
+        super(convertTime, path, armature, phases);
+    }
+
     public MultiPhaseAttackAnimation(float convertTime, float antic, float preDelay, float contact, float recovery, InteractionHand hand, @Nullable Collider collider, Joint colliderJoint, String path, AssetAccessor<? extends Armature> armature) {
         super(convertTime, antic, preDelay, contact, recovery, hand, collider, colliderJoint, path, armature);
     }
@@ -63,10 +67,13 @@ public class MultiPhaseAttackAnimation extends AttackAnimation {
     }
 
     /**
-     * 全部进行判断
+     * 对全部phase进行判断
      */
     @Override
     protected void attackTick(LivingEntityPatch<?> entityPatch, AssetAccessor<? extends DynamicAnimation> animation) {
+        if(animation.get().isLinkAnimation()) {
+            return;
+        }
         AnimationPlayer player = entityPatch.getAnimator().getPlayerFor(animation);
         float elapsedTime = player.getElapsedTime();
         float prevElapsedTime = player.getPrevElapsedTime();

@@ -20,8 +20,6 @@ import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 
 @Mixin(value = AnimationPlayer.class, remap = false)
 public abstract class AnimationPlayerMixin {
-    @Shadow
-    public abstract boolean isEnd();
 
     @Shadow
     protected float prevElapsedTime;
@@ -51,9 +49,7 @@ public abstract class AnimationPlayerMixin {
                     if (!entityPatch.getOriginal().isAlive()) {
                         break;
                     }
-                    if (!event.isExecuted()) {
-                        event.testAndExecute(playerPatch, this.prevElapsedTime, this.elapsedTime);
-                    }
+                    event.testAndExecute(playerPatch, this.prevElapsedTime, this.elapsedTime);
                 }
             }
             if (invinciblePlayer.getTimePeriodEvents() != null) {

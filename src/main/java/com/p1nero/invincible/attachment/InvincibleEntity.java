@@ -6,6 +6,7 @@ import yesman.epicfight.api.animation.types.AttackAnimation;
 import java.util.*;
 
 public class InvincibleEntity {
+
     private final Map<AttackAnimation.Phase, List<Entity>> phaseAttackTriedEntities = new HashMap<>();
     private final Set<AttackAnimation.Phase> usedPhases = new HashSet<>();
 

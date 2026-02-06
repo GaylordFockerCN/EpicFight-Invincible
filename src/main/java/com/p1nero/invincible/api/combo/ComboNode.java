@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class ComboNode {
+    public static final ComboNode EMPTY = ComboNode.create();
     private int id;
     @NotNull
     protected ComboNode root;
@@ -30,6 +31,7 @@ public class ComboNode {
     @ApiStatus.Internal
     @Nullable
     private Supplier<AnimationManager.AnimationAccessor<? extends StaticAnimation>> animationAccessorSupplier;
+    //用于条件节点
     private int priority;
     protected float playSpeed, convertTime;
     private ValueModifier damageMultiplier = null;

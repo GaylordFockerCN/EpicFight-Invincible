@@ -1,18 +1,19 @@
 package com.p1nero.invincible.attachment;
 
-import com.google.common.collect.ImmutableList;
+import com.p1nero.invincible.api.combo.ComboNode;
 import com.p1nero.invincible.api.combo.ComboNodeManager;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
-import com.p1nero.invincible.api.combo.ComboNode;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.common.util.INBTSerializable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import yesman.epicfight.api.event.types.entity.DealDamageEvent;
 import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.skill.SkillContainer;
 import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.HashMap;
@@ -20,100 +21,106 @@ import java.util.List;
 import java.util.Map;
 
 public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
-    private ComboNode currentNode = null;
-    private ImmutableList<TimeStampedEvent> timeStampedEvents = null;
-    private ImmutableList<TimePeriodEvent> timePeriodEvents = null;
+    //当前连段位置
+    private ComboNode currentLogicNode = null;
+    //当前数据
+    private ComboNode currentDataNode = ComboNode.EMPTY;
     private final Map<ItemStack, Integer> cooldownMap = new HashMap<>();
-    @Nullable
-    private ImmutableList<BaseEvent> dodgeSuccessEvents = null;
-    @Nullable
-    private ImmutableList<BaseEvent> hitSuccessEvents = null;
-    @Nullable
-    private ImmutableList<BaseEvent> hurtEvents = null;
-    private float playSpeedMultiplier;
-    private ValueModifier damageMultiplier;
-    private float armorNegation;
-    private float impactMultiplier = 1.0F;
-    private float hurtDamageMultiplier;
-    private StunType stunTypeModifier = null;
-    private boolean notCharge, canBeInterrupt = true;
     private int phase;
-    public void setItemCooldown(ItemStack item, int cooldown){
+
+    public void setItemCooldown(ItemStack item, int cooldown) {
         cooldownMap.put(item, cooldown);
     }
 
-    public boolean isItemInCooldown(ItemStack item){
-        if(!cooldownMap.containsKey(item)){
+    public boolean isItemInCooldown(ItemStack item) {
+        if (!cooldownMap.containsKey(item)) {
             return false;
         }
         return cooldownMap.get(item) >= 0;
     }
 
-    public int getItemCooldown(ItemStack item){
-        if(!cooldownMap.containsKey(item)){
+    public int getItemCooldown(ItemStack item) {
+        if (!cooldownMap.containsKey(item)) {
             return 0;
         }
         return cooldownMap.get(item);
     }
 
     public float getArmorNegation() {
-        return armorNegation;
-    }
-
-    public void setArmorNegation(float armorNegation) {
-        this.armorNegation = armorNegation;
+        return currentDataNode.getArmorNegation();
     }
 
     public float getHurtDamageMultiplier() {
-        return hurtDamageMultiplier;
-    }
-
-    public void setHurtDamageMultiplier(float hurtDamageMultiplier) {
-        this.hurtDamageMultiplier = hurtDamageMultiplier;
+        return currentDataNode.getHurtDamageMultiplier();
     }
 
     public ValueModifier getDamageMultiplier() {
-        return damageMultiplier;
-    }
-
-    public void setDamageMultiplier(ValueModifier damageMultiplier) {
-        this.damageMultiplier = damageMultiplier;
+        return currentDataNode.getDamageMultiplier();
     }
 
     public float getImpactMultiplier() {
-        return impactMultiplier;
-    }
-
-    public void setImpactMultiplier(float impactMultiplier) {
-        this.impactMultiplier = impactMultiplier;
+        return currentDataNode.getImpactMultiplier();
     }
 
     public StunType getStunTypeModifier() {
-        return stunTypeModifier;
+        return currentDataNode.getStunTypeModifier();
     }
 
-    public void setStunTypeModifier(StunType stunTypeModifier) {
-        this.stunTypeModifier = stunTypeModifier;
+    public boolean canBeInterrupt() {
+        return currentDataNode.isCanBeInterrupt();
     }
 
-    public boolean isCanBeInterrupt() {
-        return canBeInterrupt;
+    /**
+     * 外部调用请用 {@link com.p1nero.invincible.skill.ComboBasicAttack#shouldCharge(DealDamageEvent.Damage, SkillContainer, InvinciblePlayer)}
+     * @param notCharge
+     */
+    @Deprecated(forRemoval = true)
+    public void setNotCharge(boolean notCharge) {
     }
 
-    public void setCanBeInterrupt(boolean canBeInterrupt) {
-        this.canBeInterrupt = canBeInterrupt;
+    public boolean isNotCharge() {
+        return currentDataNode.isNotCharge();
+    }
+
+    public float getPlaySpeedMultiplier() {
+        return currentDataNode.getPlaySpeed();
+    }
+
+    @Nullable
+    public List<TimeStampedEvent> getTimeEventList() {
+        return currentDataNode.getTimeEvents();
+    }
+
+    @Nullable
+    public List<BaseEvent> getDodgeSuccessEvents() {
+        return currentDataNode.getDodgeSuccessEvents();
+    }
+
+    @Nullable
+    public List<BaseEvent> getHurtEvents() {
+        return currentDataNode.getHurtEvents();
+    }
+
+    @Nullable
+    public List<BaseEvent> getHitSuccessEvents() {
+        return currentDataNode.getHitEvents();
+    }
+
+    @Nullable
+    public List<TimePeriodEvent> getTimePeriodEvents() {
+        return currentDataNode.getTimePeriodEvents();
     }
 
     /**
      * 0 表示默认，防止被顶掉
      */
     public void setPhase(int phase) {
-        if(phase != 0){
+        if (phase != 0) {
             this.phase = phase;
         }
     }
 
-    public void resetPhase(){
+    public void resetPhase() {
         this.phase = 0;
     }
 
@@ -121,104 +128,54 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
         return phase;
     }
 
-    public void setNotCharge(boolean notCharge) {
-        this.notCharge = notCharge;
-    }
-
-    public boolean isNotCharge() {
-        return notCharge;
-    }
-
-    public void setPlaySpeedMultiplier(float playSpeedMultiplier) {
-        this.playSpeedMultiplier = playSpeedMultiplier;
-    }
-
-    public float getPlaySpeedMultiplier() {
-        return playSpeedMultiplier;
-    }
-
-    public List<TimeStampedEvent> getTimeEventList() {
-        return timeStampedEvents;
-    }
-
-    public @Nullable ImmutableList<BaseEvent> getDodgeSuccessEvents() {
-        return dodgeSuccessEvents;
-    }
-
-    public @Nullable ImmutableList<BaseEvent> getHurtEvents() {
-        return hurtEvents;
-    }
-
-    public @Nullable ImmutableList<BaseEvent> getHitSuccessEvents() {
-        return hitSuccessEvents;
-    }
-
-    public @Nullable ImmutableList<TimePeriodEvent> getTimePeriodEvents() {
-        return timePeriodEvents;
-    }
-
-    public void setDodgeSuccessEvents(@Nullable ImmutableList<BaseEvent> dodgeSuccessEvents) {
-        this.dodgeSuccessEvents = dodgeSuccessEvents;
-    }
-
-    public void setHitSuccessEvents(@Nullable ImmutableList<BaseEvent> hitSuccessEvents) {
-        this.hitSuccessEvents = hitSuccessEvents;
-    }
-
-    public void setHurtEvents(@Nullable ImmutableList<BaseEvent> hurtEvents) {
-        this.hurtEvents = hurtEvents;
-    }
-
-    public void setTimeStampedEvents(ImmutableList<TimeStampedEvent> event) {
-        this.timeStampedEvents = event;
-    }
-
-    public void resetTimeEvents() {
-        timeStampedEvents = null;
-    }
-
-    public void setTimePeriodEvents(ImmutableList<TimePeriodEvent> timePeriodEvents) {
-        this.timePeriodEvents = timePeriodEvents;
-    }
-
+    @Deprecated
     public ComboNode getCurrentNode() {
-        return currentNode;
+        return currentLogicNode;
     }
 
-    public void setCurrentNode(ComboNode currentNode) {
-        this.currentNode = currentNode;
+    @Deprecated
+    public void setCurrentNode(ComboNode currentLogicNode) {
+        this.currentLogicNode = currentLogicNode;
     }
 
-    public void clear(){
-        playSpeedMultiplier = 0;
-        damageMultiplier = null;
-        impactMultiplier = 0;
-        hurtDamageMultiplier = 0;
-        stunTypeModifier = null;
-        canBeInterrupt = true;
-        notCharge = false;
-        timeStampedEvents = null;
-        timePeriodEvents = null;
-        dodgeSuccessEvents = null;
-        hitSuccessEvents = null;
-        hurtEvents = null;
+    public ComboNode getCurrentLogicNode() {
+        return currentLogicNode;
+    }
+
+    public void setCurrentLogicNode(ComboNode currentLogicNode) {
+        this.currentLogicNode = currentLogicNode;
+    }
+
+    public void setCurrentDataNode(ComboNode currentDataNode) {
+        this.currentDataNode = currentDataNode;
+    }
+
+    public ComboNode getCurrentDataNode() {
+        return currentDataNode;
+    }
+
+    public void clear() {
+        currentDataNode = ComboNode.EMPTY;
     }
 
     public CompoundTag saveNBTData(CompoundTag tag) {
-        tag.putBoolean("notCharge", notCharge);
-        tag.putFloat("playSpeed", playSpeedMultiplier);
-        if(currentNode != null) {
-            tag.putInt("currentNodeId", currentNode.getId());
+        if (currentLogicNode != null) {
+            tag.putInt("currentLogicNodeId", currentLogicNode.getId());
+        }
+        if (currentDataNode != null) {
+            tag.putInt("currentDataNodeId", currentDataNode.getId());
         }
         return tag;
     }
 
     public void loadNBTData(CompoundTag tag) {
-        notCharge = tag.getBoolean("notCharge");
-        playSpeedMultiplier = tag.getFloat("playSpeed");
-        int id = tag.getInt("currentNodeId");
-        if(id != 0) {
-            currentNode = ComboNodeManager.get(id);
+        int currentLogicNodeId = tag.getInt("currentLogicNodeId");
+        if (currentLogicNodeId != 0) {
+            currentLogicNode = ComboNodeManager.get(currentLogicNodeId);
+        }
+        int currentDataNodeId = tag.getInt("currentDataNodeId");
+        if (currentDataNodeId != 0) {
+            currentDataNode = ComboNodeManager.get(currentDataNodeId);
         }
     }
 
@@ -226,10 +183,7 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
      * 重生的时候仅需要复制连段数据
      */
     public void copyFrom(InvinciblePlayer old) {
-        currentNode = old.currentNode;
-    }
-
-    public void tick() {
+        currentLogicNode = old.currentLogicNode;
     }
 
     @Override
@@ -243,4 +197,5 @@ public class InvinciblePlayer implements INBTSerializable<CompoundTag> {
     public void deserializeNBT(HolderLookup.@NotNull Provider provider, @NotNull CompoundTag compoundTag) {
         loadNBTData(compoundTag);
     }
+
 }

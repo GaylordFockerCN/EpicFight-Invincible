@@ -24,7 +24,7 @@ public class ChargeDemo extends ComboBasicAttack{
      */
     @Override
     public void onPress(SkillContainer container, ServerPlayerPatch serverPlayerPatch, ComboType comboType) {
-        if(this.getCurrentNode(container) == ComboDemo.basicAttack && comboType == ComboNode.ComboTypes.KEY_2) {
+        if(getCurrentNode(container) == ComboDemo.basicAttack && comboType == ComboNode.ComboTypes.KEY_2) {
             container.getExecutor().playAnimationSynchronized(Animations.BIPED_DEMOLITION_LEAP_CHARGING, 0.1F);
         }
     }
