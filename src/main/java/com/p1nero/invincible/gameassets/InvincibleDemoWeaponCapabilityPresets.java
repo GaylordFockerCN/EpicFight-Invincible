@@ -25,7 +25,7 @@ public class InvincibleDemoWeaponCapabilityPresets {
     //It's easy to create a new weapon type, just need to provide the innate skill. newStyleCombo should be set.
     //注册非常简单，newStyleCombo需要随便填一下，但是选择武器技能是必要的
     public static final Function<Item, CapabilityItem.Builder> DEMO = (item) ->
-            (CapabilityItem.Builder) ComboWeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
+            ComboWeaponCapability.builder().category(CapabilityItem.WeaponCategories.SWORD)
                     .styleProvider((entityPatch) -> CapabilityItem.Styles.COMMON)
                     .collider(ColliderPreset.SWORD)
                     .swingSound(EpicFightSounds.WHOOSH.get())
