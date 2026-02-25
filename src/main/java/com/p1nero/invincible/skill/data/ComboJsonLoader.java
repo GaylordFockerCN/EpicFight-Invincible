@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.p1nero.invincible.api.combo.ComboNodeManager;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.skill.ComboBasicAttack;
@@ -86,8 +87,16 @@ public class ComboJsonLoader {
                 //把自己传进去，解析以保存各种可能的动画参数
                 deserializeCombos(child, conditionAnimationsListList);
             } else {
-                String animation = combo.get("animation").getAsString();
-                child.setAnimationAccessorSupplier(() -> AnimationManager.byKey(animation));
+
+                if(combo.has("name")) {
+                    String name = combo.get("name").getAsString();
+                    ComboNodeManager.assignName(child, name);
+                }
+
+                if(combo.has("animation")) {
+                    String animation = combo.get("animation").getAsString();
+                    child.setAnimationAccessorSupplier(() -> AnimationManager.byKey(animation));
+                }
 
                 if (combo.has("speed_multiplier")) {
                     child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());

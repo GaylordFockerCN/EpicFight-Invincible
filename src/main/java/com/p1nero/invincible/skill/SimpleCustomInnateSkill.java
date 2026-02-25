@@ -1,14 +1,11 @@
 package com.p1nero.invincible.skill;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.api.combo.ComboNode;
-import com.p1nero.invincible.api.events.BaseEvent;
-import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.attachment.InvincibleAttachments;
 import com.p1nero.invincible.attachment.InvinciblePlayer;
 import com.p1nero.invincible.client.InputManager;
@@ -27,10 +24,6 @@ import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.event.EntityEventListener;
 import yesman.epicfight.api.event.EpicFightEventHooks;
-import yesman.epicfight.api.event.types.entity.DealDamageEvent;
-import yesman.epicfight.api.event.types.entity.DodgeEvent;
-import yesman.epicfight.api.event.types.entity.TakeDamageEvent;
-import yesman.epicfight.api.utils.math.ValueModifier;
 import yesman.epicfight.api.utils.math.Vec2f;
 import yesman.epicfight.api.utils.math.Vec2i;
 import yesman.epicfight.client.gui.BattleModeGui;
@@ -40,8 +33,6 @@ import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
-import yesman.epicfight.world.damagesource.EpicFightDamageSource;
-import yesman.epicfight.world.damagesource.StunType;
 
 import java.util.List;
 import java.util.function.Function;
@@ -109,120 +100,8 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleSkill {
 
     @Override
     public void onInitiate(SkillContainer container, EntityEventListener eventListener) {
-        super.onInitiate(container, eventListener);
         resetCombo(container.getExecutor(), node);
-
-        InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).resetPhase();
-        container.getDataManager().setData(InvincibleSkillDataKeys.COOLDOWN, 0);
-
-        eventListener.registerEvent(EpicFightEventHooks.Entity.ON_DODGE, event -> {
-            onDodgeSuccess(event, container);
-        }, this);
-        eventListener.registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_PRE, event -> {
-            onHurtEventPre(event, container);
-        }, this);
-        eventListener.registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_INCOME, event -> {
-            onHurtEventIncome(event, container);
-        }, this);
-        eventListener.registerEvent(EpicFightEventHooks.Entity.TAKE_DAMAGE_POST, event -> {
-            onHurtEventPost(event, container);
-        }, this);
-        eventListener.registerEvent(EpicFightEventHooks.Entity.DELIVER_DAMAGE_PRE, event -> {
-            onDealDamageEventPre(event, container);
-        }, this);
-        eventListener.registerEvent(EpicFightEventHooks.Entity.DELIVER_DAMAGE_POST, event -> {
-            onDealDamageEventPost(event, container);
-        }, this);
-    }
-
-
-    /**
-     * 闪避成功事件的处理，以及闪避条件
-     */
-    public void onDodgeSuccess(DodgeEvent event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        List<BaseEvent> dodgeSuccessEvents = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getDodgeSuccessEvents();
-        if(dodgeSuccessEvents != null){
-            dodgeSuccessEvents.forEach(dodgeEvent -> dodgeEvent.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
-        }
-        container.getDataManager().setDataSync(InvincibleSkillDataKeys.DODGE_SUCCESS_TIMER, InvincibleConfig.EFFECT_TICK.get());
-    }
-
-    /**
-     * 减伤和霸体的判断
-     */
-    public void onHurtEventPre(TakeDamageEvent.Pre event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        if (event.getDamageSource() instanceof EpicFightDamageSource epicFightDamageSource && !invinciblePlayer.canBeInterrupt()) {
-            epicFightDamageSource.setStunType(StunType.NONE);
-        }
-        if (invinciblePlayer.getHurtDamageMultiplier() != 0) {
-            event.attachValueModifier(ValueModifier.multiplier(invinciblePlayer.getHurtDamageMultiplier()));
-        }
-    }
-
-    /**
-     * 招架成功的判断
-     */
-    public void onHurtEventIncome(TakeDamageEvent.Income event, SkillContainer container) {
-        if(event.isParried()){
-            container.getDataManager().setDataSync(InvincibleSkillDataKeys.PARRY_TIMER, InvincibleConfig.EFFECT_TICK.get());
-        }
-    }
-
-    /**
-     * 抛出受伤事件
-     */
-    public void onHurtEventPost(TakeDamageEvent.Post event, SkillContainer container) {
-        List<BaseEvent> hurtEvents = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getHurtEvents();
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        if(hurtEvents != null){
-            hurtEvents.forEach(hurtEvent -> hurtEvent.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
-        }
-    }
-
-    /**
-     * 调整攻击倍率，冲击，硬直类型等
-     */
-    public void onDealDamageEventPre(DealDamageEvent.Pre event, SkillContainer container) {
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        if (invinciblePlayer.getStunTypeModifier() != null) {
-            event.getDamageSource().setStunType(invinciblePlayer.getStunTypeModifier());
-        }
-        if (invinciblePlayer.getImpactMultiplier() != 1.0F) {
-            event.getDamageSource().setBaseImpact(event.getDamageSource().getBaseImpact() * invinciblePlayer.getImpactMultiplier());
-        }
-        if(invinciblePlayer.getArmorNegation() != 0){
-            event.getDamageSource().setBaseArmorNegation(invinciblePlayer.getArmorNegation());
-        }
-        if (invinciblePlayer.getDamageMultiplier() != null) {
-            event.getDamageSource().attachDamageModifier(invinciblePlayer.getDamageMultiplier());
-        }
-    }
-
-    /**
-     * 自己的充能
-     */
-    public void onDealDamageEventPost(DealDamageEvent.Post event, SkillContainer container) {
-        if (!InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).isNotCharge()) {
-            PlayerPatch<?> playerPatch = container.getExecutor();
-            ItemStack mainHandItem = playerPatch.getOriginal().getMainHandItem();
-            CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(mainHandItem);
-            if(!(capabilityItem.getInnateSkill(playerPatch, mainHandItem) instanceof ComboBasicAttack)) {
-                return;
-            }
-            if (!container.isFull()) {
-                float value = container.getResource() + event.getModifiedDamage();
-                if (value > 0.0F) {
-                    this.setConsumptionSynchronize(container, value);
-                }
-            }
-        }
-        InvinciblePlayer invinciblePlayer = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal());
-        List<BaseEvent> hitEvents = InvincibleAttachments.getPlayer(container.getExecutor().getOriginal()).getHitSuccessEvents();
-        if(hitEvents != null){
-            hitEvents.forEach(hitEvent -> hitEvent.testAndExecute(container.getExecutor(), event.getTarget(), invinciblePlayer));
-        }
+        super.onInitiate(container, eventListener);
     }
 
     /**

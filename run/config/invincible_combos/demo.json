@@ -31,6 +31,7 @@
       //默认KEY1是鼠标左键，KEY2是鼠标右键，KEY3是是鼠标下侧键，KEY4是鼠标上侧键
       //下面一共实现了：AB，AAB，AAA，BBB，CB，CCB，A+B 这几种连击类型。
       //A
+      "name": "a1",
       "key": "KEY_1",
       "animation": "epicfight:biped/combat/sword_auto1",
       //本次动画的速度倍率，可能对某些动画无效！
@@ -75,18 +76,7 @@
               "combos": [
                 {
                   "key": "KEY_1",
-                  "animation": "epicfight:biped/skill/sweeping_edge",
-                  //触发条件，可以有多个，类似坚不可摧。支持使用各个模组的自定义条件
-                  "conditions": [
-                    {
-                      "predicate": "epicfight:within_distance",
-                      "min": 0.0,
-                      "max": 1.0
-                    },
-                    {
-                      "predicate": "invincible:jumping"
-                    }
-                  ]
+                  "goto": "a1"
                 }
               ],
               //自定义阶段
