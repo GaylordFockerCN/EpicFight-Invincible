@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.p1nero.invincible.api.events.BaseEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
+import com.p1nero.invincible.api.skill.ComboNodeManager;
 import com.p1nero.invincible.skill.ComboBasicAttack;
 import com.p1nero.invincible.api.skill.ComboNode;
 import com.p1nero.invincible.api.skill.ComboType;
@@ -86,9 +87,17 @@ public class ComboJsonLoader {
                 //把自己传进去，解析以保存各种可能的动画参数
                 deserializeCombos(child, conditionAnimationsListList);
             } else {
-                String animation = combo.get("animation").getAsString();
-                child.setAnimationProvider(AnimationManager.byKey(animation));
-                child.setAnimationName(animation);//备用，针对数据包技能
+
+                if(combo.has("name")) {
+                    String name = combo.get("name").getAsString();
+                    ComboNodeManager.assignName(child, name);
+                }
+
+                if(combo.has("animation")) {
+                    String animation = combo.get("animation").getAsString();
+                    child.setAnimationProvider(AnimationManager.byKey(animation));
+                    child.setAnimationName(animation);//备用，针对数据包技能
+                }
                 if (combo.has("speed_multiplier")) {
                     child.setPlaySpeed(combo.get("speed_multiplier").getAsFloat());
                 }
@@ -213,8 +222,19 @@ public class ComboJsonLoader {
             if(combo.has("key")){
                 String key = combo.get("key").getAsString();
                 ComboType keyType = ComboNode.ComboTypes.valueOf(key);
-                parent.addChild(keyType, child);
+
+                if(combo.has("goto_root")) {
+                    parent.addChild(keyType, parent.getRootNode());
+                }
+
+                if(combo.has("goto")) {
+                    String name = combo.get("goto").getAsString();
+                    parent.addChild(keyType, ComboNodeManager.getNodesByName(name));
+                } else {
+                    parent.addChild(keyType, child);
+                }
             }
+
         }
     }
 
