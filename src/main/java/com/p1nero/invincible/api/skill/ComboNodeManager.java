@@ -1,5 +1,7 @@
 package com.p1nero.invincible.api.skill;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +20,7 @@ public class ComboNodeManager {
         return NODES.get(id);
     }
 
+    @ApiStatus.Internal
     public static void assignId(ComboNode node) {
         if(node.isAssigned()){
             return;
