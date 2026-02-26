@@ -10,9 +10,13 @@ import com.p1nero.invincible.damagesource.InvincibleDamageTypeTags;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
+import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.AnimationPlayer;
 import yesman.epicfight.api.animation.types.AttackAnimation;
 import yesman.epicfight.api.utils.math.ValueModifier;
+import yesman.epicfight.network.EpicFightNetworkManager;
+import yesman.epicfight.network.common.AnimatorControlPacket;
+import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.skill.Skill;
 import yesman.epicfight.skill.SkillBuilder;
 import yesman.epicfight.skill.SkillContainer;
@@ -25,6 +29,7 @@ import yesman.epicfight.world.entity.eventlistener.DealDamageEvent;
 import yesman.epicfight.world.entity.eventlistener.DodgeSuccessEvent;
 import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
 import yesman.epicfight.world.entity.eventlistener.TakeDamageEvent;
+import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 import java.util.List;
 import java.util.UUID;
@@ -71,6 +76,18 @@ public class AbstractInvincibleInnateSkill extends Skill {
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.TAKE_DAMAGE_EVENT_HURT, EVENT_UUID);
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_ATTACK, EVENT_UUID);
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.DEAL_DAMAGE_EVENT_DAMAGE, EVENT_UUID);
+    }
+
+    protected void handleStiff(SkillContainer container, AnimationManager.AnimationAccessor animationAccessor) {
+        boolean stiffAttack = EpicFightGameRules.STIFF_COMBO_ATTACKS.getRuleValue(container.getExecutor().getOriginal().level());
+        SPAnimatorControl animatorControlPacket;
+        if (stiffAttack) {
+            animatorControlPacket = new SPAnimatorControl(AnimatorControlPacket.Action.PLAY, animationAccessor, 0.0F, container.getExecutor());
+        } else {
+            animatorControlPacket = new SPAnimatorControl(AnimatorControlPacket.Action.PLAY_CLIENT, animationAccessor, 0.0F, container.getExecutor(), AnimatorControlPacket.Layer.COMPOSITE_LAYER, AnimatorControlPacket.Priority.HIGHEST);
+        }
+        EpicFightNetworkManager.sendToAllPlayerTrackingThisEntityWithSelf(animatorControlPacket, container.getServerExecutor().getOriginal());
+
     }
 
     /**

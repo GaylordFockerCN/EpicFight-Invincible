@@ -98,6 +98,7 @@ public class SimpleCustomInnateSkill extends AbstractInvincibleInnateSkill {
         }
         float convertTime = node.getConvertTime();
         container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
+        handleStiff(container, animationAccessor);
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
         node.getOnBeginEvents().forEach(event -> {
             event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);

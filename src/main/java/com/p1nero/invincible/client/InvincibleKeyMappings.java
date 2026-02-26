@@ -1,6 +1,7 @@
 package com.p1nero.invincible.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.p1nero.invincible.InvincibleMod;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -13,7 +14,7 @@ import yesman.epicfight.client.input.CombatKeyMapping;
 /**
  * 提供四个预设的键
  */
-@Mod.EventBusSubscriber(value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class InvincibleKeyMappings {
     public static final KeyMapping KEY1 = new CombatKeyMapping("key.invincible.key1", InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_1, "key.invincible.category");
     public static final KeyMapping KEY2 = new CombatKeyMapping("key.invincible.key2", InputConstants.Type.MOUSE, GLFW.GLFW_MOUSE_BUTTON_2, "key.invincible.category");

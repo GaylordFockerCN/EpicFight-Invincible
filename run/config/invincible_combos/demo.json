@@ -112,6 +112,7 @@
     {
       //B
       "key": "KEY_2",
+      "name": "test",
       //多重触发条件，一个键在不同的条件下可触发不同动画
       //对于每一个元素，你也可以使用speed_multiplier和各个事件之类的参数
       "condition_animations": [

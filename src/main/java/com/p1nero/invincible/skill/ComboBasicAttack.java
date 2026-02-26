@@ -40,6 +40,8 @@ import yesman.epicfight.api.utils.math.Vec2f;
 import yesman.epicfight.client.gui.BattleModeGui;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
+import yesman.epicfight.network.common.AnimatorControlPacket;
+import yesman.epicfight.network.server.SPAnimatorControl;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
 import yesman.epicfight.skill.*;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
@@ -47,6 +49,7 @@ import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
 import yesman.epicfight.world.entity.eventlistener.*;
+import yesman.epicfight.world.gamerule.EpicFightGameRules;
 
 import java.util.*;
 
@@ -257,6 +260,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                 LOGGER.debug("animationAccessor: {}", animationAccessor);
             }
             container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
+            handleStiff(container, animationAccessor);
             current.getOnBeginEvents().forEach(event -> {
                 event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
             });

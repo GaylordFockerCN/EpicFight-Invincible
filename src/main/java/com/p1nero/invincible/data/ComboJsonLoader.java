@@ -81,17 +81,17 @@ public class ComboJsonLoader {
             JsonObject combo = comboElement.getAsJsonObject();
             ComboNode child = ComboNode.create();
 
+            if(combo.has("name")) {
+                String name = combo.get("name").getAsString();
+                ComboNodeManager.assignName(child, name);
+            }
+
             //有condition_animations说明为特殊类型，要借递归进行特殊处理
             if(combo.has("condition_animations")){
                 JsonArray conditionAnimationsListList = combo.getAsJsonArray("condition_animations");
                 //把自己传进去，解析以保存各种可能的动画参数
                 deserializeCombos(child, conditionAnimationsListList);
             } else {
-
-                if(combo.has("name")) {
-                    String name = combo.get("name").getAsString();
-                    ComboNodeManager.assignName(child, name);
-                }
 
                 if(combo.has("animation")) {
                     String animation = combo.get("animation").getAsString();
