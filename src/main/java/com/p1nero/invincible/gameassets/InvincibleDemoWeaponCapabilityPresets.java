@@ -7,17 +7,15 @@ import net.minecraft.world.item.Item;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import yesman.epicfight.api.forgeevent.WeaponCapabilityPresetRegistryEvent;
-import yesman.epicfight.gameasset.Animations;
 import yesman.epicfight.gameasset.ColliderPreset;
 import yesman.epicfight.gameasset.EpicFightSounds;
 import yesman.epicfight.particle.EpicFightParticles;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
-import yesman.epicfight.world.capabilities.item.WeaponCapability;
 
 import java.util.function.Function;
 
 /**
- * 需要先注册技能，参考{@link InvincibleDemoSkills}
+ * 需要先注册技能，参考{@link InvincibleSkills}
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
 public class InvincibleDemoWeaponCapabilityPresets {
@@ -32,7 +30,7 @@ public class InvincibleDemoWeaponCapabilityPresets {
                     .hitSound(EpicFightSounds.BLADE_HIT.get())
                     .hitParticle(EpicFightParticles.HIT_BLADE.get())
                     .canBePlacedOffhand(false)
-                    .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleDemoSkills.COMBO_DEMO)
+                    .innateSkill(CapabilityItem.Styles.COMMON, (itemstack) -> InvincibleSkills.COMBO_DEMO)
                     .comboCancel((style) -> false);
 
     @SubscribeEvent

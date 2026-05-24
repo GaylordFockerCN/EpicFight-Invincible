@@ -1,0 +1,132 @@
+{
+    "consumption": 0,
+    "max_stacks": 0,
+    "descriptions":[
+      "无战技：这是一把平平无奇的武器，没有战技"
+    ],
+    "drawSkillIcon": false,
+    "maxPressTime": 2,
+    "maxReserveTime": 8,
+    "maxProtectTime": 10,
+    "resetTime": 16,
+	"category": "sword",
+	"hit_particle": "epicfight:entity.hit.blunt",
+	"hit_sound": "epicfight:entity.hit.blunt",
+	"swing_sound": "epicfight:entity.weapon.whoosh_hard",
+	"styles":
+	{
+		"default": "two_hand"
+	},
+	"collider":
+    {
+        "number": 3,
+        "center": [0.0, 0.0, -0.75],
+        "size": [0.4, 0.4, 0.8]
+    },
+    "combos":
+    {
+    	"two_hand":
+        [
+          {
+            "name": "simple_sword_a1",
+            "key": "KEY_1",
+            "condition_animations": [
+              {
+                "priority": 1,
+                "speed_multiplier": 1.0,
+                "convert_time": 0.0,
+                "damage_multiplier": {
+                  "multiplier": 0.91
+                },
+                "hurt_damage_multiplier": 1.0,
+                "impact_multiplier": 1.0,
+                "stun_type": "SHORT",
+                "can_be_interrupt": true,
+                "conditions": [
+                  {"predicate": "invincible:sprinting"}
+                ],
+                "animation": "epicfight:biped/combat/sword_dash"
+              },
+              {
+                "priority": 2,
+                "speed_multiplier": 1.0,
+                "convert_time": 0.0,
+                "damage_multiplier": {
+                  "multiplier": 0.67
+                },
+                "hurt_damage_multiplier": 1.0,
+                "impact_multiplier": 1.5,
+                "stun_type": "LONG",
+                "can_be_interrupt": true,
+                "conditions": [
+                  {"predicate": "invincible:jumping"}
+                ],
+                "animation": "epicfight:biped/combat/sword_airslash"
+              },
+              {
+                "animation": "epicfight:biped/combat/sword_auto1",
+                "priority": 0,
+                "speed_multiplier": 1.0,
+                "convert_time": 0.0,
+                "damage_multiplier": {
+                  "multiplier": 1.0
+                },
+                "hurt_damage_multiplier": 1.0,
+                "impact_multiplier": 1.0,
+                "stun_type": "SHORT",
+                "can_be_interrupt": true,
+                "combos": [
+                  {
+                    "key": "KEY_1",
+                    "animation": "epicfight:biped/combat/sword_auto2",
+                    "speed_multiplier": 1.0,
+                    "convert_time": 0.0,
+                    "damage_multiplier": {
+                      "multiplier": 1.0
+                    },
+                    "hurt_damage_multiplier": 1.0,
+                    "impact_multiplier": 1.0,
+                    "stun_type": "SHORT",
+                    "can_be_interrupt": true,
+                    "combos": [
+                      {
+                        "key": "KEY_1",
+                        "animation": "epicfight:biped/combat/sword_auto3",
+                        "speed_multiplier": 1.0,
+                        "convert_time": 0.0,
+                        "damage_multiplier": {
+                          "multiplier": 1.0
+                        },
+                        "hurt_damage_multiplier": 1.0,
+                        "impact_multiplier": 1.0,
+                        "stun_type": "SHORT",
+                        "can_be_interrupt": true,
+                        "combos": [
+                          {
+                            "key": "KEY_1",
+                            "goto": "simple_sword_a1"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+    	"mount":
+    	[
+    		"epicfight:biped/combat/sword_mount_attack"
+    	]
+    },
+    "livingmotion_modifier": {
+    	"two_hand":
+    	{
+    		"block": "epicfight:biped/skill/guard_sword",
+			"idle": "epicfight:biped/living/hold_longsword",
+    		"walk": "epicfight:biped/living/walk_longsword",
+    		"run": "epicfight:biped/living/run_longsword"
+    	}
+    }
+}

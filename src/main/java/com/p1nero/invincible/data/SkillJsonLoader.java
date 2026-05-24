@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SkillJsonLoader {
+
     public static void loadSkill(CompoundTag data) throws CommandSyntaxException {
         loadSkill(JsonParser.parseString(data.toString()).getAsJsonObject());
     }

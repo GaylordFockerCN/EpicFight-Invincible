@@ -7,6 +7,7 @@ import com.p1nero.invincible.api.events.TimePeriodEvent;
 import com.p1nero.invincible.api.events.TimeStampedEvent;
 import com.p1nero.invincible.conditions.*;
 import com.p1nero.invincible.skill.ComboBasicAttack;
+import com.p1nero.invincible.skill.CapabilityComboAttack;
 import com.p1nero.invincible.api.skill.ComboNode;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerPlayer;
@@ -23,12 +24,15 @@ import yesman.epicfight.world.damagesource.StunType;
  * 预设的Condition可以参考 {@link yesman.epicfight.data.conditions.EpicFightConditions} 和 {@link InvincibleConditions}
  */
 @Mod.EventBusSubscriber(modid = InvincibleMod.MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-public class InvincibleDemoSkills {
+public class InvincibleSkills {
     public static Skill COMBO_DEMO;
+
+    public static Skill SIMPLE_COMBO;
 
     @SubscribeEvent
     public static void buildSkills(SkillBuildEvent event) {
         SkillBuildEvent.ModRegistryWorker registryWorker = event.createRegistryWorker(InvincibleMod.MOD_ID);
+        SIMPLE_COMBO = registryWorker.build("simple_combo", CapabilityComboAttack::new, CapabilityComboAttack.createCapabilityComboAttack());
         //我使用的是史诗战斗的Condition系统，这意味着你可以自定义条件，也可以用我和史诗战斗给的预设
         ComboNode root = ComboNode.create();
         ComboNode basicAttack = ComboNode.createNode(Animations.BLADE_RUSH_COMBO1)//1a

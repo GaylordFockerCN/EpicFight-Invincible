@@ -10,18 +10,17 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.InvincibleConfig;
 import com.p1nero.invincible.api.events.Side;
-import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
+import com.p1nero.invincible.api.skill.ComboNode;
+import com.p1nero.invincible.api.skill.ComboType;
 import com.p1nero.invincible.capability.InvinciblePlayer;
-import com.p1nero.invincible.client.InputManager;
+import com.p1nero.invincible.capability.InvinciblePlayerCapabilityProvider;
+import com.p1nero.invincible.capability.item.InvincibleWeaponCapability;
 import com.p1nero.invincible.conditions.PressIntervalCondition;
 import com.p1nero.invincible.conditions.PressedTimeCondition;
 import com.p1nero.invincible.gameassets.InvincibleSkillDataKeys;
 import com.p1nero.invincible.item.InvincibleItems;
-import com.p1nero.invincible.api.skill.ComboNode;
-import com.p1nero.invincible.api.skill.ComboType;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.player.Input;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -35,57 +34,54 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.opengl.GL11;
 import org.slf4j.Logger;
 import yesman.epicfight.api.animation.AnimationManager;
-import yesman.epicfight.api.animation.types.StaticAnimation;
 import yesman.epicfight.api.utils.math.Vec2f;
 import yesman.epicfight.client.gui.BattleModeGui;
 import yesman.epicfight.data.conditions.Condition;
 import yesman.epicfight.network.EpicFightNetworkManager;
 import yesman.epicfight.network.server.SPSkillExecutionFeedback;
-import yesman.epicfight.skill.*;
+import yesman.epicfight.skill.Skill;
+import yesman.epicfight.skill.SkillBuilder;
+import yesman.epicfight.skill.SkillCategory;
+import yesman.epicfight.skill.SkillContainer;
+import yesman.epicfight.skill.SkillDataManager;
+import yesman.epicfight.skill.SkillSlot;
+import yesman.epicfight.skill.SkillSlots;
+import yesman.epicfight.skill.SkillCategories;
 import yesman.epicfight.world.capabilities.EpicFightCapabilities;
 import yesman.epicfight.world.capabilities.entitypatch.player.PlayerPatch;
 import yesman.epicfight.world.capabilities.entitypatch.player.ServerPlayerPatch;
 import yesman.epicfight.world.capabilities.item.CapabilityItem;
-import yesman.epicfight.world.entity.eventlistener.*;
-import java.util.*;
+import yesman.epicfight.world.entity.eventlistener.MovementInputEvent;
+import yesman.epicfight.world.entity.eventlistener.PlayerEventListener;
+import yesman.epicfight.world.entity.eventlistener.SkillCastEvent;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * 真是糟糕的设计，连段数据应该绑在物品里才对
+ * TODO 额外做个stack系统
  */
-@Deprecated
 @SuppressWarnings({"unchecked", "rawtypes"})
-public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
-
+public class CapabilityComboAttack extends AbstractInvincibleInnateSkill {
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    @OnlyIn(Dist.CLIENT)
-    protected boolean isWalking;
-    protected boolean shouldDrawGui;
-    protected ResourceLocation skillTextureLocation;
-    protected List<String> translationKeys;
+    private static final Vec2f[] CLOCK_POS = {
+            new Vec2f(0.5F, 0.5F),
+            new Vec2f(0.5F, 0.0F),
+            new Vec2f(0.0F, 0.0F),
+            new Vec2f(0.0F, 1.0F),
+            new Vec2f(1.0F, 1.0F),
+            new Vec2f(1.0F, 0.0F)
+    };
 
-    @Nullable
-    protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
-
-    protected ComboNode root;
-    protected final int maxPressTime, maxReserveTime, maxProtectTime, resetTime;
-
-    public ComboBasicAttack(Builder builder) {
+    public CapabilityComboAttack(Builder builder) {
         super(builder);
-        this.shouldDrawGui = builder.shouldDrawGui;
-        this.skillTextureLocation = builder.skillTextureLocation;
-        this.root = builder.root;
-        this.walkBegin = builder.walkBegin;
-        this.walkEnd = builder.walkEnd;
-        this.translationKeys = builder.translationKeys;
-        maxPressTime = builder.maxPressTime;
-        maxReserveTime = builder.maxReserveTime;
-        maxProtectTime = builder.maxProtectTime;
-        resetTime = builder.resetTime;
     }
 
-    public static Builder createComboBasicAttack() {
-        return new Builder().setCategory(SkillCategories.WEAPON_INNATE).setActivateType(ActivateType.ONE_SHOT).setResource(Resource.NONE);
+    public static Builder createCapabilityComboAttack() {
+        return new Builder().setCategory(SkillCategories.WEAPON_INNATE).setActivateType(Skill.ActivateType.ONE_SHOT).setResource(Resource.NONE);
     }
 
     @Override
@@ -94,7 +90,9 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             return super.canExecute(container);
         } else {
             ItemStack itemstack = container.getExecutor().getOriginal().getMainHandItem();
-            return super.canExecute(container) && EpicFightCapabilities.getItemStackCapability(itemstack).getInnateSkill(container.getExecutor(), itemstack) == this && container.getExecutor().getOriginal().getVehicle() == null;
+            return super.canExecute(container)
+                    && EpicFightCapabilities.getItemStackCapability(itemstack).getInnateSkill(container.getExecutor(), itemstack) == this
+                    && container.getExecutor().getOriginal().getVehicle() == null;
         }
     }
 
@@ -104,7 +102,62 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public boolean isDebugMode(SkillContainer container) {
-        return container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get()) || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
+        return container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.DEBUG.get())
+                || container.getExecutor().getOriginal().getMainHandItem().is(InvincibleItems.CUSTOM_COMBO_DEMO.get());
+    }
+
+    @Nullable
+    private static InvincibleWeaponCapability getInvincibleWeaponCapability(PlayerPatch<?> playerPatch, ItemStack itemStack) {
+        CapabilityItem capabilityItem = EpicFightCapabilities.getItemStackCapability(itemStack);
+        return capabilityItem instanceof InvincibleWeaponCapability invincibleWeaponCapability ? invincibleWeaponCapability : null;
+    }
+
+    @Nullable
+    private InvincibleWeaponCapability getCurrentWeaponCapability(PlayerPatch<?> playerPatch) {
+        return getInvincibleWeaponCapability(playerPatch, playerPatch.getOriginal().getMainHandItem());
+    }
+
+    @Nullable
+    private ComboNode getCurrentComboRoot(PlayerPatch<?> playerPatch) {
+        InvincibleWeaponCapability capability = getCurrentWeaponCapability(playerPatch);
+        return capability == null ? null : capability.getCombo(capability.getStyle(playerPatch));
+    }
+
+    private int getMaxPressTime(@Nullable InvincibleWeaponCapability capability) {
+        return capability == null || capability.getMaxPressTime() == 0 ? InvincibleConfig.MAX_PRESS_TICK.get() : capability.getMaxPressTime();
+    }
+
+    private int getMaxProtectTime(@Nullable InvincibleWeaponCapability capability) {
+        return capability == null || capability.getMaxProtectTime() == 0 ? InvincibleConfig.PRESS_PROTECT_TICK.get() : capability.getMaxProtectTime();
+    }
+
+    private int getMaxReserveTime(@Nullable InvincibleWeaponCapability capability) {
+        return capability == null || capability.getMaxReserveTime() == 0 ? InvincibleConfig.RESERVE_TICK.get() : capability.getMaxReserveTime();
+    }
+
+    private int getResetTime(@Nullable InvincibleWeaponCapability capability) {
+        return capability == null || capability.getResetTime() == 0 ? InvincibleConfig.RESET_TICK.get() : capability.getResetTime();
+    }
+
+    public int getMaxPressTime(SkillContainer container) {
+        return getMaxPressTime(getCurrentWeaponCapability(container.getExecutor()));
+    }
+
+    public int getMaxProtectTime(SkillContainer container) {
+        return getMaxProtectTime(getCurrentWeaponCapability(container.getExecutor()));
+    }
+
+    public int getMaxReserveTime(SkillContainer container) {
+        return getMaxReserveTime(getCurrentWeaponCapability(container.getExecutor()));
+    }
+
+    public int getResetTime(SkillContainer container) {
+        return getResetTime(getCurrentWeaponCapability(container.getExecutor()));
+    }
+
+    private ResourceLocation getSkillTexture(SkillContainer container) {
+        InvincibleWeaponCapability capability = getCurrentWeaponCapability(container.getExecutor());
+        return capability == null || capability.getSkillTextureLocation() == null ? super.getSkillTexture() : capability.getSkillTextureLocation();
     }
 
     public static void executeNodeOnServer(ServerPlayer serverPlayer, ComboNode node) {
@@ -122,7 +175,10 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public static void executeNodeOnServer(ServerPlayerPatch serverPlayerPatch, ComboNode node, int pressTime, long inputInterval) {
-        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+        Skill skill = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill();
+        if (skill instanceof CapabilityComboAttack capabilityComboAttack) {
+            capabilityComboAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressTime, inputInterval);
+        } else if (skill instanceof ComboBasicAttack comboBasicAttack) {
             comboBasicAttack.executeNodeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node, pressTime, inputInterval);
         }
     }
@@ -142,15 +198,14 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public static void executeOnServer(ServerPlayerPatch serverPlayerPatch, ComboType type, int pressTime, long inputInterval) {
-        if (serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+        Skill skill = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill();
+        if (skill instanceof CapabilityComboAttack capabilityComboAttack) {
+            capabilityComboAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime, inputInterval);
+        } else if (skill instanceof ComboBasicAttack comboBasicAttack) {
             comboBasicAttack.executeOnServer(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), type, pressTime, inputInterval);
         }
     }
 
-    /**
-     * 处理客户端的输入信息
-     * 处理输入位于{@link InputManager#getAvailablePackets(SkillContainer)}
-     */
     @Override
     public void executeOnServer(SkillContainer container, FriendlyByteBuf args) {
         ComboType type = ComboType.ENUM_MANAGER.get(args.readInt());
@@ -162,11 +217,8 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         this.executeOnServer(container, type, pressedTime, pressInterval);
     }
 
-    /**
-     * 方便额外调用
-     */
     public void executeOnServer(SkillContainer container, ComboType type, int pressedTime, long inputInterval) {
-        if (pressedTime > getMaxProtectTime()) {
+        if (pressedTime > getMaxProtectTime(container)) {
             return;
         }
         if (isDebugMode(container)) {
@@ -175,10 +227,12 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         container.getExecutor().getOriginal().getCapability(InvinciblePlayerCapabilityProvider.INVINCIBLE_PLAYER).ifPresent(invinciblePlayer -> {
             ComboNode last = invinciblePlayer.getCurrentLogicNode();
             if (last == null) {
-                return;
+                last = getCurrentComboRoot(container.getExecutor());
+                if (last == null) {
+                    return;
+                }
             }
             ComboNode current = last.getNext(type);
-            //如果是空的，则尝试子输入，防止不小心按到多个按键的情况
             if (current == null) {
                 for (ComboType subType : type.getSubTypes()) {
                     if ((current = last.getNext(subType)) != null) {
@@ -195,18 +249,15 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         boolean hasPressedTimeCondition = false;
         boolean debugMode = isDebugMode(container);
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
-        //动画是空的就直接跳过，不是就播放
         if (current != null) {
             if (current.getAnimationAccessor() == null || !current.getConditionNodes().isEmpty()) {
                 if (current.getConditionNodes().isEmpty()) {
                     return;
                 }
                 current.getConditionNodes().sort(Comparator.comparingInt(ComboNode::getPriority).reversed());
-                //多个条件指向不同动画，根据优先级来检测
                 for (ComboNode conditionAnimation : current.getConditionNodes()) {
                     boolean canExecute = true;
                     for (Condition condition : conditionAnimation.getConditions(Side.SERVER, Side.BOTH)) {
-
                         if (condition instanceof PressedTimeCondition pressedTimeCondition) {
                             if (pressedTime < pressedTimeCondition.getMin() || pressedTime > pressedTimeCondition.getMax()) {
                                 canExecute = false;
@@ -224,7 +275,6 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                     }
                     if (canExecute) {
                         current = conditionAnimation;
-                        //实现ConditionAnimations里接combos
                         if (conditionAnimation.hasNext()) {
                             next = conditionAnimation;
                         }
@@ -232,7 +282,6 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
                     }
                 }
             } else {
-                //多个条件指向同一动画
                 for (Condition condition : current.getConditions(Side.SERVER, Side.BOTH)) {
                     if (condition instanceof PressedTimeCondition pressedTimeCondition) {
                         hasPressedTimeCondition = true;
@@ -261,18 +310,18 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             }
             container.getExecutor().playAnimationSynchronized(animationAccessor, convertTime);
             handleStiff(container, animationAccessor);
-            current.getOnBeginEvents().forEach(event -> {
-                event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer);
-            });
+            current.getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
             initPlayer(container, invinciblePlayer, current);
-            //把玩家参数以及当前节点同步给客户端
             if (current.isRepeatNode()) {
                 next = current.getParentNode();
             }
             invinciblePlayer.setCurrentLogicNode(next);
             sendFeedback(next, container, invinciblePlayer);
             return;
-        } else {
+        }
+
+        ComboNode root = getCurrentComboRoot(container.getExecutor());
+        if (root != null) {
             invinciblePlayer.setCurrentLogicNode(root);
             sendFeedback(root, container, invinciblePlayer);
         }
@@ -290,9 +339,6 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         EpicFightNetworkManager.sendToPlayer(feedbackPacket, container.getServerExecutor().getOriginal());
     }
 
-    /**
-     * 根据预存来初始化玩家信息
-     */
     @Override
     protected void initPlayer(SkillContainer container, InvinciblePlayer invinciblePlayer, ComboNode dataNode) {
         invinciblePlayer.setPhase(dataNode.getNewPhase());
@@ -308,20 +354,18 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             invinciblePlayer.loadNBTData(tag);
             ComboNode current = invinciblePlayer.getCurrentLogicNode();
             if (current != null) {
-                invinciblePlayer.getCurrentLogicNode().getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
+                current.getOnBeginEvents().forEach(event -> event.testAndExecute(container.getExecutor(), container.getExecutor().getTarget(), invinciblePlayer));
             }
             initPlayer(container, invinciblePlayer, invinciblePlayer.getCurrentDataNode());
         }
     }
 
     protected void onSkillCastEvent(SkillCastEvent event, SkillContainer container) {
-        //不影响默认的普攻
         ItemStack mainHandItem = event.getPlayerPatch().getOriginal().getMainHandItem();
         Optional<CapabilityItem> optionalCapabilityItem = EpicFightCapabilities.getItemCapability(mainHandItem);
         if (optionalCapabilityItem.isEmpty() || optionalCapabilityItem.get().isEmpty()) {
             return;
         }
-        //不影响没技能但是有模板的武器
         if (EpicFightCapabilities.getItemStackCapability(mainHandItem).getInnateSkill(event.getPlayerPatch(), mainHandItem) == null) {
             return;
         }
@@ -331,53 +375,23 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         }
     }
 
-    protected void onClientInput(MovementInputEvent event, SkillContainer container) {
-        Input input = event.getMovementInput();
-        boolean isUp = input.up;
-        if (isUp && !isWalking) {
-            if (walkBegin != null) {
-                container.getExecutor().playAnimationSynchronized(walkBegin, 0.15F);
-            }
-            isWalking = true;
-        }
-        if (!isUp && isWalking) {
-            if (walkEnd != null) {
-                container.getExecutor().playAnimationSynchronized(walkEnd, 0.15F);
-            }
-            isWalking = false;
-        }
-    }
-
     @Override
     public void onInitiate(SkillContainer container) {
         super.onInitiate(container);
-        //初始化连段
         resetCombo(container);
-
-        //取消原版的普攻和跳攻
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_CAST_EVENT, EVENT_UUID, (event -> {
-            onSkillCastEvent(event, container);
-        }));
-        //播放walk的过渡动画
-        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID, (event -> {
-            onClientInput(event, container);
-        }));
+        container.getExecutor().getEventListener().addEventListener(PlayerEventListener.EventType.SKILL_CAST_EVENT, EVENT_UUID, event -> onSkillCastEvent(event, container));
     }
 
     @Override
     public void onRemoved(SkillContainer container) {
         super.onRemoved(container);
         container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.SKILL_CAST_EVENT, EVENT_UUID);
-        container.getExecutor().getEventListener().removeListener(PlayerEventListener.EventType.MOVEMENT_INPUT_EVENT, EVENT_UUID);
     }
 
-    /**
-     * 超时重置
-     */
     @Override
     public void updateContainer(SkillContainer container) {
         super.updateContainer(container);
-        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > getResetTime()) {
+        if (!container.getExecutor().isLogicalClient() && container.getExecutor().getTickSinceLastAction() > getResetTime(container)) {
             resetCombo(container);
         }
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
@@ -402,14 +416,17 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public void resetCombo(SkillContainer container) {
-        setCurrentNodeSync(container, root);
+        setCurrentNodeSync(container, getCurrentComboRoot(container.getExecutor()));
     }
 
     public static ComboNode getCurrentNode(SkillContainer container) {
         return InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal()).getCurrentLogicNode();
     }
 
-    public void setCurrentNodeSync(SkillContainer container, ComboNode comboNode) {
+    public void setCurrentNodeSync(SkillContainer container, @Nullable ComboNode comboNode) {
+        if (comboNode == null) {
+            return;
+        }
         InvinciblePlayer invinciblePlayer = InvinciblePlayerCapabilityProvider.get(container.getExecutor().getOriginal());
         invinciblePlayer.setCurrentLogicNode(comboNode);
         invinciblePlayer.clear();
@@ -419,18 +436,24 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
     }
 
     public static void setCurrentNodeSync(ServerPlayerPatch serverPlayerPatch, ComboNode node) {
-        if(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill() instanceof ComboBasicAttack comboBasicAttack) {
+        Skill skill = serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE).getSkill();
+        if (skill instanceof CapabilityComboAttack capabilityComboAttack) {
+            capabilityComboAttack.setCurrentNodeSync(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node);
+        } else if (skill instanceof ComboBasicAttack comboBasicAttack) {
             comboBasicAttack.setCurrentNodeSync(serverPlayerPatch.getSkill(SkillSlots.WEAPON_INNATE), node);
         }
     }
 
     @Override
     public List<Component> getTooltipOnItem(ItemStack itemStack, CapabilityItem cap, PlayerPatch<?> playerpatch) {
-        if (translationKeys.isEmpty()) {
+        InvincibleWeaponCapability capability = cap instanceof InvincibleWeaponCapability invincibleWeaponCapability
+                ? invincibleWeaponCapability
+                : getInvincibleWeaponCapability(playerpatch, itemStack);
+        if (capability == null || capability.getSkillDescriptions().isEmpty()) {
             return super.getTooltipOnItem(itemStack, cap, playerpatch);
         }
         List<Component> list = Lists.newArrayList();
-        for (String translationKey : translationKeys) {
+        for (String translationKey : capability.getSkillDescriptions()) {
             list.add(Component.translatable(translationKey));
         }
         return list;
@@ -438,23 +461,14 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
 
     @Override
     public boolean shouldDraw(SkillContainer container) {
-        return shouldDrawGui;
+        InvincibleWeaponCapability capability = getCurrentWeaponCapability(container.getExecutor());
+        return capability != null && capability.shouldDrawSkillIcon();
     }
 
     @Override
     public ResourceLocation getSkillTexture() {
-        return skillTextureLocation == null ? super.getSkillTexture() : skillTextureLocation;
+        return super.getSkillTexture();
     }
-
-    private static final Vec2f[] CLOCK_POS = {
-            new Vec2f(0.5F, 0.5F),
-            new Vec2f(0.5F, 0.0F),
-            new Vec2f(0.0F, 0.0F),
-            new Vec2f(0.0F, 1.0F),
-            new Vec2f(1.0F, 1.0F),
-            new Vec2f(1.0F, 0.0F)
-    };
-
 
     @Override
     @OnlyIn(Dist.CLIENT)
@@ -512,7 +526,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         }
 
         RenderSystem.enableBlend();
-        RenderSystem.setShaderTexture(0, container.getSkill().getSkillTexture());
+        RenderSystem.setShaderTexture(0, getSkillTexture(container));
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
@@ -559,10 +573,9 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         tessellator.end();
 
         GL11.glCullFace(GL11.GL_BACK);
-
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
 
-        if (container.isActivated() && (container.getSkill().getActivateType() == ActivateType.DURATION || container.getSkill().getActivateType() == ActivateType.DURATION_INFINITE)) {
+        if (container.isActivated() && (container.getSkill().getActivateType() == Skill.ActivateType.DURATION || container.getSkill().getActivateType() == Skill.ActivateType.DURATION_INFINITE)) {
             String s = String.format("%.0f", container.getRemainDuration() / 20.0F);
             int stringWidth = (gui.getFont().width(s) - 6) / 3;
             guiGraphics.drawString(gui.getFont(), s, x + 13 - stringWidth, y + 13, 16777215, true);
@@ -578,12 +591,12 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             guiGraphics.drawString(gui.getFont(), s, x + 25 - stringWidth, y + 22, 16777215, true);
         }
 
-        //画冷却
-
         SkillDataManager manager = container.getDataManager();
         if (!manager.hasData(InvincibleSkillDataKeys.COOLDOWN.get())) {
+            guiGraphics.pose().popPose();
             return;
         }
+
         int cooldown = manager.getDataValue(InvincibleSkillDataKeys.COOLDOWN.get());
         if (cooldown > 0) {
             Font font = gui.getFont();
@@ -594,57 +607,7 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
         guiGraphics.pose().popPose();
     }
 
-
-    public int getMaxPressTime() {
-        return maxPressTime == 0 ? InvincibleConfig.MAX_PRESS_TICK.get() : maxPressTime;
-    }
-
-    public int getMaxProtectTime() {
-        return maxProtectTime == 0 ? InvincibleConfig.PRESS_PROTECT_TICK.get() : maxProtectTime;
-    }
-
-    public int getMaxReserveTime() {
-        return maxReserveTime == 0 ? InvincibleConfig.RESERVE_TICK.get() : maxReserveTime;
-    }
-
-    public int getResetTime() {
-        return resetTime == 0 ? InvincibleConfig.RESET_TICK.get() : resetTime;
-    }
-
-    public static class Builder extends SkillBuilder<ComboBasicAttack> {
-        protected ComboNode root;
-
-        protected List<String> translationKeys = List.of();
-        protected int maxPressTime, maxReserveTime, maxProtectTime, resetTime;
-        @Nullable
-        protected AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin, walkEnd;
-
-        protected boolean shouldDrawGui;
-        protected ResourceLocation skillTextureLocation;
-
-        public Builder() {
-        }
-
-        public Builder setMaxPressTime(int maxPressTime) {
-            this.maxPressTime = maxPressTime;
-            return this;
-        }
-
-        public Builder setMaxProtectTime(int maxProtectTime) {
-            this.maxProtectTime = maxProtectTime;
-            return this;
-        }
-
-        public Builder setReserveTime(int maxReserveTime) {
-            this.maxReserveTime = maxReserveTime;
-            return this;
-        }
-
-        public Builder setResetTime(int resetTime) {
-            this.resetTime = resetTime;
-            return this;
-        }
-
+    public static class Builder extends SkillBuilder<CapabilityComboAttack> {
         public Builder setCategory(SkillCategory category) {
             this.category = category;
             return this;
@@ -659,36 +622,5 @@ public class ComboBasicAttack extends AbstractInvincibleInnateSkill {
             this.resource = resource;
             return this;
         }
-
-        public Builder setCombo(ComboNode root) {
-            this.root = root;
-            return this;
-        }
-
-        public Builder setShouldDrawGui(boolean shouldDrawGui) {
-            this.shouldDrawGui = shouldDrawGui;
-            return this;
-        }
-
-        public Builder setWalkBeginAnim(AnimationManager.AnimationAccessor<? extends StaticAnimation> walkBegin) {
-            this.walkBegin = walkBegin;
-            return this;
-        }
-
-        public Builder setWalkEndAnim(AnimationManager.AnimationAccessor<? extends StaticAnimation> walkEnd) {
-            this.walkEnd = walkEnd;
-            return this;
-        }
-
-        public Builder addToolTipOnItem(List<String> translationKeys) {
-            this.translationKeys = translationKeys;
-            return this;
-        }
-
-        public Builder setSkillTextureLocation(ResourceLocation skillTextureLocation) {
-            this.skillTextureLocation = skillTextureLocation;
-            return this;
-        }
     }
-
 }

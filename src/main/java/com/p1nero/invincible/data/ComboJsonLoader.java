@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ComboJsonLoader {
+
     public static void loadCombos(CompoundTag data) throws CommandSyntaxException {
         loadCombos(JsonParser.parseString(data.toString()).getAsJsonObject());
     }
