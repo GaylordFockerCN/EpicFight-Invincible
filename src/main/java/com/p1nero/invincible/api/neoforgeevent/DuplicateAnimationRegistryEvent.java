@@ -1,9 +1,11 @@
 package com.p1nero.invincible.api.neoforgeevent;
 
+import com.mojang.logging.LogUtils;
 import com.p1nero.invincible.mixin.AnimationManagerAccessor;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.Event;
 import net.neoforged.fml.event.IModBusEvent;
+import org.slf4j.Logger;
 import yesman.epicfight.api.animation.AnimationManager;
 import yesman.epicfight.api.animation.types.StaticAnimation;
 
@@ -15,6 +17,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class DuplicateAnimationRegistryEvent extends Event implements IModBusEvent {
+    private static final Logger LOGGER = LogUtils.getLogger();
     private final List<DuplicateAnimationBuilder> builders = new ArrayList<>();
     private final Set<String> namespaces = new HashSet<>();
 
@@ -34,6 +37,15 @@ public class DuplicateAnimationRegistryEvent extends Event implements IModBusEve
     public record DuplicateAnimationBuilder(String namespace, Consumer<DuplicateAnimationBuilder> task) {
 
         public <T extends StaticAnimation> AnimationManager.AnimationAccessor<T> nextAccessor(AnimationManager.AnimationAccessor<?> original, Function<AnimationManager.AnimationAccessor<T>, T> onLoad) {
+            if (original == null) {
+                // The original accessor is still null if Epic Fight's animation registration failed
+                // before it was assigned (e.g. another mod's animation builder crashed on a dedicated
+                // server). FML keeps draining the deferred work queue after such a failure, so we get
+                // here anyway. Log and skip instead of throwing, otherwise the NPE hides the real error.
+                LOGGER.error("Cannot duplicate an animation into '{}': the original accessor is null. An earlier animation registration probably failed, check the log above.", namespace);
+                return null;
+            }
+
             ResourceLocation selfName = ResourceLocation.fromNamespaceAndPath(namespace, original.registryName().getPath());
             AnimationManager.AnimationAccessor<T> accessor = DuplicateAnimationAccessorImpl.create(original.registryName(), selfName, getInstance().getAnimations().size() + 1, true, onLoad);
 
